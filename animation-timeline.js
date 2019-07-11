@@ -2,6 +2,11 @@ var animationTimeline = function (window, document) {
 
 	let width = 0;
 
+	if (!Math.sign) {
+		Math.sign = function (p) {
+			return p >= 0 ? 1 : -1;
+		}
+	}
 
 	let defaultOptions = {
 		keysPerSecond: 60,
@@ -174,7 +179,7 @@ var animationTimeline = function (window, document) {
 			canvas.style.cursor = null;
 		}
 
-		canvas.addEventListener("wheel", event => {
+		canvas.addEventListener("wheel", function (event) {
 			if (event.ctrlKey) {
 				const delta = Math.sign(event.deltaY) * 10;
 				options.zoom += delta;
