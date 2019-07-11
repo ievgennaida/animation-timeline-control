@@ -2,6 +2,7 @@ var animationTimeline = function (window, document) {
 
 	let width = 0;
 
+
 	let defaultOptions = {
 		keysPerSecond: 60,
 		snapToTimeframe: true,
@@ -11,8 +12,18 @@ var animationTimeline = function (window, document) {
 		smallSteps: 50,
 		leftMarginPx: 10,
 		minTimelineToDispayMs: 5000,
-		headerBackground: '#FF3A61',
-		laneHeight: 25,
+		headerBackground: 'black',
+		selectedLaneColor: '#333333',
+		laneColor: 'white',
+		alternateLaneColor: 'black',//333333
+		backgroundColor: 'black',//1E1E1E
+		timeIndicatorColor: 'red',
+		labelsColor: '#D5D5D5',
+		tickColor: '#D5D5D5',
+		useAlternateLaneColor: false,
+		laneHeightPx: 25,
+		laneMarginPX: 1,
+		headerHeight: 30,
 		lineHeight: 1,
 		autoWidth: true,
 		ticksFont: "11px sans-serif",
@@ -20,6 +31,19 @@ var animationTimeline = function (window, document) {
 		id: '',
 		scrollId: ''
 	}
+
+	function getPixelRatio(context) {
+		dpr = window.devicePixelRatio || 1,
+			bsr = context.webkitBackingStorePixelRatio ||
+			context.mozBackingStorePixelRatio ||
+			context.msBackingStorePixelRatio ||
+			context.oBackingStorePixelRatio ||
+			context.backingStorePixelRatio || 1;
+
+		return dpr / bsr;
+	}
+
+
 
 	function msToHMS(ms, isSeconds) {
 		// 1- Convert to seconds:
@@ -111,36 +135,30 @@ var animationTimeline = function (window, document) {
 			return null;
 		}
 
-		size.style.minWidth = 500;
-		var initialWidth = document.body.clientWidth;
-		var initialHeight = document.body.clientHeight;
-		var initalCanvasWidth = canvas.clientWidth;
-		var initalCanvasHeight = canvas.clientHeight;
 
 		var context = canvas.getContext("2d");
-
+		var pixelRatio = getPixelRatio(context);
 		function getMousePos(canvas, evt) {
 			var rect = canvas.getBoundingClientRect(), // abs. size of element
-				scaleX = canvas.width / rect.width, // relationship bitmap vs. element for X
-				scaleY = canvas.height / rect.height; // relationship bitmap vs. element for Y
+				scaleX = canvas.width / pixelRatio / rect.width, // relationship bitmap vs. element for X
+				scaleY = canvas.height / pixelRatio / rect.height; // relationship bitmap vs. element for Y
 
+			// scale mouse coordinates after they have been adjusted to be relative to element
 			return {
-				x: (evt.clientX - rect.left) * scaleX, // scale mouse coordinates after they have
-				y: (evt.clientY - rect.top) * scaleY // been adjusted to be relative to element
+				x: (evt.clientX - rect.left) * scaleX,
+				y: (evt.clientY - rect.top) * scaleY
 			}
 		}
 
 		function rescale() {
-			var width = scrollContainer.clientWidth;//document.body.clientWidth / initialWidth * initalCanvasWidth; // your code here
-			var height = scrollContainer.clientHeight;//document.body.clientHeight / initialHeight * initalCanvasHeight; // your code here
-			if (parseInt(canvas.style.minWidth)) {
+			var width = scrollContainer.clientWidth * pixelRatio;//document.body.clientWidth / initialWidth * initalCanvasWidth; // your code here
+			var height = scrollContainer.clientHeight * pixelRatio;//document.body.clientHeight / initialHeight * initalCanvasHeight; // your code here
+			if (width != context.canvas.width)
 				context.canvas.width = width;
-			}
-			else {
-				//
-				context.canvas.width = width;
-			}
-			context.canvas.height = Math.floor(height);
+			if (height != context.canvas.height)
+				context.canvas.height = height;
+
+			context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
 		}
 		// Check whether we can drag something here.
 		function getDragableObject(pos) {
@@ -198,7 +216,7 @@ var animationTimeline = function (window, document) {
 
 		window.addEventListener('mousemove', function (args) {
 			currentPos = getMousePos(canvas, args);
-			getDragableObject(currentPos);
+
 			if (startPos) {
 				if (args.buttons == 1) {
 					scrollByMouse(currentPos.x);
@@ -211,6 +229,8 @@ var animationTimeline = function (window, document) {
 					cleanUpSelection();
 				}
 				redraw();
+			} else {
+				getDragableObject(currentPos);
 			}
 		}, false);
 
@@ -219,6 +239,7 @@ var animationTimeline = function (window, document) {
 			drag = null;
 			clearMoveInterval();
 		}
+
 		window.addEventListener('mouseup', function (args) {
 			//window.releaseCapture();
 			currentPos = getMousePos(canvas, args);
@@ -227,12 +248,8 @@ var animationTimeline = function (window, document) {
 		}, false);
 
 
-
 		width = canvas.clientWidth;
 		//stepsCanFit
-
-
-
 
 		rescale();
 
@@ -260,13 +277,14 @@ var animationTimeline = function (window, document) {
 
 		function checkUpdateSpeedIsFast() {
 			// Dont update too often.
-			if (lastCallDate && new Date() - lastCallDate <= 1000) {
+			if (lastCallDate && new Date() - lastCallDate <= 500) {
 				return true;
 			}
 
 			lastCallDate = new Date();
 			return false;
 		}
+
 		function scrollByMouse(x) {
 			lastX = x;
 			if (x <= 0) {
@@ -300,8 +318,6 @@ var animationTimeline = function (window, document) {
 				size.style.minWidth = width + "px";
 				// Scroll left
 				scrollContainer.scrollLeft += speed;
-
-
 			}
 			else {
 				clearMoveInterval();
@@ -314,19 +330,19 @@ var animationTimeline = function (window, document) {
 
 		// Find ms from the the px coordinates
 		function pxToMS(coords) {
-			return coords / options.stepPx * 1000;
+			return coords / options.stepPx * options.zoom;
 		}
 
 		// convert 
 		function msToPx(ms) {
 			// Respect current scroll container offset.
 			ms -= pxToMS(scrollContainer.scrollLeft);
-			return (ms * options.stepPx / 1000);
+			return (ms * options.stepPx / options.zoom);
 		}
 
 
 		function drawSteps() {
-			context.lineWidth = 1;
+
 
 			//getDistance(options.from, options.to)*
 			// draw ticks
@@ -356,26 +372,31 @@ var animationTimeline = function (window, document) {
 			}
 
 			// iterate only visible
-			let visibleFrom = pxToMS(scrollContainer.scrollLeft);
-			let visibleTo = pxToMS(scrollContainer.scrollLeft + scrollContainer.clientWidth);
+			var visibleFrom = pxToMS(scrollContainer.scrollLeft);
+			var visibleTo = pxToMS(scrollContainer.scrollLeft + scrollContainer.clientWidth);
 			// Find beautiful start:
 			from = Math.floor(visibleFrom / realStep) * realStep
 
 			// Find beautiful start:
 			to = Math.ceil(visibleTo / realStep) * realStep;
 
-			for (let i = from; i <= to; i += step) {
+			for (var i = from; i <= to; i += step) {
 
-				let pos = msToPx(i);
+				var pos = msToPx(i);
+				let sharpPos = getSharp(Math.floor(pos));
 
+				var textSize = context.measureText(text);
 				// Reset the current path
 				context.beginPath();
-				//context.strokeStyle = "#FFFF61";
+				context.setLineDash([4]);
+				context.lineWidth = pixelRatio;
+				context.strokeStyle = options.tickColor;
 				//context.lineWidth = 1;
 				// Staring point (10,45)
-				context.moveTo(pos + 0.5, 0);
+				context.moveTo(sharpPos, (options.headerHeight || 0) / 2);
 				// End point (180,47)
-				context.lineTo(pos + 0.5, canvas.clientHeight);
+				context.lineTo(sharpPos, canvas.clientHeight);
+
 				// Make the line visible
 				context.stroke();
 
@@ -384,10 +405,11 @@ var animationTimeline = function (window, document) {
 					context.font = options.ticksFont;
 				}
 
-				context.fillStyle = "blue";
+				context.fillStyle = options.labelsColor;
 				//context.textAlign = "center";
-				let text = msToHMS(i)
-				context.fillText(text, pos, 10);
+				var text = msToHMS(i)
+				sharpPos -= textSize.width / 2;
+				context.fillText(text, sharpPos, 10);
 
 				// Draw small steps
 				//for (let i = from; i <= to; i += step) {
@@ -412,27 +434,35 @@ var animationTimeline = function (window, document) {
 		function drawLanes() {
 			// Draw lane for each control
 			lanes.forEach(function (lane, index) {
-				if (lane.selected) {
-					context.fillStyle = "#FF3A61";
+				if (lane.selected && options.selectedLaneColor) {
+					context.fillStyle = options.selectedLaneColor;
+				} else if (index % 2 != 0 && options.useAlternateLaneColor) {
+					context.fillStyle = options.alternateLaneColor || options.laneColor;
 				} else {
-					context.fillStyle = "#808080";
+					context.fillStyle = options.laneColor;
 				}
 
-				let laneY = options.headerHeight + index * options.laneHeight;
-				context.fillRect(0, laneY, canvas.clientWidth, options.laneHeight - 1);
+
+				let laneY = options.headerHeight + index * options.laneHeightPx * pixelRatio + index * options.laneMarginPX;
+				x = getSharp(laneY);
+				//y = getSharp(y);
+				//h = getSharp(h);
+				//h = getSharp(h);
+				if (context.fillStyle) {
+					context.fillRect(0, laneY, canvas.clientWidth, options.laneHeightPx);
+				}
 				if (lane.keyframes) {
 					lane.keyframes.forEach(function (keyframe, index) {
 						if (keyframe && keyframe.x) {
-							let laneOffset = 2;
 							context.fillStyle = "#0001FF";
-							let keyW = options.laneHeight - laneOffset;
-							let keyH = options.laneHeight - laneOffset * 2;
-							let keyY = laneY + laneOffset;
+							let keyW = options.laneHeightPx - options.laneMarginPX;
+							let keyH = options.laneHeightPx - options.laneMarginPX;
+							let keyY = laneY + options.laneMarginPX;
 							context.fillRect(keyframe.x, keyY, keyW, keyH);
 
 							context.beginPath();
 							context.fillStyle = "#FF1D00";
-							context.arc(keyframe.x + keyW / 2, keyY + keyH / 2, laneOffset, 0, 2 * Math.PI);
+							context.arc(keyframe.x + keyW / 2, keyY + keyH / 2, options.laneMarginPX, 0, 2 * Math.PI);
 							context.fill();
 
 						}
@@ -450,42 +480,60 @@ var animationTimeline = function (window, document) {
 			//context.translate(0.5, 0.5)
 			if (startPos && currentPos) {
 				context.setLineDash([4]);
+				context.lineWidth = pixelRatio;
 				context.fillStyle = "#808080";
-				let x = Math.floor(Math.min(startPos.x, currentPos.x));
-				let y = Math.floor(Math.min(startPos.y, currentPos.y));
-				let w = Math.floor(Math.max(startPos.x, currentPos.x) - x);
-				let h = Math.floor(Math.max(startPos.y, currentPos.y) - y);
-				context.strokeRect(getSharp(x), getSharp(y), w, h);
+				context.strokeStyle = 'White';
+				// for a mouse pos Math.floor is not needed.
+				let x = Math.min(startPos.x, currentPos.x);
+				let y = Math.min(startPos.y, currentPos.y);
+				let w = Math.max(startPos.x, currentPos.x) - x;
+				let h = Math.max(startPos.y, currentPos.y) - y;
+				x = getSharp(x);
+				y = getSharp(y);
+				h = getSharp(h);
+				h = getSharp(h);
+				context.strokeRect(x, y, w, h);
 			}
 			context.restore();
 		}
 
+		function drawBackground() {
+			if (options.backgroundColor) {
+				context.beginPath();
+				context.rect(0, 0, canvas.width, canvas.height);
+				context.fillStyle = options.backgroundColor;
+				context.fill();
+				return true;
+			}
+			return false;
+		}
+
 		function redraw() {
-			let headerHeight = 20;
-			// Clear only visible area:
-			//context.clearRect(scrollContainer.scrollLeft, scrollContainer.scrollTo, scrollContainer.scrollLeft + scrollContainer.clientWidth, scrollContainer.clientHeight);
-			context.clearRect(0, 0, canvas.width, canvas.height);
 
-
+			let isOk = drawBackground();
+			if (!isOk) {
+				// Clear if bg not set.
+				context.clearRect(0, 0, canvas.width, canvas.height);
+			}
 			// draw ticks background
-			context.lineWidth = 1;
+			context.lineWidth = pixelRatio;
 
 			if (options.headerBackground) {
 				// draw header backgroud
 				context.fillStyle = options.headerBackground;
-				context.fillRect(0, 0, canvas.clientWidth, headerHeight);
+				context.fillRect(0, 0, canvas.clientWidth, options.headerHeight);
 			}
+
+			drawLanes();
 
 			drawSteps();
 
-
-			//drawLanes();
 			//let text = ctx.measureText('Hello world');
 			//console.log(text.width);  // 56;
 
 			drawSelection();
 
-			context.lineWidth = options.lineHeight + 2;
+			context.lineWidth = 2 * pixelRatio;
 			context.moveTo(100, 0);
 
 			context.lineTo(100, canvas.clientHeight);
@@ -508,7 +556,8 @@ var animationTimeline = function (window, document) {
 				return pos;
 			}
 			else {
-				return pos + 0.5;;
+				//return pos;
+				return pos + pixelRatio / 2;
 			}
 		}
 
