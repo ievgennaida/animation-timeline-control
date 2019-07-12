@@ -15,7 +15,7 @@ var animationTimeline = function (window, document) {
 		stepPx: 100,
 		smallSteps: 50,
 		// additional left margin to start the gauge from
-		leftMarginPx: 0,
+		leftMarginPx: 25,
 		snapPointsPerPixel: 2, // from 1 to 60
 		minTimelineToDispayMs: 5000,
 		headerBackground: 'black',
@@ -51,8 +51,6 @@ var animationTimeline = function (window, document) {
 		return dpr / bsr;
 	}
 
-
-
 	function msToHMS(ms, isSeconds) {
 		// 1- Convert to seconds:
 		var seconds = ms / 1000;
@@ -65,7 +63,7 @@ var animationTimeline = function (window, document) {
 		// 3- Extract minutes:
 		var minutes = parseInt(seconds / 60); // 60 seconds in 1 minute
 		// 4- Keep only seconds not extracted to minutes:
-		seconds = (seconds % 60).toFixed(0);
+		seconds = (seconds % 60);
 		let str = '';
 		if (hours) {
 			str += hours + ":";
@@ -101,12 +99,12 @@ var animationTimeline = function (window, document) {
 		var category = 0;
 		var sign = Math.sign(toCheck);
 		if (toCheck > 1) {
-			while (Math.abs(toCheck) > 1) {
-				toCheck = Math.abs(toCheck) / 10.0;
+			while (toCheck >= 1) {
+				toCheck = Math.floor(toCheck / 10.0);
 				category++;
 			}
 
-			return sign * category;
+			return sign * category - 1;
 		}
 		else if (toCheck > 0.0) {
 			// Get number of zeros before the number.
@@ -234,6 +232,9 @@ var animationTimeline = function (window, document) {
 			if (event.ctrlKey) {
 				const delta = Math.sign(event.deltaY) * 10;
 				options.zoom += delta;
+				if (options.zoom <= 0) {
+					options.zoom = 0;
+				}
 				event.preventDefault();
 				redraw();
 			}
@@ -274,7 +275,8 @@ var animationTimeline = function (window, document) {
 
 		window.addEventListener('mousemove', function (args) {
 			currentPos = getMousePos(canvas, args);
-
+			let ms = pxToMS(currentPos.x);
+			console.log('x: ' + currentPos.x + '. ms:' + pxToMS(currentPos.x) + '. px:' + msToPx(ms));
 			if (startPos) {
 				if (args.buttons == 1) {
 					scrollByMouse(currentPos.x);
@@ -283,7 +285,7 @@ var animationTimeline = function (window, document) {
 						convertedMs = Math.floor(convertedMs);
 
 						// Apply snap to steps if enabled.
-						if (options.snapPointsPerPixel) {
+						if (options.snapPointsPerPixel && false) {
 							var stopsPerPixel = (1000 / options.snapPointsPerPixel);
 							let step = convertedMs / stopsPerPixel;
 							stepsFit = Math.round(step);
@@ -291,9 +293,9 @@ var animationTimeline = function (window, document) {
 
 						}
 
-						//if (convertedMs < 0) {
-						//	convertedMs = 0;
-						//}
+						if (convertedMs < 0) {
+							convertedMs = 0;
+						}
 
 						drag.obj.ms = convertedMs;
 						redraw();
@@ -410,13 +412,16 @@ var animationTimeline = function (window, document) {
 
 		// Find ms from the the px coordinates
 		function pxToMS(coords) {
-			return coords / options.stepPx * options.zoom;
+			//coords -= options.leftMarginPx;
+			var ms = coords / options.stepPx * options.zoom;
+			return ms;
 		}
 
 		// convert 
 		function msToPx(ms) {
-			// Respect current scroll container offset.
-			ms -= pxToMS(scrollContainer.scrollLeft);
+			// Respect current scroll container offset. (virtualization)
+			var x = scrollContainer.scrollLeft;//- options.leftMarginPx;
+			ms -= pxToMS(x);
 			return (ms * options.stepPx / options.zoom);
 		}
 
@@ -424,22 +429,23 @@ var animationTimeline = function (window, document) {
 		function drawSteps() {
 			ctx.save();
 
-			let areaWidth = scrollContainer.scrollWidth;
+			let areaWidth = scrollContainer.scrollWidth - options.leftMarginPx;
 			let from = pxToMS(0);
 			let to = pxToMS(areaWidth);
 			let dist = getDistance(from, to);
 			// normalize step.			
 			let stepsCanFit = areaWidth / options.stepPx;
 
-			realStep = dist / stepsCanFit;
+			realStep = Math.round(dist / stepsCanFit);
 			// Find the nearest 'beautiful' step for a gauge. This step should be devided by 1/2/5!
 			var step = realStep;
 			let lastDistance = null;
+			let pow = getPowArgument(realStep);
 			for (let i = 0; i < denominators.length; i++) {
 				denominator = denominators[i];
-				let calculatedStep = denominator * Math.pow(10, getPowArgument(realStep));
+				let calculatedStep = denominator * Math.pow(10, pow);
 				let distance = getDistance(realStep, calculatedStep);
-				if (distance == 0) {
+				if (distance <= 0.1) {
 					lastDistance = distance;
 					step = calculatedStep;
 					break;
@@ -449,19 +455,20 @@ var animationTimeline = function (window, document) {
 				}
 			}
 
-			// iterate only visible
+			// filter to draw only visible
 			var visibleFrom = pxToMS(scrollContainer.scrollLeft);
 			var visibleTo = pxToMS(scrollContainer.scrollLeft + scrollContainer.clientWidth);
-			// Find beautiful start:
-			from = Math.floor(visibleFrom / realStep) * realStep
+			// Find beautiful start point:
+			from = Math.floor(visibleFrom / realStep) * realStep;
 
-			// Find beautiful start:
-			to = Math.ceil(visibleTo / realStep) * realStep;
+			// Find a beautiful end point:
+			to = Math.ceil(visibleTo / realStep) * realStep + realStep;
 
 			for (var i = from; i <= to; i += step) {
 				var pos = msToPx(i);
 				let sharpPos = getSharp(Math.floor(pos));
 
+				var text = msToHMS(i)
 				var textSize = ctx.measureText(text);
 				// Reset the current path
 				ctx.beginPath();
@@ -484,7 +491,7 @@ var animationTimeline = function (window, document) {
 
 				ctx.fillStyle = options.labelsColor;
 				//ctx.textAlign = "center";
-				var text = msToHMS(i)
+
 				sharpPos -= textSize.width / 2;
 				ctx.fillText(text, sharpPos, 10);
 
@@ -519,7 +526,7 @@ var animationTimeline = function (window, document) {
 
 				if (lane.keyframes) {
 					// TODO: get full scale size.
-					let from = 0;
+					let from = null;
 					let to = null;
 					lane.keyframes.forEach(function (keyframe) {
 						if (keyframe && !isNaN(keyframe.ms)) {
