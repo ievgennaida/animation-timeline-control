@@ -202,7 +202,7 @@ var animationTimeline = function (window, document) {
 					let laneYCenter = laneY + options.laneHeightPx / 2;
 					for (var x = 0; x < lane.keyframes.length; x++) {
 						keyframe = lane.keyframes[x];
-						if (keyframe && !Number.isNaN(keyframe.ms)) {
+						if (keyframe && !isNaN(keyframe.ms)) {
 							objPos = msToPx(keyframe.ms);
 							var dist = getDistance(objPos, laneYCenter, pos.x, pos.y);
 							if (dist <= options.laneHeightPx / 4) {
@@ -519,10 +519,10 @@ var animationTimeline = function (window, document) {
 
 				if (lane.keyframes) {
 					// TODO: get full scale size.
-					let from = null
+					let from = 0;
 					let to = null;
 					lane.keyframes.forEach(function (keyframe) {
-						if (keyframe && !Number.isNaN(keyframe.ms)) {
+						if (keyframe && !isNaN(keyframe.ms)) {
 							if (from == null) {
 								from = keyframe.ms;
 							} else {
@@ -564,7 +564,7 @@ var animationTimeline = function (window, document) {
 				if (lane.keyframes) {
 					// Draw keyframes:
 					lane.keyframes.forEach(function (keyframe) {
-						if (keyframe && !Number.isNaN(keyframe.ms)) {
+						if (keyframe && !isNaN(keyframe.ms)) {
 							let pos = getSharp(msToPx(keyframe.ms));
 
 							var size = options.laneHeightPx / 3;
