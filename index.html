@@ -58,54 +58,70 @@
   </div>
   <br>
 
+  <div id="currentTime">
+
+  </div>
   <script type="text/javascript">
-    let lanes = [{
-      selected: false,
-      keyframes: [{
-        ms: 2000
-      }, {
-        ms: 2500
+    let lanes = [
+      {
+        selected: false,
+        keyframes: [{
+          ms: 2000
+        }
+        ]
       },
       {
-        ms: 2600
+        selected: false,
+        keyframes: [{
+          ms: 2000
+        }, {
+          ms: 2500
+        },
+        {
+          ms: 2600
+        }
+        ]
+      }, {
+        keyframes: [{
+          ms: 1000
+        }, {
+          ms: 1500
+        }, {
+          ms: 2000
+        }
+        ]
+      }, {
+        keyframes: [{
+          ms: 0
+        }, {
+          ms: 3000
+        }
+        ]
+      }, {
+        keyframes: [{
+          ms: 100
+        }, {
+          ms: 3410
+        }, {
+          ms: 20000
+        }
+        ]
+      }, {
+        keyframes: [{
+          ms: 90
+        }, {
+          ms: 100
+        }
+        ]
       }
-      ]
-    }, {
-      keyframes: [{
-        ms: 1000
-      }, {
-        ms: 1500
-      }, {
-        ms: 2000
-      }
-      ]
-    }, {
-      keyframes: [{
-        ms: 0
-      }, {
-        ms: 3000
-      }
-      ]
-    }, {
-      keyframes: [{
-        ms: 100
-      }, {
-        ms: 3410
-      }, {
-        ms: 20000
-      }
-      ]
-    }, {
-      keyframes: [{
-        ms: 90
-      }, {
-        ms: 100
-      }
-      ]
-    }
     ];
 
     let timeline = animationTimeline.initialize({ id: 'timeline', scrollId: 'timeline-container', sizeId: 'timeline-size-content' }, lanes);
+
+    timeline.on('timeChanged', function (object) {
+      document.getElementById('currentTime').innerHTML = object + 'ms';
+    })
+
   </script>
 
 </body>

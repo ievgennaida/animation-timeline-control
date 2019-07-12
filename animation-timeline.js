@@ -14,7 +14,9 @@ var animationTimeline = function (window, document) {
 		// approximate step in px for 1 second 
 		stepPx: 100,
 		smallSteps: 50,
-		leftMarginPx: 10,
+		// additional left margin to start the gauge from
+		leftMarginPx: 0,
+		snapPointsPerPixel: 2, // from 1 to 60
 		minTimelineToDispayMs: 5000,
 		headerBackground: 'black',
 		selectedLaneColor: '#333333',
@@ -38,13 +40,13 @@ var animationTimeline = function (window, document) {
 		scrollId: ''
 	}
 
-	function getPixelRatio(context) {
+	function getPixelRatio(ctx) {
 		dpr = window.devicePixelRatio || 1,
-			bsr = context.webkitBackingStorePixelRatio ||
-			context.mozBackingStorePixelRatio ||
-			context.msBackingStorePixelRatio ||
-			context.oBackingStorePixelRatio ||
-			context.backingStorePixelRatio || 1;
+			bsr = ctx.webkitBackingStorePixelRatio ||
+			ctx.mozBackingStorePixelRatio ||
+			ctx.msBackingStorePixelRatio ||
+			ctx.oBackingStorePixelRatio ||
+			ctx.backingStorePixelRatio || 1;
 
 		return dpr / bsr;
 	}
@@ -81,8 +83,13 @@ var animationTimeline = function (window, document) {
 	}
 
 	let denominators = [1, 2, 5];
-	function getDistance(a, b) {
-		return Math.max(a, b) - Math.min(a, b);
+	function getDistance(x1, y1, x2, y2) {
+		if (x2 != undefined && y2 != undefined) {
+			return Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2));
+		}
+		else {
+			return Math.abs(x1 - y1);
+		}
 	}
 
 	function getPowArgument(toCheck) {
@@ -129,6 +136,13 @@ var animationTimeline = function (window, document) {
 		if (!options.stepPx) {
 			options.stepPx = defaultOptions.stepPx;
 		}
+		if (!options.snapPointsPerPixel) {
+			if (options.snapPointsPerPixel < 0) {
+				options.snapPointsPerPixel = 0;
+			} else if (options.snapPointsPerPixel > 60) {
+				options.snapPointsPerPixel = 60;
+			}
+		}
 
 		var startPos;
 		var currentPos;
@@ -141,9 +155,8 @@ var animationTimeline = function (window, document) {
 			return null;
 		}
 
-
-		var context = canvas.getContext("2d");
-		var pixelRatio = getPixelRatio(context);
+		var ctx = canvas.getContext("2d");
+		var pixelRatio = getPixelRatio(ctx);
 		function getMousePos(canvas, evt) {
 			var rect = canvas.getBoundingClientRect(), // abs. size of element
 				scaleX = canvas.width / pixelRatio / rect.width, // relationship bitmap vs. element for X
@@ -159,12 +172,12 @@ var animationTimeline = function (window, document) {
 		function rescale() {
 			var width = scrollContainer.clientWidth * pixelRatio;
 			var height = scrollContainer.clientHeight * pixelRatio;
-			if (width != context.canvas.width)
-				context.canvas.width = width;
-			if (height != context.canvas.height)
-				context.canvas.height = height;
+			if (width != ctx.canvas.width)
+				ctx.canvas.width = width;
+			if (height != ctx.canvas.height)
+				ctx.canvas.height = height;
 
-			context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+			ctx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
 		}
 		// Check whether we can drag something here.
 		function getDragableObject(pos) {
@@ -179,31 +192,37 @@ var animationTimeline = function (window, document) {
 			}
 
 			// Find suitable keyframe to drag:
-			var limitMatch = 3;
-			var toDrag;
-			var distance;
 			for (var i = 0; i < lanes.length; i++) {
 				var lane = lanes[i];
 
+				obj = null;
 				if (lane.keyframes) {
-					let laneY = options.headerHeight + i * options.laneHeightPx * pixelRatio + i * options.laneMarginPX;
-					var obj = lane.keyframes.find(function (keyframe) {
+					let laneY = getLanePosition(i);
+					var obj = null;
+					let laneYCenter = laneY + options.laneHeightPx / 2;
+					for (var x = 0; x < lane.keyframes.length; x++) {
+						keyframe = lane.keyframes[x];
 						if (keyframe && keyframe.ms) {
 							objPos = msToPx(keyframe.ms);
-							var fromX = objPos;
-							var toX = objPos + options.laneHeightPx / 2;
-							var fromY = laneY;
-							var toY = laneY + options.laneHeightPx;
-
-							if (pos.x >= fromX && pos.x <= toX && pos.y >= fromY && pos.y <= toY) {
+							var dist = getDistance(objPos, laneYCenter, pos.x, pos.y);
+							if (dist <= options.laneHeightPx / 4) {
 								canvas.style.cursor = "move";
-								return true;
+								if (!obj) {
+									obj = {
+										obj: keyframe,
+										type: 'keyframe',
+										distance: dist
+									}
+								} else if (dist <= obj.distance) {
+									obj.obj = keyframe;
+								}
 							}
 						}
-					});
+					}
 
-					if (obj)
-						return { obj: obj, type: 'keyframe' };
+					if (obj) {
+						return obj;
+					}
 				}
 
 			}
@@ -260,7 +279,26 @@ var animationTimeline = function (window, document) {
 				if (args.buttons == 1) {
 					scrollByMouse(currentPos.x);
 					if (drag && drag.obj) {
-						drag.obj.ms = pxToMS(scrollContainer.scrollLeft + Math.min(currentPos.x, canvas.clientWidth));
+						let convertedMs = pxToMS(scrollContainer.scrollLeft + Math.min(currentPos.x, canvas.clientWidth));
+						convertedMs = Math.floor(convertedMs);
+
+						// Apply snap to steps if enabled.
+						if (options.snapPointsPerPixel) {
+							var stopsPerPixel = (1000 / options.snapPointsPerPixel);
+							let step = convertedMs / stopsPerPixel;
+							stepsFit = Math.round(step);
+							convertedMs = stepsFit * stopsPerPixel;
+
+						}
+
+						//if (convertedMs < 0) {
+						//	convertedMs = 0;
+						//}
+
+						drag.obj.ms = convertedMs;
+						if (drag.type == 'timeline') {
+							this.emit('timeChanged', convertedMs);
+						}
 					}
 				}
 				else {
@@ -381,13 +419,14 @@ var animationTimeline = function (window, document) {
 
 
 		function drawSteps() {
-			context.save();
+			ctx.save();
 
+			let areaWidth = scrollContainer.scrollWidth;
 			let from = pxToMS(0);
-			let to = pxToMS(scrollContainer.scrollWidth);
+			let to = pxToMS(areaWidth);
 			let dist = getDistance(from, to);
 			// normalize step.			
-			let stepsCanFit = scrollContainer.scrollWidth / options.stepPx;
+			let stepsCanFit = areaWidth / options.stepPx;
 
 			realStep = dist / stepsCanFit;
 			// Find the nearest 'beautiful' step for a gauge. This step should be devided by 1/2/5!
@@ -420,31 +459,31 @@ var animationTimeline = function (window, document) {
 				var pos = msToPx(i);
 				let sharpPos = getSharp(Math.floor(pos));
 
-				var textSize = context.measureText(text);
+				var textSize = ctx.measureText(text);
 				// Reset the current path
-				context.beginPath();
-				context.setLineDash([4]);
-				context.lineWidth = pixelRatio;
-				context.strokeStyle = options.tickColor;
-				//context.lineWidth = 1;
+				ctx.beginPath();
+				ctx.setLineDash([4]);
+				ctx.lineWidth = pixelRatio;
+				ctx.strokeStyle = options.tickColor;
+				//ctx.lineWidth = 1;
 				// Staring point (10,45)
-				context.moveTo(sharpPos, (options.headerHeight || 0) / 2);
+				ctx.moveTo(sharpPos, (options.headerHeight || 0) / 2);
 				// End point (180,47)
-				context.lineTo(sharpPos, canvas.clientHeight);
+				ctx.lineTo(sharpPos, canvas.clientHeight);
 
 				// Make the line visible
-				context.stroke();
+				ctx.stroke();
 
 				if (options.ticksFont) {
 
-					context.font = options.ticksFont;
+					ctx.font = options.ticksFont;
 				}
 
-				context.fillStyle = options.labelsColor;
-				//context.textAlign = "center";
+				ctx.fillStyle = options.labelsColor;
+				//ctx.textAlign = "center";
 				var text = msToHMS(i)
 				sharpPos -= textSize.width / 2;
-				context.fillText(text, sharpPos, 10);
+				ctx.fillText(text, sharpPos, 10);
 
 				// Draw small steps
 				//for (let i = from; i <= to; i += step) {
@@ -452,27 +491,27 @@ var animationTimeline = function (window, document) {
 				//}
 			}
 
-			context.restore();
+			ctx.restore();
 		}
 
 		function drawLanes() {
-			context.save();
+			ctx.save();
 			// Draw lane for each control
 			lanes.forEach(function (lane, index) {
 				if (lane.selected && options.selectedLaneColor) {
-					context.fillStyle = options.selectedLaneColor;
+					ctx.fillStyle = options.selectedLaneColor;
 				} else if (index % 2 != 0 && options.useAlternateLaneColor) {
-					context.fillStyle = options.alternateLaneColor || options.laneColor;
+					ctx.fillStyle = options.alternateLaneColor || options.laneColor;
 				} else {
-					context.fillStyle = options.laneColor;
+					ctx.fillStyle = options.laneColor;
 				}
 
 
-				let laneY = options.headerHeight + index * options.laneHeightPx * pixelRatio + index * options.laneMarginPX;
+				let laneY = getLanePosition(index);
 				//x = getSharp(laneY);
 
-				if (context.fillStyle) {
-					context.fillRect(0, laneY, canvas.clientWidth, options.laneHeightPx);
+				if (ctx.fillStyle) {
+					ctx.fillRect(0, laneY, canvas.clientWidth, options.laneHeightPx);
 				}
 
 				if (lane.keyframes) {
@@ -497,51 +536,64 @@ var animationTimeline = function (window, document) {
 
 					let fromPos = getSharp(msToPx(from))
 					let toPos = getSharp(msToPx(to));
-					context.fillStyle = "red";
-					context.strokeStyle = "#0001FF";
+					ctx.fillStyle = "red";
+					ctx.strokeStyle = "#0001FF";
 					// TODO: out of the bounds.
-					context.fillRect(fromPos, laneY + 1, getDistance(fromPos, toPos), options.laneHeightPx - 2);
+					ctx.fillRect(fromPos, laneY + 1, getDistance(fromPos, toPos), options.laneHeightPx - 2);
+				}
 
+			});
+			ctx.restore();
+		}
+
+		function getLanePosition(laneIndex) {
+			let laneY = options.headerHeight +
+				laneIndex * options.laneHeightPx * pixelRatio +
+				laneIndex * options.laneMarginPX;
+			return laneY;
+		}
+
+		function drawKeyframes() {
+			ctx.save();
+			// Draw lane for each control
+			lanes.forEach(function (lane, index) {
+				let laneY = getLanePosition(index);
+				if (lane.keyframes) {
 					// Draw keyframes:
 					lane.keyframes.forEach(function (keyframe) {
 						if (keyframe && keyframe.ms) {
 							let pos = getSharp(msToPx(keyframe.ms));
 
-							var size = options.laneHeightPx / 4
+							var size = options.laneHeightPx / 3;
 
-							// left closing 1.5 * Math.PI, 2.5 * Math.PI
-							// right closing 2.5 * Math.PI, 1.5 * Math.PI
-							context.beginPath();
-							context.fillStyle = "blue";
-							var arcY = laneY + options.laneHeightPx / 2;
-							if (from == keyframe.ms) {
-								context.arc(pos + size + 1, arcY, size, 0, 2 * Math.PI);
-							} else if (to == keyframe.ms) {
-								context.arc(pos - size - 1, arcY, size, 0, 2 * Math.PI);
-							}
-							else {
-								context.arc(pos, arcY, size, 0, 2 * Math.PI);
-							}
-							context.fill();
-
+							var pointY = laneY + options.laneHeightPx / 2 - size / 2;
+							pos = pos - size / 2;
+							ctx.save();
+							ctx.beginPath();
+							ctx.translate(pos + size / 2, pointY + size / 2);
+							ctx.rotate(45 * Math.PI / 180);
+							ctx.rect(-size / 2, -size / 2, size, size);
+							ctx.fillStyle = "black";
+							ctx.fill();
+							ctx.restore();
 						}
 					});
 				}
 
 			});
-			context.restore();
+			ctx.restore();
 		}
 
 		function drawSelection() {
 			if (drag) {
 				return;
 			}
-			context.save();
+			ctx.save();
 			var thickness = 1;
 			if (startPos && currentPos) {
-				context.setLineDash([4]);
-				context.lineWidth = pixelRatio;
-				context.strokeStyle = options.selectionColor;
+				ctx.setLineDash([4]);
+				ctx.lineWidth = pixelRatio;
+				ctx.strokeStyle = options.selectionColor;
 				// for a mouse pos Math.floor is not needed.
 				let x = Math.min(startPos.x, currentPos.x);
 				let y = Math.min(startPos.y, currentPos.y);
@@ -549,47 +601,47 @@ var animationTimeline = function (window, document) {
 				let h = Math.floor(Math.max(startPos.y, currentPos.y) - y);
 				x = getSharp(x, thickness);
 				y = getSharp(y, thickness);
-				context.strokeRect(x, y, w, h);
+				ctx.strokeRect(x, y, w, h);
 			}
-			context.restore();
+			ctx.restore();
 		}
 
 		function drawBackground() {
 			if (options.backgroundColor) {
-				context.save();
-				context.beginPath();
-				context.rect(0, 0, canvas.width, canvas.height);
-				context.fillStyle = options.backgroundColor;
-				context.fill();
-				context.restore();
+				ctx.save();
+				ctx.beginPath();
+				ctx.rect(0, 0, canvas.width, canvas.height);
+				ctx.fillStyle = options.backgroundColor;
+				ctx.fill();
+				ctx.restore();
 				return true;
 			}
 			return false;
 		}
 
 		function drawTimeLine() {
-			context.save();
+			ctx.save();
 			var thickness = 2;
-			context.lineWidth = thickness * pixelRatio;
+			ctx.lineWidth = thickness * pixelRatio;
 			var timeLinePos = getSharp(msToPx(timeLine.ms), thickness);
-			context.strokeStyle = options.timeIndicatorColor;
-			context.beginPath();
-			context.moveTo(timeLinePos, 0);
-			context.lineTo(timeLinePos, canvas.height);
-			context.stroke();
-			context.restore();
+			ctx.strokeStyle = options.timeIndicatorColor;
+			ctx.beginPath();
+			ctx.moveTo(timeLinePos, 0);
+			ctx.lineTo(timeLinePos, canvas.height);
+			ctx.stroke();
+			ctx.restore();
 		}
 
 		function drawHeaderBackground() {
 			if (options.headerBackground) {
-				context.save();
+				ctx.save();
 				// draw ticks background
-				context.lineWidth = pixelRatio;
+				ctx.lineWidth = pixelRatio;
 
 				// draw header background
-				context.fillStyle = options.headerBackground;
-				context.fillRect(0, 0, canvas.clientWidth, options.headerHeight);
-				context.restore();
+				ctx.fillStyle = options.headerBackground;
+				ctx.fillRect(0, 0, canvas.clientWidth, options.headerHeight);
+				ctx.restore();
 				return true;
 			}
 
@@ -601,12 +653,13 @@ var animationTimeline = function (window, document) {
 			var isOk = drawBackground();
 			if (!isOk) {
 				// Clear if bg not set.
-				context.clearRect(0, 0, canvas.width, canvas.height);
+				ctx.clearRect(0, 0, canvas.width, canvas.height);
 			}
 
 			drawHeaderBackground();
 			drawLanes();
 			drawSteps();
+			drawKeyframes();
 			drawSelection();
 			drawTimeLine();
 		}
@@ -625,6 +678,51 @@ var animationTimeline = function (window, document) {
 
 		rescale();
 		redraw();
+
+		/**
+		 * Get current time in ms.
+		 * @public
+		 */
+		this.getTime = function () {
+			return timeLine.ms;
+		}
+
+		this.setTime = function () {
+			if (dra)
+				return timeLine.ms;
+		}
+
+		let subscriptions = [];
+		// on event.
+		this.on = function (topic, callback) {
+			if (!callback) {
+				return;
+			}
+
+			subscriptions.push({ topic: topic, callback: callback });
+		}
+
+		// emit event.
+		this.emit = function (topic, args) {
+			for (var i = subscriptions.length - 1; i >= 0; i--) {
+				var sub = subscriptions[i];
+				if (sub.topic == topic && sub.callback) {
+					sub.callback(args);
+				}
+			}
+		}
+
+		// remove event.
+		this.remove = function (topic, callback) {
+			for (var i = subscriptions.length - 1; i >= 0; i--) {
+				var sub = subscriptions[i];
+				if (sub.topic == topic && sub.callback == callback) {
+					subscriptions = subscriptions.filter(function (ele) {
+						return ele != value;
+					});
+				}
+			}
+		}
 
 		return this;
 	}
