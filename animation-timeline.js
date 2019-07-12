@@ -202,7 +202,7 @@ var animationTimeline = function (window, document) {
 					let laneYCenter = laneY + options.laneHeightPx / 2;
 					for (var x = 0; x < lane.keyframes.length; x++) {
 						keyframe = lane.keyframes[x];
-						if (keyframe && keyframe.ms) {
+						if (keyframe && !Number.isNaN(keyframe.ms)) {
 							objPos = msToPx(keyframe.ms);
 							var dist = getDistance(objPos, laneYCenter, pos.x, pos.y);
 							if (dist <= options.laneHeightPx / 4) {
@@ -296,9 +296,12 @@ var animationTimeline = function (window, document) {
 						//}
 
 						drag.obj.ms = convertedMs;
+						redraw();
 						if (drag.type == 'timeline') {
 							this.emit('timeChanged', convertedMs);
 						}
+
+						return;
 					}
 				}
 				else {
@@ -519,14 +522,14 @@ var animationTimeline = function (window, document) {
 					let from = null
 					let to = null;
 					lane.keyframes.forEach(function (keyframe) {
-						if (keyframe) {
-							if (!from) {
+						if (keyframe && !Number.isNaN(keyframe.ms)) {
+							if (from == null) {
 								from = keyframe.ms;
 							} else {
 								from = Math.min(keyframe.ms, from);
 							}
 
-							if (!to) {
+							if (to == null) {
 								to = keyframe.ms
 							} else {
 								to = Math.max(keyframe.ms, to);
@@ -561,7 +564,7 @@ var animationTimeline = function (window, document) {
 				if (lane.keyframes) {
 					// Draw keyframes:
 					lane.keyframes.forEach(function (keyframe) {
-						if (keyframe && keyframe.ms) {
+						if (keyframe && !Number.isNaN(keyframe.ms)) {
 							let pos = getSharp(msToPx(keyframe.ms));
 
 							var size = options.laneHeightPx / 3;
