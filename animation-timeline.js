@@ -1,7 +1,6 @@
 var animationTimeline = function (window, document) {
 
 	let width = 0;
-
 	if (!Math.sign) {
 		Math.sign = function (p) {
 			return p >= 0 ? 1 : -1;
@@ -25,9 +24,11 @@ var animationTimeline = function (window, document) {
 		timeIndicatorColor: 'red',
 		labelsColor: '#D5D5D5',
 		tickColor: '#D5D5D5',
+		selectionColor: 'White',
 		useAlternateLaneColor: false,
 		laneHeightPx: 25,
 		laneMarginPX: 1,
+		keyframeLaneMargin: 2,
 		headerHeight: 30,
 		lineHeight: 1,
 		autoWidth: true,
@@ -113,7 +114,7 @@ var animationTimeline = function (window, document) {
 
 	this.initialize = function (options, lanes) {
 		let timeLine = {
-			x: 3503,
+			ms: 3503,
 			width: 5,
 			isDrag: false,
 		}
@@ -156,8 +157,8 @@ var animationTimeline = function (window, document) {
 		}
 
 		function rescale() {
-			var width = scrollContainer.clientWidth * pixelRatio;//document.body.clientWidth / initialWidth * initalCanvasWidth; // your code here
-			var height = scrollContainer.clientHeight * pixelRatio;//document.body.clientHeight / initialHeight * initalCanvasHeight; // your code here
+			var width = scrollContainer.clientWidth * pixelRatio;
+			var height = scrollContainer.clientHeight * pixelRatio;
 			if (width != context.canvas.width)
 				context.canvas.width = width;
 			if (height != context.canvas.height)
@@ -167,12 +168,43 @@ var animationTimeline = function (window, document) {
 		}
 		// Check whether we can drag something here.
 		function getDragableObject(pos) {
-			let fromValue = msToPx(timeLine.x) - timeLine.width / 2;
-			let toValue = msToPx(timeLine.x) + timeLine.width / 2;
-			if (pos.x >= fromValue && pos.x <= toValue) {
+			var objPos = msToPx(timeLine.ms);
+			var fromX = objPos - timeLine.width / 2;
+			var toX = objPos + timeLine.width / 2;
+			if (pos.x >= fromX && pos.x <= toX) {
 				canvas.style.cursor = "move";
 				timeLine.selected = true;
-				return timeLine;
+				return { obj: timeLine, type: "timeline" };
+
+			}
+
+			// Find suitable keyframe to drag:
+			var limitMatch = 3;
+			var toDrag;
+			var distance;
+			for (var i = 0; i < lanes.length; i++) {
+				var lane = lanes[i];
+
+				if (lane.keyframes) {
+					let laneY = options.headerHeight + i * options.laneHeightPx * pixelRatio + i * options.laneMarginPX;
+					var obj = lane.keyframes.find(function (keyframe) {
+						if (keyframe && keyframe.ms) {
+							objPos = msToPx(keyframe.ms);
+							var fromX = objPos;
+							var toX = objPos + options.laneHeightPx / 2;
+							var fromY = laneY;
+							var toY = laneY + options.laneHeightPx;
+
+							if (pos.x >= fromX && pos.x <= toX && pos.y >= fromY && pos.y <= toY) {
+								canvas.style.cursor = "move";
+								return true;
+							}
+						}
+					});
+
+					if (obj)
+						return { obj: obj, type: 'keyframe' };
+				}
 
 			}
 
@@ -189,14 +221,16 @@ var animationTimeline = function (window, document) {
 		});
 
 		scrollContainer.addEventListener('scroll', function (args) {
-			canvas.style.left = scrollContainer.scrollLeft + 'px';
-			let top = scrollContainer.scrollTop + 'px';
+			var left = scrollContainer.scrollLeft + 'px';
+			if (canvas.style.left != left) {
+				canvas.style.left = left;
+			}
+			var top = scrollContainer.scrollTop + 'px';
 			if (top !== canvas.style.top) {
 				canvas.style.top = top;
 			}
 
 			redraw();
-
 		});
 
 		window.addEventListener('blur', function (args) {
@@ -225,8 +259,8 @@ var animationTimeline = function (window, document) {
 			if (startPos) {
 				if (args.buttons == 1) {
 					scrollByMouse(currentPos.x);
-					if (drag) {
-						drag.x = pxToMS(scrollContainer.scrollLeft + Math.min(currentPos.x, canvas.clientWidth));
+					if (drag && drag.obj) {
+						drag.obj.ms = pxToMS(scrollContainer.scrollLeft + Math.min(currentPos.x, canvas.clientWidth));
 					}
 				}
 				else {
@@ -347,10 +381,7 @@ var animationTimeline = function (window, document) {
 
 
 		function drawSteps() {
-
-
-			//getDistance(options.from, options.to)*
-			// draw ticks
+			context.save();
 
 			let from = pxToMS(0);
 			let to = pxToMS(scrollContainer.scrollWidth);
@@ -386,7 +417,6 @@ var animationTimeline = function (window, document) {
 			to = Math.ceil(visibleTo / realStep) * realStep;
 
 			for (var i = from; i <= to; i += step) {
-
 				var pos = msToPx(i);
 				let sharpPos = getSharp(Math.floor(pos));
 
@@ -422,21 +452,11 @@ var animationTimeline = function (window, document) {
 				//}
 			}
 
-
-
-
-			//let toMs
-			/*for (let i = fromMs, index = 0; i <= canvas.clientWidth; i += options.stepPx) {
-				context.fillStyle = "blue";
-				let second = Math.floor(scrollContainer.scrollLeft + i / options.stepPx);
-				let text = msToHMS(second, true);
-				context.fillText(text, i, 10);
-				index++
-			}*/
-
+			context.restore();
 		}
 
 		function drawLanes() {
+			context.save();
 			// Draw lane for each control
 			lanes.forEach(function (lane, index) {
 				if (lane.selected && options.selectedLaneColor) {
@@ -449,25 +469,59 @@ var animationTimeline = function (window, document) {
 
 
 				let laneY = options.headerHeight + index * options.laneHeightPx * pixelRatio + index * options.laneMarginPX;
-				x = getSharp(laneY);
-				//y = getSharp(y);
-				//h = getSharp(h);
-				//h = getSharp(h);
+				//x = getSharp(laneY);
+
 				if (context.fillStyle) {
 					context.fillRect(0, laneY, canvas.clientWidth, options.laneHeightPx);
 				}
-				if (lane.keyframes) {
-					lane.keyframes.forEach(function (keyframe, index) {
-						if (keyframe && keyframe.x) {
-							context.fillStyle = "#0001FF";
-							let keyW = options.laneHeightPx - options.laneMarginPX;
-							let keyH = options.laneHeightPx - options.laneMarginPX;
-							let keyY = laneY + options.laneMarginPX;
-							context.fillRect(keyframe.x, keyY, keyW, keyH);
 
+				if (lane.keyframes) {
+					// TODO: get full scale size.
+					let from = null
+					let to = null;
+					lane.keyframes.forEach(function (keyframe) {
+						if (keyframe) {
+							if (!from) {
+								from = keyframe.ms;
+							} else {
+								from = Math.min(keyframe.ms, from);
+							}
+
+							if (!to) {
+								to = keyframe.ms
+							} else {
+								to = Math.max(keyframe.ms, to);
+							}
+						}
+					});
+
+					let fromPos = getSharp(msToPx(from))
+					let toPos = getSharp(msToPx(to));
+					context.fillStyle = "red";
+					context.strokeStyle = "#0001FF";
+					// TODO: out of the bounds.
+					context.fillRect(fromPos, laneY + 1, getDistance(fromPos, toPos), options.laneHeightPx - 2);
+
+					// Draw keyframes:
+					lane.keyframes.forEach(function (keyframe) {
+						if (keyframe && keyframe.ms) {
+							let pos = getSharp(msToPx(keyframe.ms));
+
+							var size = options.laneHeightPx / 4
+
+							// left closing 1.5 * Math.PI, 2.5 * Math.PI
+							// right closing 2.5 * Math.PI, 1.5 * Math.PI
 							context.beginPath();
-							context.fillStyle = "#FF1D00";
-							context.arc(keyframe.x + keyW / 2, keyY + keyH / 2, options.laneMarginPX, 0, 2 * Math.PI);
+							context.fillStyle = "blue";
+							var arcY = laneY + options.laneHeightPx / 2;
+							if (from == keyframe.ms) {
+								context.arc(pos + size + 1, arcY, size, 0, 2 * Math.PI);
+							} else if (to == keyframe.ms) {
+								context.arc(pos - size - 1, arcY, size, 0, 2 * Math.PI);
+							}
+							else {
+								context.arc(pos, arcY, size, 0, 2 * Math.PI);
+							}
 							context.fill();
 
 						}
@@ -475,6 +529,7 @@ var animationTimeline = function (window, document) {
 				}
 
 			});
+			context.restore();
 		}
 
 		function drawSelection() {
@@ -482,21 +537,18 @@ var animationTimeline = function (window, document) {
 				return;
 			}
 			context.save();
-			//context.translate(0.5, 0.5)
+			var thickness = 1;
 			if (startPos && currentPos) {
 				context.setLineDash([4]);
 				context.lineWidth = pixelRatio;
-				context.fillStyle = "#808080";
-				context.strokeStyle = 'White';
+				context.strokeStyle = options.selectionColor;
 				// for a mouse pos Math.floor is not needed.
 				let x = Math.min(startPos.x, currentPos.x);
 				let y = Math.min(startPos.y, currentPos.y);
-				let w = Math.max(startPos.x, currentPos.x) - x;
-				let h = Math.max(startPos.y, currentPos.y) - y;
-				x = getSharp(x);
-				y = getSharp(y);
-				h = getSharp(h);
-				h = getSharp(h);
+				let w = Math.floor(Math.max(startPos.x, currentPos.x) - x);
+				let h = Math.floor(Math.max(startPos.y, currentPos.y) - y);
+				x = getSharp(x, thickness);
+				y = getSharp(y, thickness);
 				context.strokeRect(x, y, w, h);
 			}
 			context.restore();
@@ -504,66 +556,71 @@ var animationTimeline = function (window, document) {
 
 		function drawBackground() {
 			if (options.backgroundColor) {
+				context.save();
 				context.beginPath();
 				context.rect(0, 0, canvas.width, canvas.height);
 				context.fillStyle = options.backgroundColor;
 				context.fill();
+				context.restore();
 				return true;
 			}
 			return false;
 		}
 
+		function drawTimeLine() {
+			context.save();
+			var thickness = 2;
+			context.lineWidth = thickness * pixelRatio;
+			var timeLinePos = getSharp(msToPx(timeLine.ms), thickness);
+			context.strokeStyle = options.timeIndicatorColor;
+			context.beginPath();
+			context.moveTo(timeLinePos, 0);
+			context.lineTo(timeLinePos, canvas.height);
+			context.stroke();
+			context.restore();
+		}
+
+		function drawHeaderBackground() {
+			if (options.headerBackground) {
+				context.save();
+				// draw ticks background
+				context.lineWidth = pixelRatio;
+
+				// draw header background
+				context.fillStyle = options.headerBackground;
+				context.fillRect(0, 0, canvas.clientWidth, options.headerHeight);
+				context.restore();
+				return true;
+			}
+
+			return false;
+		}
+
 		function redraw() {
 
-			let isOk = drawBackground();
+			var isOk = drawBackground();
 			if (!isOk) {
 				// Clear if bg not set.
 				context.clearRect(0, 0, canvas.width, canvas.height);
 			}
-			// draw ticks background
-			context.lineWidth = pixelRatio;
 
-			if (options.headerBackground) {
-				// draw header backgroud
-				context.fillStyle = options.headerBackground;
-				context.fillRect(0, 0, canvas.clientWidth, options.headerHeight);
-			}
-
+			drawHeaderBackground();
 			drawLanes();
-
 			drawSteps();
-
-			//let text = ctx.measureText('Hello world');
-			//console.log(text.width);  // 56;
-
 			drawSelection();
-
-			context.lineWidth = 2 * pixelRatio;
-			context.moveTo(100, 0);
-
-			context.lineTo(100, canvas.clientHeight);
-
-			let timeLinePos = msToPx(timeLine.x);
-			//context.beginPath();
-			//context.translate(0.5, 0.5)
-			// Reset the current path
-			context.beginPath();
-			// Staring point (10,45)
-			context.moveTo(getSharp(timeLinePos), 0);
-			// End point (180,47)
-			context.lineTo(getSharp(timeLinePos), canvas.height);
-			// Make the line visible
-			context.stroke();
+			drawTimeLine();
 		}
 
-		function getSharp(pos) {
-			if (context.lineWidth && context.lineWidth % 2 == 0) {
+		function getSharp(pos, thinkess) {
+			if (!thinkess) {
+				thinkess = 1;
+			}
+
+			if (thinkess % 2 == 0) {
 				return pos;
 			}
-			else {
-				//return pos;
-				return pos + pixelRatio / 2;
-			}
+
+			return pos + pixelRatio / 2;
 		}
 
 		rescale();
