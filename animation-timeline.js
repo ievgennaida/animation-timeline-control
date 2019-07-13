@@ -9,14 +9,14 @@ var animationTimeline = function (window, document) {
 
 	let defaultOptions = {
 		keysPerSecond: 60,
-		snapToTimeframe: true,
+		snapPointsPerPixel: 2, // from 1 to 60
+		snapEnabled: true,
 		extraRightMargin: 50,
 		// approximate step in px for 1 second 
 		stepPx: 100,
 		smallSteps: 50,
 		// additional left margin to start the gauge from
 		leftMarginPx: 25,
-		snapPointsPerPixel: 2, // from 1 to 60
 		minTimelineToDispayMs: 5000,
 		headerBackground: 'black',
 		selectedLaneColor: '#333333',
@@ -73,7 +73,7 @@ var animationTimeline = function (window, document) {
 			str += minutes + ":";
 		}
 
-		if (seconds) {
+		if (!isNaN(seconds)) {
 			str += seconds;
 		}
 
@@ -285,7 +285,7 @@ var animationTimeline = function (window, document) {
 						convertedMs = Math.floor(convertedMs);
 
 						// Apply snap to steps if enabled.
-						if (options.snapPointsPerPixel && false) {
+						if (options.snapPointsPerPixel && options.snapEnabled) {
 							var stopsPerPixel = (1000 / options.snapPointsPerPixel);
 							let step = convertedMs / stopsPerPixel;
 							stepsFit = Math.round(step);
@@ -412,7 +412,7 @@ var animationTimeline = function (window, document) {
 
 		// Find ms from the the px coordinates
 		function pxToMS(coords) {
-			//coords -= options.leftMarginPx;
+			coords -= options.leftMarginPx;
 			var ms = coords / options.stepPx * options.zoom;
 			return ms;
 		}
@@ -429,7 +429,7 @@ var animationTimeline = function (window, document) {
 		function drawSteps() {
 			ctx.save();
 
-			let areaWidth = scrollContainer.scrollWidth - options.leftMarginPx;
+			let areaWidth = scrollContainer.scrollWidth;
 			let from = pxToMS(0);
 			let to = pxToMS(areaWidth);
 			let dist = getDistance(from, to);
@@ -456,20 +456,19 @@ var animationTimeline = function (window, document) {
 			}
 
 			// filter to draw only visible
-			var visibleFrom = pxToMS(scrollContainer.scrollLeft);
+			var visibleFrom = pxToMS(scrollContainer.scrollLeft + options.leftMarginPx);
 			var visibleTo = pxToMS(scrollContainer.scrollLeft + scrollContainer.clientWidth);
 			// Find beautiful start point:
-			from = Math.floor(visibleFrom / realStep) * realStep;
+			from = Math.floor(visibleFrom / step) * step;
 
 			// Find a beautiful end point:
-			to = Math.ceil(visibleTo / realStep) * realStep + realStep;
+			to = Math.ceil(visibleTo / step) * step + step;
 
 			for (var i = from; i <= to; i += step) {
 				var pos = msToPx(i);
 				let sharpPos = getSharp(Math.floor(pos));
 
-				var text = msToHMS(i)
-				var textSize = ctx.measureText(text);
+
 				// Reset the current path
 				ctx.beginPath();
 				ctx.setLineDash([4]);
@@ -484,12 +483,14 @@ var animationTimeline = function (window, document) {
 				// Make the line visible
 				ctx.stroke();
 
+				ctx.fillStyle = options.labelsColor;
 				if (options.ticksFont) {
-
 					ctx.font = options.ticksFont;
 				}
 
-				ctx.fillStyle = options.labelsColor;
+				var text = msToHMS(i)
+				var textSize = ctx.measureText(text);
+
 				//ctx.textAlign = "center";
 
 				sharpPos -= textSize.width / 2;
@@ -620,7 +621,7 @@ var animationTimeline = function (window, document) {
 			if (options.backgroundColor) {
 				ctx.save();
 				ctx.beginPath();
-				ctx.rect(0, 0, canvas.width, canvas.height);
+				ctx.rect(0, 0, canvas.clientWidth, canvas.clientHeight);
 				ctx.fillStyle = options.backgroundColor;
 				ctx.fill();
 				ctx.restore();
@@ -637,7 +638,7 @@ var animationTimeline = function (window, document) {
 			ctx.strokeStyle = options.timeIndicatorColor;
 			ctx.beginPath();
 			ctx.moveTo(timeLinePos, 0);
-			ctx.lineTo(timeLinePos, canvas.height);
+			ctx.lineTo(timeLinePos, canvas.clientHeight);
 			ctx.stroke();
 			ctx.restore();
 		}
