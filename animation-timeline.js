@@ -32,12 +32,20 @@ var animationTimeline = function (window, document) {
 		alternateLaneColor: 'black',//333333
 		useAlternateLaneColor: false,
 		keyframesLaneColor: 'red',
+		// keyframe color. can be overrided by a keyframe 'color' property.
+		keyframeColor: 'Yellow',
+		// selected keyframe color. can be overrider by a keyframe 'selectedColor' property.
+		selectedKeyframeColor: 'DarkOrange',
+		keyframeBorderColor: 'Black',
+		keyframeBorderThicknessPx: 0.2,
+		// can be a number or 'auto'. Auto is calculated based on the laneHeightPx
+		keyframeSizePx: 'auto',
 		backgroundColor: 'black',//1E1E1E
 		timeIndicatorColor: 'DarkOrange',
 		labelsColor: '#D5D5D5',
 		tickColor: '#D5D5D5',
 		selectionColor: 'White',
-		laneHeightPx: 25,
+		laneHeightPx: 24,
 		laneMarginPX: 1,
 		keyframeLaneMargin: 2,
 		headerHeight: 30,
@@ -599,24 +607,48 @@ var animationTimeline = function (window, document) {
 			lanes.forEach(function (lane, index) {
 				let laneY = getLanePosition(index);
 				if (lane.keyframes) {
-					// Draw keyframes:
-					lane.keyframes.forEach(function (keyframe) {
-						if (keyframe && !isNaN(keyframe.ms)) {
-							let pos = getSharp(msToPx(keyframe.ms));
 
-							var size = options.laneHeightPx / 3;
+					// keyframe size:
+					var size = options.keyframeSizePx;
+					if (size == 'auto') {
+						size = options.laneHeightPx / 3;
+					}
 
-							var pointY = laneY + options.laneHeightPx / 2 - size / 2;
-							pos = pos - size / 2;
-							ctx.save();
-							ctx.beginPath();
-							ctx.translate(pos + size / 2, pointY + size / 2);
-							ctx.rotate(45 * Math.PI / 180);
-							ctx.rect(-size / 2, -size / 2, size, size);
-							ctx.fill();
-							ctx.restore();
-						}
-					});
+					if (size > 0) {
+						// Draw keyframes:
+						lane.keyframes.forEach(function (keyframe) {
+							if (keyframe && !isNaN(keyframe.ms)) {
+								let pos = getSharp(msToPx(keyframe.ms));
+
+								var pointY = laneY + options.laneHeightPx / 2 - size / 2;
+								var keyframePos = pos - size / 2;
+								ctx.save();
+
+								ctx.beginPath();
+
+								ctx.translate(keyframePos + size / 2, pointY + size / 2);
+								ctx.rotate(45 * Math.PI / 180);
+
+								let border = options.keyframeBorderThicknessPx;
+								if (border > 0 && options.keyframeBorderColor) {
+									ctx.fillStyle = options.keyframeBorderColor;
+									ctx.rect(-size / 2, -size / 2, size, size);
+									ctx.fill();
+									ctx.beginPath();
+								}
+
+								ctx.fillStyle = keyframe.color || options.keyframeColor;
+								if (keyframe.selected) {
+									ctx.fillStyle = keyframe.selectedColor || options.selectedKeyframeColor;
+								}
+
+								ctx.translate(border, border);
+								ctx.rect(-size / 2, -size / 2, size - border * 2, size - border * 2);
+								ctx.fill();
+								ctx.restore();
+							}
+						});
+					}
 				}
 
 			});
