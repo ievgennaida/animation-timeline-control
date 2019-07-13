@@ -9,25 +9,28 @@ var animationTimeline = function (window, document) {
 
 	let defaultOptions = {
 		keysPerSecond: 60,
-		snapPointsPerPixel: 2, // from 1 to 60
+		snapPointsPerPixel: 5, // from 1 to 60
 		snapEnabled: true,
 		extraRightMargin: 50,
 		// approximate step in px for 1 second 
 		stepPx: 100,
+		stepSmallPx: 30,
 		smallSteps: 50,
 		// additional left margin to start the gauge from
 		leftMarginPx: 25,
 		minTimelineToDispayMs: 5000,
 		headerBackground: 'black',
 		selectedLaneColor: '#333333',
+		// lanes colors
 		laneColor: 'white',
 		alternateLaneColor: 'black',//333333
+		useAlternateLaneColor: false,
+		keyframesLaneColor: 'red',
 		backgroundColor: 'black',//1E1E1E
 		timeIndicatorColor: 'red',
 		labelsColor: '#D5D5D5',
 		tickColor: '#D5D5D5',
 		selectionColor: 'White',
-		useAlternateLaneColor: false,
 		laneHeightPx: 25,
 		laneMarginPX: 1,
 		keyframeLaneMargin: 2,
@@ -80,7 +83,7 @@ var animationTimeline = function (window, document) {
 		return str;
 	}
 
-	let denominators = [1, 2, 5];
+	let denominators = [1, 2, 5, 10];
 	function getDistance(x1, y1, x2, y2) {
 		if (x2 != undefined && y2 != undefined) {
 			return Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2));
@@ -93,6 +96,14 @@ var animationTimeline = function (window, document) {
 	function getPowArgument(toCheck) {
 		if (!toCheck || toCheck === 0) {
 			return 1;
+		}
+		// some optimiazation for numbers:
+		if (toCheck >= 10 && toCheck < 100) {
+			return 1;
+		} else if (toCheck >= 100 && toCheck < 1000) {
+			return 2;
+		} else if (toCheck >= 1000 && toCheck < 10000) {
+			return 3;
 		}
 
 		toCheck = Math.abs(toCheck);
@@ -118,7 +129,7 @@ var animationTimeline = function (window, document) {
 
 
 	this.initialize = function (options, lanes) {
-		let timeLine = {
+		var timeLine = {
 			ms: 3503,
 			width: 5,
 			isDrag: false,
@@ -154,6 +165,11 @@ var animationTimeline = function (window, document) {
 		}
 
 		var ctx = canvas.getContext("2d");
+		ctx.drawLine = function (x1, y1, x2, y2) {
+			this.moveTo(x1, y1);
+			this.lineTo(x2, y2);
+		}
+
 		var pixelRatio = getPixelRatio(ctx);
 		function getMousePos(canvas, evt) {
 			var rect = canvas.getBoundingClientRect(), // abs. size of element
@@ -282,15 +298,14 @@ var animationTimeline = function (window, document) {
 					scrollByMouse(currentPos.x);
 					if (drag && drag.obj) {
 						let convertedMs = pxToMS(scrollContainer.scrollLeft + Math.min(currentPos.x, canvas.clientWidth));
-						convertedMs = Math.floor(convertedMs);
+						convertedMs = Math.round(convertedMs);
 
 						// Apply snap to steps if enabled.
 						if (options.snapPointsPerPixel && options.snapEnabled) {
 							var stopsPerPixel = (1000 / options.snapPointsPerPixel);
 							let step = convertedMs / stopsPerPixel;
 							stepsFit = Math.round(step);
-							convertedMs = stepsFit * stopsPerPixel;
-
+							convertedMs = Math.round(stepsFit * stopsPerPixel);
 						}
 
 						if (convertedMs < 0) {
@@ -425,26 +440,19 @@ var animationTimeline = function (window, document) {
 			return (ms * options.stepPx / options.zoom);
 		}
 
-
-		function drawSteps() {
-			ctx.save();
-
-			let areaWidth = scrollContainer.scrollWidth;
-			let from = pxToMS(0);
-			let to = pxToMS(areaWidth);
-			let dist = getDistance(from, to);
-			// normalize step.			
-			let stepsCanFit = areaWidth / options.stepPx;
-
-			realStep = Math.round(dist / stepsCanFit);
-			// Find the nearest 'beautiful' step for a gauge. This step should be devided by 1/2/5!
-			var step = realStep;
-			let lastDistance = null;
-			let pow = getPowArgument(realStep);
-			for (let i = 0; i < denominators.length; i++) {
+		function findGoodStep(originaStep, divisionCheck) {
+			originaStep = Math.round(originaStep);
+			var step = originaStep;
+			var lastDistance = null;
+			var pow = getPowArgument(originaStep);
+			for (var i = 0; i < denominators.length; i++) {
 				denominator = denominators[i];
-				let calculatedStep = denominator * Math.pow(10, pow);
-				let distance = getDistance(realStep, calculatedStep);
+				var calculatedStep = denominator * Math.pow(10, pow);
+				if (divisionCheck && (divisionCheck % calculatedStep) != 0) {
+					continue;
+				}
+				var distance = getDistance(originaStep, calculatedStep);
+
 				if (distance <= 0.1) {
 					lastDistance = distance;
 					step = calculatedStep;
@@ -455,6 +463,28 @@ var animationTimeline = function (window, document) {
 				}
 			}
 
+			return step;
+		}
+
+		function drawTicks() {
+			ctx.save();
+
+			var areaWidth = scrollContainer.scrollWidth - options.leftMarginPx;
+			var from = pxToMS(0);
+			var to = pxToMS(areaWidth);
+			var dist = getDistance(from, to);
+			// normalize step.			
+			var stepsCanFit = areaWidth / options.stepPx;
+
+			// Find the nearest 'beautiful' step for a gauge. This step should be devided by 1/2/5!
+			var step = findGoodStep(Math.round(dist / stepsCanFit));
+			var goodStepDistancePx = areaWidth / (dist / step);
+			var smallStepsCanFit = goodStepDistancePx / options.stepSmallPx;
+			var realSmallStep = step / smallStepsCanFit;
+			var smallStep = findGoodStep(realSmallStep, step);
+			if (step % smallStep != 0) {
+				smallStep = realSmallStep;
+			}
 			// filter to draw only visible
 			var visibleFrom = pxToMS(scrollContainer.scrollLeft + options.leftMarginPx);
 			var visibleTo = pxToMS(scrollContainer.scrollLeft + scrollContainer.clientWidth);
@@ -466,7 +496,7 @@ var animationTimeline = function (window, document) {
 
 			for (var i = from; i <= to; i += step) {
 				var pos = msToPx(i);
-				let sharpPos = getSharp(Math.floor(pos));
+				var sharpPos = getSharp(Math.round(pos));
 
 
 				// Reset the current path
@@ -474,12 +504,7 @@ var animationTimeline = function (window, document) {
 				ctx.setLineDash([4]);
 				ctx.lineWidth = pixelRatio;
 				ctx.strokeStyle = options.tickColor;
-				//ctx.lineWidth = 1;
-				// Staring point (10,45)
-				ctx.moveTo(sharpPos, (options.headerHeight || 0) / 2);
-				// End point (180,47)
-				ctx.lineTo(sharpPos, canvas.clientHeight);
-
+				ctx.drawLine(sharpPos, (options.headerHeight || 0) / 2, sharpPos, canvas.clientHeight);
 				// Make the line visible
 				ctx.stroke();
 
@@ -491,15 +516,21 @@ var animationTimeline = function (window, document) {
 				var text = msToHMS(i)
 				var textSize = ctx.measureText(text);
 
-				//ctx.textAlign = "center";
-
 				sharpPos -= textSize.width / 2;
 				ctx.fillText(text, sharpPos, 10);
 
-				// Draw small steps
-				//for (let i = from; i <= to; i += step) {
 
-				//}
+				// Draw small steps
+				for (let x = i + smallStep; x < i + step; x += smallStep) {
+					var nextPos = msToPx(x);
+					var nextSharpPos = getSharp(Math.floor(nextPos));
+					ctx.beginPath();
+					ctx.lineWidth = pixelRatio;
+					ctx.strokeStyle = options.tickColor;
+					ctx.drawLine(nextSharpPos, (options.headerHeight || 0) / 1.5, nextSharpPos, options.headerHeight);
+					// Make the line visible
+					ctx.stroke();
+				}
 			}
 
 			ctx.restore();
@@ -519,16 +550,14 @@ var animationTimeline = function (window, document) {
 
 
 				let laneY = getLanePosition(index);
-				//x = getSharp(laneY);
-
 				if (ctx.fillStyle) {
 					ctx.fillRect(0, laneY, canvas.clientWidth, options.laneHeightPx);
 				}
 
-				if (lane.keyframes) {
-					// TODO: get full scale size.
-					let from = null;
-					let to = null;
+				// lanes color
+				if (lane.keyframes && options.keyframesLaneColor) {
+					var from = null;
+					var to = null;
 					lane.keyframes.forEach(function (keyframe) {
 						if (keyframe && !isNaN(keyframe.ms)) {
 							if (from == null) {
@@ -545,11 +574,10 @@ var animationTimeline = function (window, document) {
 						}
 					});
 
-					let fromPos = getSharp(msToPx(from))
-					let toPos = getSharp(msToPx(to));
-					ctx.fillStyle = "red";
-					ctx.strokeStyle = "#0001FF";
-					// TODO: out of the bounds.
+					// draw keyframes lane.
+					var fromPos = getSharp(msToPx(from))
+					var toPos = getSharp(msToPx(to));
+					ctx.fillStyle = options.keyframesLaneColor;
 					ctx.fillRect(fromPos, laneY + 1, getDistance(fromPos, toPos), options.laneHeightPx - 2);
 				}
 
@@ -584,7 +612,6 @@ var animationTimeline = function (window, document) {
 							ctx.translate(pos + size / 2, pointY + size / 2);
 							ctx.rotate(45 * Math.PI / 180);
 							ctx.rect(-size / 2, -size / 2, size, size);
-							ctx.fillStyle = "black";
 							ctx.fill();
 							ctx.restore();
 						}
@@ -632,13 +659,13 @@ var animationTimeline = function (window, document) {
 
 		function drawTimeLine() {
 			ctx.save();
+			ctx.beginPath();
 			var thickness = 2;
 			ctx.lineWidth = thickness * pixelRatio;
 			var timeLinePos = getSharp(msToPx(timeLine.ms), thickness);
 			ctx.strokeStyle = options.timeIndicatorColor;
-			ctx.beginPath();
-			ctx.moveTo(timeLinePos, 0);
-			ctx.lineTo(timeLinePos, canvas.clientHeight);
+
+			ctx.drawLine(timeLinePos, 0, timeLinePos, canvas.clientHeight);
 			ctx.stroke();
 			ctx.restore();
 		}
@@ -669,7 +696,7 @@ var animationTimeline = function (window, document) {
 
 			drawHeaderBackground();
 			drawLanes();
-			drawSteps();
+			drawTicks();
 			drawKeyframes();
 			drawSelection();
 			drawTimeLine();
