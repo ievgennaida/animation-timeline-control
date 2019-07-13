@@ -12,6 +12,11 @@ var animationTimeline = function (window, document) {
 		snapPointsPerPixel: 5, // from 1 to 60
 		snapEnabled: true,
 		extraRightMargin: 50,
+		timelineThicknessPx: 2,
+		timelineMarginTopPx: 15,
+		timelineCapWidthPx: 4,
+		timelineTriangleCap: false,
+		timelineRectCap: true,
 		// approximate step in px for 1 second 
 		stepPx: 100,
 		stepSmallPx: 30,
@@ -497,15 +502,12 @@ var animationTimeline = function (window, document) {
 			for (var i = from; i <= to; i += step) {
 				var pos = msToPx(i);
 				var sharpPos = getSharp(Math.round(pos));
-
-
-				// Reset the current path
+				ctx.save();
 				ctx.beginPath();
 				ctx.setLineDash([4]);
 				ctx.lineWidth = pixelRatio;
 				ctx.strokeStyle = options.tickColor;
 				ctx.drawLine(sharpPos, (options.headerHeight || 0) / 2, sharpPos, canvas.clientHeight);
-				// Make the line visible
 				ctx.stroke();
 
 				ctx.fillStyle = options.labelsColor;
@@ -518,8 +520,7 @@ var animationTimeline = function (window, document) {
 
 				sharpPos -= textSize.width / 2;
 				ctx.fillText(text, sharpPos, 10);
-
-
+				ctx.restore();
 				// Draw small steps
 				for (let x = i + smallStep; x < i + step; x += smallStep) {
 					var nextPos = msToPx(x);
@@ -527,8 +528,7 @@ var animationTimeline = function (window, document) {
 					ctx.beginPath();
 					ctx.lineWidth = pixelRatio;
 					ctx.strokeStyle = options.tickColor;
-					ctx.drawLine(nextSharpPos, (options.headerHeight || 0) / 1.5, nextSharpPos, options.headerHeight);
-					// Make the line visible
+					ctx.drawLine(nextSharpPos, (options.headerHeight || 0) / 1.3, nextSharpPos, options.headerHeight);
 					ctx.stroke();
 				}
 			}
@@ -659,14 +659,33 @@ var animationTimeline = function (window, document) {
 
 		function drawTimeLine() {
 			ctx.save();
-			ctx.beginPath();
-			var thickness = 2;
-			ctx.lineWidth = thickness * pixelRatio;
-			var timeLinePos = getSharp(msToPx(timeLine.ms), thickness);
-			ctx.strokeStyle = options.timeIndicatorColor;
 
-			ctx.drawLine(timeLinePos, 0, timeLinePos, canvas.clientHeight);
+			var thickness = options.timelineThicknessPx;
+			ctx.lineWidth = thickness * pixelRatio;
+			var timeLinePos = getSharp(Math.round(msToPx(timeLine.ms)), thickness);
+			ctx.strokeStyle = options.timeIndicatorColor;
+			ctx.fillStyle = ctx.strokeStyle;
+			var y = options.timelineMarginTopPx;
+			ctx.beginPath();
+			ctx.drawLine(timeLinePos, y, timeLinePos, canvas.clientHeight);
 			ctx.stroke();
+
+			if (options.timelineCapWidthPx) {
+				var rectSize = options.timelineCapWidthPx;
+				if (options.timelineTriangleCap) {
+					ctx.beginPath();
+					ctx.moveTo(timeLinePos - rectSize / 2, y);
+					ctx.lineTo(timeLinePos + rectSize / 2, y);
+					ctx.lineTo(timeLinePos, size);
+					ctx.closePath();
+					ctx.stroke();
+				}
+				else if (options.timelineRectCap) {
+					ctx.fillRect(timeLinePos - rectSize / 2, y, rectSize, options.headerHeight / 3);
+					ctx.fill();
+				}
+			}
+
 			ctx.restore();
 		}
 
