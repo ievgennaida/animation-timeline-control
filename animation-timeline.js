@@ -15,6 +15,7 @@ var animationTimeline = function (window, document) {
 		timelineThicknessPx: 2,
 		timelineMarginTopPx: 15,
 		timelineCapWidthPx: 4,
+		timelineCapHeightPx: 10,
 		timelineTriangleCap: false,
 		timelineRectCap: true,
 		// approximate step in px for 1 second 
@@ -32,7 +33,7 @@ var animationTimeline = function (window, document) {
 		useAlternateLaneColor: false,
 		keyframesLaneColor: 'red',
 		backgroundColor: 'black',//1E1E1E
-		timeIndicatorColor: 'red',
+		timeIndicatorColor: 'DarkOrange',
 		labelsColor: '#D5D5D5',
 		tickColor: '#D5D5D5',
 		selectionColor: 'White',
@@ -670,18 +671,19 @@ var animationTimeline = function (window, document) {
 			ctx.drawLine(timeLinePos, y, timeLinePos, canvas.clientHeight);
 			ctx.stroke();
 
-			if (options.timelineCapWidthPx) {
+			if (options.timelineCapWidthPx && options.timelineCapHeightPx) {
 				var rectSize = options.timelineCapWidthPx;
+				var capHeight = options.timelineCapHeightPx;
 				if (options.timelineTriangleCap) {
 					ctx.beginPath();
 					ctx.moveTo(timeLinePos - rectSize / 2, y);
 					ctx.lineTo(timeLinePos + rectSize / 2, y);
-					ctx.lineTo(timeLinePos, size);
+					ctx.lineTo(timeLinePos, capHeight);
 					ctx.closePath();
 					ctx.stroke();
 				}
 				else if (options.timelineRectCap) {
-					ctx.fillRect(timeLinePos - rectSize / 2, y, rectSize, options.headerHeight / 3);
+					ctx.fillRect(timeLinePos - rectSize / 2, y, rectSize, capHeight);
 					ctx.fill();
 				}
 			}
