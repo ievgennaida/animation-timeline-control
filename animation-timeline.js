@@ -131,7 +131,7 @@ var animationTimeline = function (window, document) {
 	}
 
 	function isRectOverlap(rect, rect2) {
-		if (!rect || rect2) {
+		if (!rect || !rect2) {
 			console.log('Rectanges cannot be empty');
 			return false;
 		}
@@ -252,12 +252,22 @@ var animationTimeline = function (window, document) {
 		function rescale() {
 			var width = scrollContainer.clientWidth * pixelRatio;
 			var height = scrollContainer.clientHeight * pixelRatio;
-			if (width != ctx.canvas.width)
+			if (width != ctx.canvas.width) {
 				ctx.canvas.width = width;
-			if (height != ctx.canvas.height)
+			}
+
+			if (height != ctx.canvas.height) {
 				ctx.canvas.height = height;
+			}
 
 			ctx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+			let sizes = getLanesSizes();
+			if (sizes && sizes.areaRect) {
+				size.style.minHeight = sizes.areaRect.h + sizes.areaRect.h * 0.8 + "px";
+				//(options.leftMarginPx || 0) 
+				size.style.minWidth = +sizes.areaRect.w + "px";
+			}
+
 		}
 
 
@@ -268,64 +278,66 @@ var animationTimeline = function (window, document) {
 			let helperSelector = 2;
 			let draggable = null;
 
-			iterateKeyframes(function (keyframe, keyframeIndex, lane, laneIndex, isNextLane) {
-				let keyframePos = getKeyframePosition(keyframe, laneIndex);
-				if (keyframePos) {
-					const dist = getDistance(keyframePos.x, keyframePos.y, pos.x, pos.y);
-					if (dist <= keyframePos.size + helperSelector) {
-						if (!draggable) {
-							draggable = {
-								obj: keyframe,
-								pos: pos,
-								ms: keyframe.ms,
-								type: 'keyframe',
-								distance: dist
+			if (pos.y >= options.headerHeight) {
+				iterateKeyframes(function (keyframe, keyframeIndex, lane, laneIndex) {
+					let keyframePos = getKeyframePosition(keyframe, laneIndex);
+					if (keyframePos) {
+						const dist = getDistance(keyframePos.x, keyframePos.y, pos.x, pos.y);
+						if (dist <= keyframePos.size + helperSelector) {
+							if (!draggable) {
+								draggable = {
+									obj: keyframe,
+									pos: pos,
+									ms: keyframe.ms,
+									type: 'keyframe',
+									distance: dist
+								}
+							} else if (dist <= draggable.distance) {
+								draggable.obj = keyframe;
+								draggable.ms = keyframe.ms;
 							}
-						} else if (dist <= draggable.distance) {
-							draggable.obj = keyframe;
-							draggable.ms = keyframe.ms;
 						}
 					}
-				}
-			})
+				})
 
-			if (draggable) {
-				return draggable;
-			}
-
-			// Return keyframes lanes:
-			const lanesSizes = getLanesSizes();
-			if (options.canDragLaneKeyframes && lanesSizes && lanesSizes.find) {
-				let foundOverlap = lanesSizes.find(function lanesSizesIterator(laneSize) {
-					if (!laneSize || !laneSize.keyframes) {
-						return false;
-					}
-
-					let laneOverlaped = isOverlap(pos.x, pos.y, laneSize.keyframes);
-					return laneOverlaped;
-				});
-
-				if (foundOverlap) {
-					draggable = {
-						obj: foundOverlap,
-						pos: pos,
-						type: 'lane'
-					}
-
-					draggable.ms = mousePosToMs(pos.x, true);
-
-					if (foundOverlap && foundOverlap.keyframes) {
-						if (foundOverlap.lane && foundOverlap.lane.keyframes) {
-							draggable.selectedItems = foundOverlap.lane.keyframes;
-						}
-
-						let firstMs = foundOverlap.keyframes.from;
-						let snapped = snapMs(firstMs);
-						// get snapped mouse pos based on the first keynode.
-						draggable.ms += firstMs - snapped;
-					}
-
+				if (draggable) {
 					return draggable;
+				}
+
+				// Return keyframes lanes:
+				const lanesSizes = getLanesSizes();
+				if (options.canDragLaneKeyframes && lanesSizes) {
+					let foundOverlap = lanesSizes.sizes.find(function lanesSizesIterator(laneSize) {
+						if (!laneSize || !laneSize.keyframes) {
+							return false;
+						}
+
+						let laneOverlaped = isOverlap(pos.x, pos.y, laneSize.keyframes);
+						return laneOverlaped;
+					});
+
+					if (foundOverlap) {
+						draggable = {
+							obj: foundOverlap,
+							pos: pos,
+							type: 'lane'
+						}
+
+						draggable.ms = mousePosToMs(pos.x, true);
+
+						if (foundOverlap && foundOverlap.keyframes) {
+							if (foundOverlap.lane && foundOverlap.lane.keyframes) {
+								draggable.selectedItems = foundOverlap.lane.keyframes;
+							}
+
+							let firstMs = foundOverlap.keyframes.from;
+							let snapped = snapMs(firstMs);
+							// get snapped mouse pos based on the first keynode.
+							draggable.ms += firstMs - snapped;
+						}
+
+						return draggable;
+					}
 				}
 			}
 
@@ -894,7 +906,18 @@ var animationTimeline = function (window, document) {
 		}
 
 		function getLanesSizes() {
-			let toReturn = []
+			let toReturn = {
+				sizes: [],
+				areaRect: {
+					x: 0,
+					y: 0,
+					w: 0,
+					h: 0,
+					from: null,
+					to: null
+				}
+			}
+
 			if (!options.laneHeightPx) {
 				console.log('laneHeightPx should be set.');
 				return toReturn;
@@ -904,11 +927,20 @@ var animationTimeline = function (window, document) {
 				return toReturn;
 			}
 
+			const areaRect = toReturn.areaRect;
+
 			lanes.forEach(function lanesIterator(lane, index) {
-				if (!lane || !lane.keyframes || !lane.keyframes.forEach || lane.keyframes.length <= 0) {
+				if (!lane) {
 					return;
 				}
-				let laneY = getLanePosition(index);
+
+				// draw with scroll virtualization:
+				let laneY = getLanePosition(index) - scrollContainer.scrollTop;
+				if (index == 0) {
+					areaRect.y = laneY;
+				}
+				areaRect.h = areaRect.h == null ? laneY + options.laneHeightPx : Math.max(laneY + options.laneHeightPx, areaRect.h);
+
 				const laneSize = {
 					x: 0,
 					y: laneY,
@@ -923,29 +955,29 @@ var animationTimeline = function (window, document) {
 					}
 				};
 
-				toReturn.push(laneSize);
+				// get the bounds on a canvas. used instead of the clip (clip is slow)
+				laneSize.bounds = cutBounds({ x: laneSize.x, y: laneSize.y, w: laneSize.w, h: laneSize.h });
+
+				toReturn.sizes.push(laneSize);
 				let size = laneSize.keyframes;
 
-				lane.keyframes.forEach(function keyframesIterator(keyframe, keyframeIndex) {
+				if (!lane.keyframes || !lane.keyframes.forEach || lane.keyframes.length <= 0) {
+					return;
+				}
 
+				// Get min and max ms to draw keyframe lane:
+				lane.keyframes.forEach(function keyframesIterator(keyframe) {
 					if (size && keyframe && !isNaN(keyframe.ms)) {
-
-						if (size.from == null) {
-							size.from = keyframe.ms;
-						} else {
-							size.from = Math.min(keyframe.ms, size.from);
-						}
-
-						if (size.to == null) {
-							size.to = keyframe.ms
-						} else {
-							size.to = Math.max(keyframe.ms, size.to);
-						}
+						size.from = size.from == null ? keyframe.ms : Math.min(keyframe.ms, size.from);
+						size.to = size.to == null ? keyframe.ms : Math.max(keyframe.ms, size.to);
 					}
-
 				});
 
-				// Draw keyframes lane:
+				// get absolute min and max:
+				areaRect.from = areaRect.from == null ? size.from : Math.min(size.from, areaRect.from);
+				areaRect.to = areaRect.to == null ? size.to : Math.max(size.to, areaRect.to);
+
+				// get keyframes lane size
 				if (laneSize && !isNaN(size.from) && !isNaN(size.to)) {
 					// draw keyframes lane.
 					var fromPos = getSharp(msToPx(size.from))
@@ -960,9 +992,12 @@ var animationTimeline = function (window, document) {
 					size.y = laneHeight.y;
 					size.w = getDistance(fromPos, toPos);
 					size.h = laneHeight.h;
+					// get the bounds on a canvas
+					size.bounds = cutBounds({ x: size.x, y: size.y, w: size.w, h: size.h });
 				}
 			});
 
+			areaRect.w = msToPx(areaRect.to);
 
 			return toReturn;
 		}
@@ -973,9 +1008,9 @@ var animationTimeline = function (window, document) {
 			}
 
 			let lanesSizes = getLanesSizes();
-			if (lanesSizes && lanesSizes.forEach) {
+			if (lanesSizes && lanesSizes.sizes) {
 				ctx.save();
-				lanesSizes.forEach(function lanesSizesIterator(laneSize) {
+				lanesSizes.sizes.forEach(function lanesSizesIterator(laneSize) {
 
 					if (!laneSize) {
 						return;
@@ -989,8 +1024,10 @@ var animationTimeline = function (window, document) {
 						ctx.fillStyle = options.laneColor;
 					}
 
-					if (ctx.fillStyle) {
-						ctx.fillRect(laneSize.x, laneSize.y, laneSize.w, laneSize.h);
+					// Note: bounds used instead of the clip while clip is slow!
+					let bounds = laneSize.bounds;
+					if (bounds) {
+						ctx.fillRect(bounds.x, bounds.y, bounds.w, bounds.h);
 					}
 
 					let keyframesSize = laneSize.keyframes;
@@ -998,16 +1035,45 @@ var animationTimeline = function (window, document) {
 						return;
 					}
 
-					ctx.fillStyle = options.keyframesLaneColor;
-					// dont draw more than required:
-					let limitedWidth = Math.min(keyframesSize.w, canvas.clientWidth);
-					ctx.fillRect(keyframesSize.x, keyframesSize.y, limitedWidth, keyframesSize.h);
+					bounds = keyframesSize.bounds;
+					if (bounds) {
+						ctx.fillStyle = options.keyframesLaneColor;
+						ctx.fillRect(bounds.x, bounds.y, bounds.w, bounds.h);
+					}
 				});
 
 				ctx.restore();
 			}
 
 			return true;
+		}
+
+		function cutBounds(rect) {
+			// default bounds: minX, maxX, minY, maxY
+			let minX = 0, maxX = canvas.clientWidth, minY = options.headerHeight || 0, maxY = canvas.clientWidth;
+
+			if (isRectOverlap(rect, { x: minX, y: minY, w: getDistance(minX, maxX), h: getDistance(minY, maxY) })) {
+				let y = Math.max(rect.y, minY);
+				let x = Math.max(rect.x, minX);
+				let offsetW = rect.x - x;
+				let offsetH = rect.y - y;
+				rect.h += offsetH;
+				rect.w += offsetW;
+				rect.x = x;
+				rect.y = y;
+
+				// collision set:
+				if (Math.abs(offsetH) > 0) {
+					rect.overlapY = true;
+				}
+
+				if (Math.abs(offsetW) > 0) {
+					rect.overlapX = true;
+				}
+
+				return rect;// { x: x, y: y, w: w, h: h };
+			}
+			return null;
 		}
 
 		function getLanePosition(laneIndex) {
@@ -1036,19 +1102,6 @@ var animationTimeline = function (window, document) {
 			return { y: y, h: keyframeLaneHeight };
 		}
 
-		function getKeyframeSize(keyframe) {
-			if (!keyframe) {
-				return 0;
-			}
-
-			// keyframe size:
-			let size = options.keyframeSizePx || keyframe.size;
-			if (size == 'auto') {
-				size = options.laneHeightPx / 3;
-			}
-
-			return size;
-		}
 		function getKeyframePosition(keyframe, laneIndex) {
 			if (!keyframe) {
 				console.log('keyframe should be defined.');
@@ -1063,20 +1116,27 @@ var animationTimeline = function (window, document) {
 
 			// get center of the lane:
 			let laneY = getLanePosition(laneIndex);
-			var y = laneY + options.laneHeightPx / 2;
+			var y = laneY + options.laneHeightPx / 2 - scrollContainer.scrollTop;
 
-			let size = getKeyframeSize(keyframe);
+			// keyframe size:
+			let size = options.keyframeSizePx || keyframe.size;
+			if (size == 'auto') {
+				size = options.laneHeightPx / 3;
+			}
 
 			if (size > 0) {
 				if (!isNaN(ms)) {
-					return { x: Math.floor(msToPx(ms)), y: Math.floor(y), size: size, laneY: laneY };
+					let toReturn = { x: Math.floor(msToPx(ms)), y: Math.floor(y), size: size, laneY: laneY };;
+					return toReturn;
 				}
 			}
 
 			return null;
 		}
 
+		function getBounds() {
 
+		}
 		function drawKeyframes() {
 			if (!lanes || !lanes.forEach || lanes.length <= 0) {
 				return false;
@@ -1088,7 +1148,19 @@ var animationTimeline = function (window, document) {
 					let x = getSharp(pos.x);
 					let y = pos.y;
 					let size = pos.size;
+
+					let bounds = cutBounds({ x: x - size / 2, y: y - size / 2, w: size, h: size });
+					if (!bounds) {
+						return;
+					}
+
 					ctx.save();
+					// use clip only  when we are in the collision! Clip is slow!
+					if (bounds && bounds.overlapY) {
+						ctx.rect(0, options.headerHeight || 0, canvas.clientWidth, canvas.clientWidth);
+						ctx.clip();
+					}
+
 					ctx.beginPath();
 					ctx.translate(x, y);
 					ctx.rotate(45 * Math.PI / 180);
@@ -1097,7 +1169,7 @@ var animationTimeline = function (window, document) {
 						ctx.fillStyle = options.keyframeBorderColor;
 						ctx.rect(-size / 2, -size / 2, size, size);
 						ctx.fill();
-						ctx.beginPath();
+						//	ctx.beginPath();
 					}
 
 					ctx.fillStyle = keyframe.color || options.keyframeColor;
@@ -1111,6 +1183,8 @@ var animationTimeline = function (window, document) {
 					ctx.restore();
 				}
 			});
+
+
 		}
 
 		function drawSelection() {
@@ -1141,9 +1215,10 @@ var animationTimeline = function (window, document) {
 				ctx.fillStyle = options.backgroundColor;
 				ctx.fill();
 				ctx.restore();
-				return true;
+			} else {
+				// Clear if bg not set.
+				ctx.clearRect(0, 0, canvas.width, canvas.height);
 			}
-			return false;
 		}
 
 		function drawTimeLine() {
@@ -1179,29 +1254,28 @@ var animationTimeline = function (window, document) {
 		}
 
 		function drawHeaderBackground() {
-			if (options.headerBackground) {
+			if (!isNaN(options.headerHeight) && options.headerHeight > 0) {
 				ctx.save();
 				// draw ticks background
 				ctx.lineWidth = pixelRatio;
-
-				// draw header background
-				ctx.fillStyle = options.headerBackground;
-				ctx.fillRect(0, 0, canvas.clientWidth, options.headerHeight);
+				if (options.headerBackground) {
+					// draw ticks background
+					ctx.lineWidth = pixelRatio;
+					// draw header background
+					ctx.fillStyle = options.headerBackground;
+					ctx.fillRect(0, 0, canvas.clientWidth, options.headerHeight);
+				}
+				else {
+					ctx.clearRect(0, 0, canvas.clientWidth, options.headerHeight);
+				}
 				ctx.restore();
-				return true;
 			}
-
-			return false;
 		}
 
 		function redraw() {
 
-			var isOk = drawBackground();
-			if (!isOk) {
-				// Clear if bg not set.
-				ctx.clearRect(0, 0, canvas.width, canvas.height);
-			}
-
+			rescale();
+			drawBackground();
 			drawHeaderBackground();
 			drawLanes();
 			drawTicks();
@@ -1221,9 +1295,6 @@ var animationTimeline = function (window, document) {
 
 			return pos + pixelRatio / 2;
 		}
-
-		rescale();
-		redraw();
 
 		/**
 		 * Get current time in ms.
@@ -1280,6 +1351,9 @@ var animationTimeline = function (window, document) {
 				}
 			}
 		}
+
+		rescale();
+		redraw();
 
 		return this;
 	}
