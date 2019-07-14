@@ -353,7 +353,6 @@ var animationTimeline = function (window, document) {
 
 		window.addEventListener('mousemove', function (args) {
 			trackMousePos(canvas, args);
-			let ms = pxToMS(currentPos.x);
 			if (selectionRect && checkClickDurationOver()) {
 				selectionRect.draw = true;
 			}
@@ -363,9 +362,8 @@ var animationTimeline = function (window, document) {
 				if (args.buttons == 1) {
 					scrollByMouse(currentPos.x);
 					if (drag && drag.obj) {
-						let convertedMs = pxToMS(scrollContainer.scrollLeft + Math.min(currentPos.x, canvas.clientWidth));
-						convertedMs = Math.round(convertedMs);
 
+						let convertedMs = mousePosToMs(currentPos.x);
 						// Apply snap to steps if enabled.
 						if (options.snapPointsPerPixel && options.snapEnabled) {
 							var stopsPerPixel = (1000 / options.snapPointsPerPixel);
@@ -411,8 +409,7 @@ var animationTimeline = function (window, document) {
 				// Click detection.
 				if (selectionRect && selectionRect.h <= 2 && selectionRect.w <= 2 ||
 					!checkClickDurationOver()) {
-					// Set current timeline position if it's not a drag or selection rect small or fast click.
-					setTime(pxToMS(pos.x));
+					perfromClick(pos);
 				} else if (selectionRect) {
 					performSelection(null, selectionRect, true);
 				}
@@ -422,6 +419,11 @@ var animationTimeline = function (window, document) {
 			redraw();
 		}, false);
 
+		function perfromClick(pos) {
+			let convertedMs = mousePosToMs(pos.x);
+			// Set current timeline position if it's not a drag or selection rect small or fast click.
+			setTime(convertedMs);
+		}
 		selectedKeyframes = [];
 		function performSelection(keyframeToSet, rectangle, value) {
 			if (value === undefined) {
@@ -593,6 +595,11 @@ var animationTimeline = function (window, document) {
 			coords -= options.leftMarginPx;
 			var ms = coords / options.stepPx * options.zoom;
 			return ms;
+		}
+
+		function mousePosToMs(x) {
+			let convertedMs = pxToMS(scrollContainer.scrollLeft + Math.min(x, canvas.clientWidth));
+			return Math.round(convertedMs);
 		}
 
 		// convert 
