@@ -63,6 +63,8 @@ var animationTimeline = function (window, document) {
 		autoWidth: true,
 		ticksFont: "11px sans-serif",
 		zoom: 1000,
+		// scroll by drag speed (from 0 to 1)
+		scrollByDragSpeed: 0.12,
 		id: '',
 		scrollId: ''
 	}
@@ -374,10 +376,12 @@ var animationTimeline = function (window, document) {
 				const delta = Math.sign(event.deltaY) * 10;
 				options.zoom += delta;
 				if (options.zoom <= 0) {
-					options.zoom = 0;
+					options.zoom = 1 / 2;
 				}
-				event.preventDefault();
+
+				rescale();
 				redraw();
+				event.preventDefault();
 			}
 		});
 
@@ -396,11 +400,14 @@ var animationTimeline = function (window, document) {
 				scrollingTimeRef = null;
 			}
 
-			// Set a timeout to run after scrolling ends
+			// Set a timeout to run event 'scrolling end'.
 			scrollingTimeRef = setTimeout(function () {
-				scrollingTimeRef = null;
+				if (scrollingTimeRef) {
+					clearTimeout(scrollingTimeRef);
+					scrollingTimeRef = null;
+				}
 				rescale();
-			}, 200);
+			}, 500);
 
 			redraw();
 		});
@@ -433,7 +440,6 @@ var animationTimeline = function (window, document) {
 		}, false);
 
 		function onMouseDown(args) {
-
 			// Prevent drag of the canvas if canvas is selected as text:
 			clearBrowserSelection();
 			startPos = trackMousePos(canvas, args);
@@ -537,8 +543,8 @@ var animationTimeline = function (window, document) {
 
 					}
 
-					// Track scroll by mouse
-					scrollByMouse(currentPos);
+					// Track scroll by mouse or touch
+					scrollByDrag(currentPos);
 					redraw();
 				}
 				else {
@@ -781,7 +787,7 @@ var animationTimeline = function (window, document) {
 				// Repeat move calls to
 				intervalReference = setInterval(function () {
 					onMouseMove();
-				}, 300);
+				}, 50);
 			}
 		}
 
@@ -796,7 +802,7 @@ var animationTimeline = function (window, document) {
 
 		function checkUpdateSpeedIsFast() {
 			// Dont update too often.
-			if (lastCallDate && new Date() - lastCallDate <= 100) {
+			if (lastCallDate && new Date() - lastCallDate <= 10) {
 				return true;
 			}
 
@@ -804,12 +810,11 @@ var animationTimeline = function (window, document) {
 			return false;
 		}
 
-		function scrollByMouse(pos) {
+		function scrollByDrag(pos) {
 			let x = pos.x;
 			let isChanged = false;
-			let newWidth = 0;
 			let speed = 0;
-			if (x <= 0) {
+			if (x <= 0 || x >= canvas.clientWidth) {
 				// Auto move init
 				startAutoScrollInterval();
 
@@ -817,30 +822,27 @@ var animationTimeline = function (window, document) {
 					return;
 				}
 
-				speed = -getDistance(x, canvas.clientWidth);
-				//newWidth = scrollContainer.scrollLeft + canvas.scrollWidth + speed;
-			} else if (x >= canvas.clientWidth) {
-
-				// Auto move init
-				startAutoScrollInterval();
-
-				if (checkUpdateSpeedIsFast()) {
-					return;
+				if (x <= 0) {
+					speed = -getDistance(x, 0);
+				}
+				else {
+					// One second distance: 
+					speed = getDistance(x, canvas.clientWidth);
 				}
 
-				// One second distance: 
-				speed = getDistance(x, canvas.clientWidth);
-				step = canvas.clientWidth / scrollContainer.scrollWidth;
-
-				newWidth = scrollContainer.scrollLeft + canvas.scrollWidth + speed;
-				rescale(newWidth);
+				if (!isNaN(options.scrollByDragSpeed)) {
+					speed = speed * options.scrollByDragSpeed;
+				}
 			}
 			else {
 				clearMoveInterval();
 			}
 
+			if (Math.abs(speed) > 0) {
+				rescale(scrollContainer.scrollLeft + canvas.scrollWidth + speed);
+				scrollContainer.scrollLeft += speed;
+			}
 
-			scrollContainer.scrollLeft += speed;
 			return isChanged;
 		}
 
@@ -941,6 +943,8 @@ var animationTimeline = function (window, document) {
 			// Find a beautiful end point:
 			to = Math.ceil(visibleTo / step) * step + step;
 
+
+			let lastTextX = null;
 			for (var i = from; i <= to; i += step) {
 				var pos = msToPx(i);
 				var sharpPos = getSharp(Math.round(pos));
@@ -960,8 +964,14 @@ var animationTimeline = function (window, document) {
 				var text = msToHMS(i)
 				var textSize = ctx.measureText(text);
 
-				sharpPos -= textSize.width / 2;
-				ctx.fillText(text, sharpPos, 10);
+				let textX = sharpPos - textSize.width / 2;
+				// skip text render if there is no space for it.
+				if (isNaN(lastTextX) || lastTextX <= textX) {
+
+					lastTextX = textX + textSize.width;
+					ctx.fillText(text, textX, 10);
+				}
+
 				ctx.restore();
 				// Draw small steps
 				for (let x = i + smallStep; x < i + step; x += smallStep) {
