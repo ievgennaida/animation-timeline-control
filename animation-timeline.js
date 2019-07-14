@@ -38,7 +38,7 @@ var animationTimeline = function (window, document) {
 		selectedKeyframeColor: 'DarkOrange',
 		keyframeBorderColor: 'Black',
 		keyframeBorderThicknessPx: 0.2,
-		// can be a number or 'auto'. Auto is calculated based on the laneHeightPx
+		// can be a number or 'auto'. can be overriden by 'keyframe.size'. Auto is calculated based on the laneHeightPx.
 		keyframeSizePx: 'auto',
 		backgroundColor: 'black',//1E1E1E
 		timeIndicatorColor: 'DarkOrange',
@@ -56,6 +56,8 @@ var animationTimeline = function (window, document) {
 		id: '',
 		scrollId: ''
 	}
+	var denominators = [1, 2, 5, 10];
+	var clickDetectionMs = 120;
 
 	function getPixelRatio(ctx) {
 		dpr = window.devicePixelRatio || 1,
@@ -97,7 +99,43 @@ var animationTimeline = function (window, document) {
 		return str;
 	}
 
-	let denominators = [1, 2, 5, 10];
+
+	/**
+	 * Check rectangle overlap.
+	 * @param {number} x1 
+	 * @param {number} y1 
+	 * @param {object} rectangle 
+	 */
+	function isOverlap(x, y, rectangle) {
+		if (!rectangle) {
+			console.log('Rectange cannot be empty');
+			return false;
+		}
+
+		if (rectangle.x <= x && (rectangle.x + rectangle.w) >= x &&
+			rectangle.y <= y && (rectangle.y + rectangle.h) >= y) {
+			return true;
+		}
+
+		return false;
+	}
+
+	function isRectOverlap(rect, rect2) {
+		if (!rect || rect2) {
+			console.log('Rectanges cannot be empty');
+			return false;
+		}
+
+		if (isOverlap(rect.x, rect.y, rect2) ||
+			isOverlap(rect.x + rect.w, rect.y, rect2) ||
+			isOverlap(rect.x + rect.w, rect.y + rect.h, rect2) ||
+			isOverlap(rect.x, rect.y + rect.h, rect2)) {
+			return true;
+		}
+
+		return false;
+	}
+
 	function getDistance(x1, y1, x2, y2) {
 		if (x2 != undefined && y2 != undefined) {
 			return Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2));
@@ -167,8 +205,11 @@ var animationTimeline = function (window, document) {
 			}
 		}
 
-		var startPos;
-		var currentPos;
+		var startPos = null;
+		var currentPos = null;
+		var selectionRect = null;
+		var drag = null;
+		var clickDurarion = null;
 		var scrollContainer = document.getElementById(options.scrollId);
 		var canvas = document.getElementById(options.id);
 		var size = document.getElementById(options.sizeId);
@@ -293,20 +334,31 @@ var animationTimeline = function (window, document) {
 			redraw();
 		}, false);
 
-		drag = null;
+
 		canvas.addEventListener('mousedown', function (args) {
-			startPos = getMousePos(canvas, args);
+			startPos = trackMousePos(canvas, args);
+			clickDurarion = new Date();
+			currentPos = startPos;
 			startPos.scrollLeft = scrollContainer.scrollLeft;
 			startPos.scrollTop = scrollContainer.scrollTo;
-			currentPos = startPos;
 			drag = getDragableObject(currentPos);
+			// Select keyframes on mouse down
+			if (drag && drag.type == 'keyframe') {
+				performSelection(drag.obj, null, true);
+			}
+
 			redraw();
 		}, false);
 
+
 		window.addEventListener('mousemove', function (args) {
-			currentPos = getMousePos(canvas, args);
+			trackMousePos(canvas, args);
 			let ms = pxToMS(currentPos.x);
-			console.log('x: ' + currentPos.x + '. ms:' + pxToMS(currentPos.x) + '. px:' + msToPx(ms));
+			if (selectionRect && checkClickDurationOver()) {
+				selectionRect.draw = true;
+			}
+
+			//console.log('x: ' + currentPos.x + '. ms:' + pxToMS(currentPos.x) + '. px:' + msToPx(ms));
 			if (startPos) {
 				if (args.buttons == 1) {
 					scrollByMouse(currentPos.x);
@@ -326,10 +378,14 @@ var animationTimeline = function (window, document) {
 							convertedMs = 0;
 						}
 
-						drag.obj.ms = convertedMs;
-						redraw();
+
+						//redraw();
 						if (drag.type == 'timeline') {
-							this.emit('timeChanged', convertedMs);
+							setTime(convertedMs);
+							redraw();
+						} else if (drag.type == 'keyframe') {
+							drag.obj.ms = convertedMs;
+							redraw();
 						}
 
 						return;
@@ -341,23 +397,116 @@ var animationTimeline = function (window, document) {
 				}
 				redraw();
 			} else {
+				// TODO: used to change mouse cursor. 
+				// Should be changed.
 				getDragableObject(currentPos);
 			}
 		}, false);
 
-		function cleanUpSelection() {
-			startPos = null;
-			drag = null;
-			clearMoveInterval();
-		}
-
 		window.addEventListener('mouseup', function (args) {
 			//window.releaseCapture();
-			currentPos = getMousePos(canvas, args);
+			let pos = trackMousePos(canvas, args);
+
+			if (!drag) {
+				// Click detection.
+				if (selectionRect && selectionRect.h <= 2 && selectionRect.w <= 2 ||
+					!checkClickDurationOver()) {
+					// Set current timeline position if it's not a drag or selection rect small or fast click.
+					setTime(pxToMS(pos.x));
+				} else if (selectionRect) {
+					performSelection(null, selectionRect, true);
+				}
+			}
+
 			cleanUpSelection();
 			redraw();
 		}, false);
 
+		selectedKeyframes = [];
+		function performSelection(keyframeToSet, rectangle, value) {
+			if (value === undefined) {
+				value = true;
+			}
+
+			selectedKeyframes.length = 0;
+			let isChanged = true;
+			iterateKeyframes(function seletionIterator(keyframe, keyframeIndex, lane, laneIndex) {
+				let keyframePos = getKeyframePosition(keyframe, laneIndex);
+				if (keyframePos) {
+					if (keyframeToSet == keyframe || (rectangle && isOverlap(keyframePos.x, keyframePos.y, rectangle))) {
+						if (keyframe.selected != value) {
+							keyframe.selected = value;
+							isChanged = true;
+						}
+
+						if (keyframe.selected) {
+							selectedKeyframes.push(keyframe);
+						}
+					} else {
+						// Deselect all other keyframes.
+						if (keyframe.selected != false) {
+							keyframe.selected = false;
+							isChanged = true;
+						}
+					}
+				}
+			});
+
+			if (isChanged) {
+				onKeyframesSelected(selectedKeyframes);
+				redraw();
+			}
+		}
+
+		function iterateKeyframes(callback) {
+			if (!lanes || !lanes.forEach || lanes.length <= 0) {
+				return false;
+			}
+
+			lanes.forEach(function lanesIterator(lane, index) {
+				if (!lane || !lane.keyframes || !lane.keyframes.forEach || lane.keyframes.length <= 0) {
+					return;
+				}
+
+				lane.keyframes.forEach(function keyframesIterator(keyframe, keyframeIndex) {
+					if (callback && keyframe) {
+						callback(keyframe, keyframeIndex, lane, index);
+					}
+				});
+			});
+		}
+
+		function trackMousePos(canvas, mouseArgs) {
+			currentPos = getMousePos(canvas, mouseArgs);
+			if (startPos) {
+				if (!selectionRect) {
+					selectionRect = {};
+				}
+
+				selectionRect.x = Math.min(startPos.x, currentPos.x);
+				selectionRect.y = Math.min(startPos.y, currentPos.y);
+				selectionRect.w = Math.max(startPos.x, currentPos.x) - selectionRect.x;
+				selectionRect.h = Math.max(startPos.y, currentPos.y) - selectionRect.y;
+			}
+			return currentPos;
+		}
+
+		function cleanUpSelection() {
+			startPos = null;
+			drag = null;
+			selectionRect = null;
+			clickDurarion = null;
+			clearMoveInterval();
+		}
+
+		function checkClickDurationOver() {
+			// Duration before the selection can be tracked.
+			if ((clickDurarion && new Date() - clickDurarion > clickDetectionMs)) {
+				return true;
+			}
+
+			return false;
+		}
 
 		width = canvas.clientWidth;
 		//stepsCanFit
@@ -546,6 +695,10 @@ var animationTimeline = function (window, document) {
 		}
 
 		function drawLanes() {
+			if (!lanes || !lanes.forEach || lanes.length <= 0) {
+				return false;
+			}
+
 			ctx.save();
 			// Draw lane for each control
 			lanes.forEach(function (lane, index) {
@@ -563,8 +716,12 @@ var animationTimeline = function (window, document) {
 					ctx.fillRect(0, laneY, canvas.clientWidth, options.laneHeightPx);
 				}
 
-				// lanes color
-				if (lane.keyframes && options.keyframesLaneColor) {
+				if (!lane || !lane.keyframes || !lane.keyframes.forEach || lane.keyframes.length <= 0) {
+					return;
+				}
+
+				// Draw keyframes lanes
+				if (options.keyframesLaneColor) {
 					var from = null;
 					var to = null;
 					lane.keyframes.forEach(function (keyframe) {
@@ -592,6 +749,8 @@ var animationTimeline = function (window, document) {
 
 			});
 			ctx.restore();
+
+			return true;
 		}
 
 		function getLanePosition(laneIndex) {
@@ -601,78 +760,89 @@ var animationTimeline = function (window, document) {
 			return laneY;
 		}
 
-		function drawKeyframes() {
-			ctx.save();
-			// Draw lane for each control
-			lanes.forEach(function (lane, index) {
-				let laneY = getLanePosition(index);
-				if (lane.keyframes) {
+		function getKeyframePosition(keyframe, laneIndex) {
+			if (!keyframe) {
+				console.log('keyframe should be defined.');
+				return null;
+			}
 
-					// keyframe size:
-					var size = options.keyframeSizePx;
-					if (size == 'auto') {
-						size = options.laneHeightPx / 3;
-					}
+			let ms = keyframe.ms;
+			if (isNaN(ms)) {
+				console.log('Cannot find x of the keyframe. ms is not a number!');
+				return null;
+			}
 
-					if (size > 0) {
-						// Draw keyframes:
-						lane.keyframes.forEach(function (keyframe) {
-							if (keyframe && !isNaN(keyframe.ms)) {
-								let pos = getSharp(msToPx(keyframe.ms));
+			// get center of the lane:
+			var y = getLanePosition(laneIndex) + options.laneHeightPx / 2;
 
-								var pointY = laneY + options.laneHeightPx / 2 - size / 2;
-								var keyframePos = pos - size / 2;
-								ctx.save();
+			// keyframe size:
+			var size = options.keyframeSizePx || keyframe.size;
+			if (size == 'auto') {
+				size = options.laneHeightPx / 3;
+			}
 
-								ctx.beginPath();
-
-								ctx.translate(keyframePos + size / 2, pointY + size / 2);
-								ctx.rotate(45 * Math.PI / 180);
-
-								let border = options.keyframeBorderThicknessPx;
-								if (border > 0 && options.keyframeBorderColor) {
-									ctx.fillStyle = options.keyframeBorderColor;
-									ctx.rect(-size / 2, -size / 2, size, size);
-									ctx.fill();
-									ctx.beginPath();
-								}
-
-								ctx.fillStyle = keyframe.color || options.keyframeColor;
-								if (keyframe.selected) {
-									ctx.fillStyle = keyframe.selectedColor || options.selectedKeyframeColor;
-								}
-
-								ctx.translate(border, border);
-								ctx.rect(-size / 2, -size / 2, size - border * 2, size - border * 2);
-								ctx.fill();
-								ctx.restore();
-							}
-						});
-					}
+			if (size > 0) {
+				if (!isNaN(ms)) {
+					return { x: Math.floor(msToPx(ms)), y: Math.floor(y), size: size };
 				}
+			}
 
+			return null;
+		}
+
+
+		function drawKeyframes() {
+			if (!lanes || !lanes.forEach || lanes.length <= 0) {
+				return false;
+			}
+
+			iterateKeyframes(function seletionIterator(keyframe, keyframeIndex, lane, laneIndex) {
+				var pos = getKeyframePosition(keyframe, laneIndex);
+				if (pos) {
+					let x = getSharp(pos.x);
+					let y = getSharp(pos.y);
+					let size = pos.size;
+					ctx.save();
+					ctx.beginPath();
+					ctx.translate(x, y);
+					ctx.rotate(45 * Math.PI / 180);
+					let border = options.keyframeBorderThicknessPx;
+					if (border > 0 && options.keyframeBorderColor) {
+						ctx.fillStyle = options.keyframeBorderColor;
+						ctx.rect(-size / 2, -size / 2, size, size);
+						ctx.fill();
+						ctx.beginPath();
+					}
+
+					ctx.fillStyle = keyframe.color || options.keyframeColor;
+					if (keyframe.selected) {
+						ctx.fillStyle = keyframe.selectedColor || options.selectedKeyframeColor;
+					}
+					// draw main keyframe data with offset.
+					ctx.translate(border, border);
+					ctx.rect(-size / 2, -size / 2, size - border * 2, size - border * 2);
+					ctx.fill();
+					ctx.restore();
+				}
 			});
-			ctx.restore();
 		}
 
 		function drawSelection() {
 			if (drag) {
 				return;
 			}
+
 			ctx.save();
 			var thickness = 1;
-			if (startPos && currentPos) {
+			if (selectionRect && selectionRect.draw) {
 				ctx.setLineDash([4]);
 				ctx.lineWidth = pixelRatio;
 				ctx.strokeStyle = options.selectionColor;
-				// for a mouse pos Math.floor is not needed.
-				let x = Math.min(startPos.x, currentPos.x);
-				let y = Math.min(startPos.y, currentPos.y);
-				let w = Math.floor(Math.max(startPos.x, currentPos.x) - x);
-				let h = Math.floor(Math.max(startPos.y, currentPos.y) - y);
-				x = getSharp(x, thickness);
-				y = getSharp(y, thickness);
-				ctx.strokeRect(x, y, w, h);
+				ctx.strokeRect(
+					getSharp(selectionRect.x, thickness),
+					getSharp(selectionRect.y, thickness),
+					Math.floor(selectionRect.w),
+					Math.floor(selectionRect.h));
 			}
 			ctx.restore();
 		}
@@ -778,9 +948,20 @@ var animationTimeline = function (window, document) {
 			return timeLine.ms;
 		}
 
-		this.setTime = function () {
-			if (dra)
-				return timeLine.ms;
+		this.setTime = function (ms) {
+			ms = Math.round(ms);
+			if (ms < 0) {
+				ms = 0;
+			}
+
+			if (timeLine.ms != ms) {
+				timeLine.ms = ms;
+				this.emit('timeChanged', ms);
+			}
+		}
+
+		function onKeyframesSelected(keyframe) {
+			this.emit('selected', keyframe);
 		}
 
 		let subscriptions = [];
