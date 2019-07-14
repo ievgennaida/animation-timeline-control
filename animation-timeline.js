@@ -283,11 +283,33 @@ var animationTimeline = function (window, document) {
 			let sizes = getLanesSizes();
 			if (sizes && sizes.areaRect) {
 
+				additionalOffset = + 100;
 				newWidth = newWidth || 0;
-				newWidth = Math.max(newWidth, sizes.areaRect.w + options.leftMarginPx + 100, scrollContainer.scrollLeft + canvas.clientWidth);
+				// not less than current timeline position
+				let timelineGlobalPos = msToPx(timeLine.ms, true);
+				let timelinePos = 0;
+				if (timelineGlobalPos > scrollContainer.scrollWidth) {
+					timelinePos = Math.floor(timelineGlobalPos + canvas.clientWidth / 1.5);
+				}
 
-				size.style.minHeight = sizes.areaRect.h + sizes.areaRect.h * 0.8 + "px";
-				size.style.minWidth = newWidth + "px";
+				newWidth = Math.max(newWidth,
+					// keyframes size
+					sizes.areaRect.w + options.leftMarginPx + additionalOffset,
+					// not less than current scroll position
+					scrollContainer.scrollLeft + canvas.clientWidth,
+					timelinePos,
+				);
+
+				let h = Math.floor(sizes.areaRect.h + sizes.areaRect.h + 20) + "px";
+				if (size.style.minHeight != h) {
+					size.style.minHeight = h
+				}
+
+				newWidth = Math.floor(newWidth) + "px";
+
+				if (newWidth != size.style.minWidth) {
+					size.style.minWidth = newWidth
+				}
 			}
 
 		}
@@ -445,8 +467,6 @@ var animationTimeline = function (window, document) {
 			startPos = trackMousePos(canvas, args);
 			clickDurarion = new Date();
 			currentPos = startPos;
-			startPos.scrollLeft = scrollContainer.scrollLeft;
-			startPos.scrollTop = scrollContainer.scrollTo;
 			drag = getDraggable(currentPos);
 			// Select keyframes on mouse down
 			if (drag) {
@@ -502,7 +522,7 @@ var animationTimeline = function (window, document) {
 						let convertedMs = mousePosToMs(currentPos.x, true);
 						//redraw();
 						if (drag.type == 'timeline') {
-							isChanged |= setTime(convertedMs);
+							isChanged |= setTimeInternal(convertedMs, 'user');
 						} else if ((drag.type == 'keyframe' || drag.type == 'lane') && drag.selectedItems) {
 							let offset = Math.floor(convertedMs - drag.ms);
 							if (Math.abs(offset) > 0) {
@@ -621,7 +641,7 @@ var animationTimeline = function (window, document) {
 					// change timeline pos:
 					let convertedMs = mousePosToMs(pos.x, true);
 					// Set current timeline position if it's not a drag or selection rect small or fast click.
-					isChanged |= setTime(convertedMs);
+					isChanged |= setTimeInternal(convertedMs, 'user');
 				}
 			}
 			else {
@@ -631,7 +651,7 @@ var animationTimeline = function (window, document) {
 				// change timeline pos:
 				let convertedMs = mousePosToMs(pos.x, true);
 				// Set current timeline position if it's not a drag or selection rect small or fast click.
-				isChanged |= setTime(convertedMs);
+				isChanged |= setTimeInternal(convertedMs, 'user');
 			}
 
 			return isChanged;
@@ -771,9 +791,7 @@ var animationTimeline = function (window, document) {
 			return false;
 		}
 
-		width = canvas.clientWidth;
 		//stepsCanFit
-
 		rescale();
 
 		let intervalReference = null;
@@ -813,8 +831,7 @@ var animationTimeline = function (window, document) {
 		function scrollByDrag(pos) {
 			let x = pos.x;
 			let isChanged = false;
-			let speed = 0;
-			if (x <= 0 || x >= canvas.clientWidth) {
+			if (x <= 0) {
 				// Auto move init
 				startAutoScrollInterval();
 
@@ -822,25 +839,41 @@ var animationTimeline = function (window, document) {
 					return;
 				}
 
-				if (x <= 0) {
-					speed = -getDistance(x, 0);
+				if (scrollLeft) {
+
 				}
 				else {
-					// One second distance: 
-					speed = getDistance(x, canvas.clientWidth);
+
 				}
 
-				if (!isNaN(options.scrollByDragSpeed)) {
-					speed = speed * options.scrollByDragSpeed;
+				// Get normilized speed.
+				speed = -getDistance(x, 0) * (isNaN(options.scrollByDragSpeed) ? 1 : options.scrollByDragSpeed);
+
+				if (Math.abs(speed) > 0) {
+					scrollContainer.scrollLeft += speed;
+					isChanged = true;
+				}
+
+			} else if (x >= canvas.clientWidth) {
+				// Auto move init
+				startAutoScrollInterval();
+
+				if (checkUpdateSpeedIsFast()) {
+					return;
+				}
+
+				// Get normalized speed: 
+				speed = getDistance(x, canvas.clientWidth) * (isNaN(options.scrollByDragSpeed) ? 1 : options.scrollByDragSpeed);
+
+				rescale(scrollContainer.scrollLeft + canvas.scrollWidth + speed);
+
+				if (Math.abs(speed) > 0) {
+					scrollLeft();
+					isChanged = true;
 				}
 			}
 			else {
 				clearMoveInterval();
-			}
-
-			if (Math.abs(speed) > 0) {
-				rescale(scrollContainer.scrollLeft + canvas.scrollWidth + speed);
-				scrollContainer.scrollLeft += speed;
 			}
 
 			return isChanged;
@@ -1348,8 +1381,30 @@ var animationTimeline = function (window, document) {
 				ctx.restore();
 			}
 		}
-
 		function redraw() {
+			redrawInternal();
+			if (window.requestAnimationFrame) {
+				window.requestAnimationFrame.call(this, redrawInternal);
+			} else {
+
+			}
+		}
+
+		function scrollLeft() {
+			if (scrollContainer.scrollLeft != scrollContainer.scrollWidth) {
+				scrollContainer.scrollLeft = scrollContainer.scrollWidth;
+			}
+		}
+
+		this.scrollLeft = scrollLeft;
+		function redrawInternal() {
+			// Rescale when timeline is goes more than 
+			if (msToPx(timeLine.ms, true) > scrollContainer.scrollWidth) {
+				rescale();
+				if (!drag && !selectionRect)
+					scrollLeft();
+			}
+
 			drawBackground();
 			drawLanes();
 			drawHeaderBackground();
@@ -1357,6 +1412,7 @@ var animationTimeline = function (window, document) {
 			drawKeyframes();
 			drawSelection();
 			drawTimeLine();
+
 		}
 
 		function getSharp(pos, thinkess) {
@@ -1379,7 +1435,7 @@ var animationTimeline = function (window, document) {
 			return timeLine.ms;
 		}
 
-		this.setTime = function (ms) {
+		function setTimeInternal(ms, source) {
 			ms = Math.round(ms);
 			if (ms < 0) {
 				ms = 0;
@@ -1387,9 +1443,21 @@ var animationTimeline = function (window, document) {
 
 			if (timeLine.ms != ms) {
 				timeLine.ms = ms;
-				this.emit('timeChanged', ms);
+				this.emit('timeChanged', { ms: ms, source: source });
+				return true;
 			}
+
+			return true;
 		}
+
+		this.setTime = function (ms) {
+			// Dont allow to change time during drag:
+			if (drag && drag.type == 'timeline') {
+				return false;
+			}
+
+			return setTimeInternal(ms);
+		};
 
 		this.select = function (value) {
 			performSelection(value);

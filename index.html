@@ -1,58 +1,60 @@
 <!DOCTYPE html>
 <html>
-<style>
-  #timeline-canvas-container {
-    position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-  }
 
-  #timeline-size-content {
-    width: 100px;
-    height: 100%;
-  }
+<head>
+  <style>
+    #timeline-canvas-container {
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+    }
 
-  #timeline-scroll-container {
-    border: 1px solid #d3d3d3;
-    background: white;
-    overflow: scroll;
-    max-width: 100%;
-    height: 400px;
-    position: relative;
-    box-sizing: border-box;
-    width: 100%;
-    touch-action: none;
-  }
+    #timeline-size-content {
+      width: 100px;
+      height: 100%;
+    }
 
-  #timeline {
+    #timeline-scroll-container {
+      border: 1px solid #d3d3d3;
+      background: white;
+      overflow: scroll;
+      max-width: 100%;
+      height: 400px;
+      position: relative;
+      box-sizing: border-box;
+      width: 100%;
+      touch-action: none;
+    }
 
-    image-rendering: -moz-crisp-edges;
-    image-rendering: -webkit-crisp-edges;
-    image-rendering: pixelated;
-    image-rendering: crisp-edges;
-    user-select: none;
-    -webkit-user-select: none;
-    -khtml-user-select: none;
-    -moz-user-select: none;
-    -o-user-select: none;
-    user-select: none;
-    touch-action: none;
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    box-sizing: border-box;
+    #timeline {
 
-  }
-</style>
+      image-rendering: -moz-crisp-edges;
+      image-rendering: -webkit-crisp-edges;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+      user-select: none;
+      -webkit-user-select: none;
+      -khtml-user-select: none;
+      -moz-user-select: none;
+      -o-user-select: none;
+      user-select: none;
+      touch-action: none;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      box-sizing: border-box;
 
+    }
+  </style>
 
-
-<body>
   <script src="animation-timeline.js" type="text/javascript">
   </script>
+</head>
+
+<body>
   <div id="timeline-scroll-container">
     <div id="timeline-size-content">
     </div>
@@ -120,17 +122,16 @@
           ms: 100
         }
         ]
-      }//, {}, {}, {}, {}, {}, {},
+      }
     ];
 
     let timeline = animationTimeline.initialize({ id: 'timeline', scrollId: 'timeline-scroll-container', sizeId: 'timeline-size-content' }, lanes);
 
     timeline.on('timeChanged', function (object) {
-      document.getElementById('currentTime').innerHTML = object + 'ms';
+      document.getElementById('currentTime').innerHTML = object.ms + 'ms';
     })
 
   </script>
-
 </body>
 
 </html>
