@@ -190,9 +190,7 @@ var animationTimeline = function (window, document) {
 
 	this.initialize = function (options, lanes) {
 		var timeLine = {
-			ms: 3503,
-			width: 5,
-			isDrag: false,
+			ms: 0,
 		}
 
 		// Merge options with the default:
@@ -262,41 +260,79 @@ var animationTimeline = function (window, document) {
 
 
 		// Check whether we can drag something here.
-		function getDragableObject(pos) {
+		function getDraggable(pos) {
 
-			let dragable = null;
-			iterateKeyframes(function (keyframe, keyframeIndex, lane, laneIndex) {
+			// few extra pixels to select items:
+			let helperSelector = 10;
+			let draggable = null;
+
+			iterateKeyframes(function (keyframe, keyframeIndex, lane, laneIndex, isNextLane) {
 				let keyframePos = getKeyframePosition(keyframe, laneIndex);
 				if (keyframePos) {
 					const dist = getDistance(keyframePos.x, keyframePos.y, pos.x, pos.y);
-					if (dist <= keyframePos.size + 2) {
-						canvas.style.cursor = "move";
-						if (!dragable) {
-							dragable = {
+					if (dist <= keyframePos.size + helperSelector) {
+						if (!draggable) {
+							draggable = {
 								obj: keyframe,
+								pos: pos,
+								ms: keyframe.ms,
 								type: 'keyframe',
 								distance: dist
 							}
-						} else if (dist <= dragable.distance) {
-							dragable.obj = keyframe;
+						} else if (dist <= draggable.distance) {
+							draggable.obj = keyframe;
+							draggable.ms = keyframe.ms;
 						}
 					}
 				}
 			})
 
-			if (dragable) {
-				return dragable;
+			if (draggable) {
+				return draggable;
+			}
+
+			// Return keyframes lanes:
+			const lanesSizes = getLanesSizes();
+			if (lanesSizes && lanesSizes.find) {
+				let foundOverlap = lanesSizes.find(function lanesSizesIterator(laneSize) {
+					if (!laneSize || !laneSize.keyframes) {
+						return false;
+					}
+
+					let laneOverlaped = isOverlap(pos.x, pos.y, laneSize.keyframes);
+					return laneOverlaped;
+				});
+
+				if (foundOverlap) {
+					draggable = {
+						obj: foundOverlap,
+						pos: pos,
+						type: 'lane'
+					}
+
+					draggable.ms = mousePosToMs(pos.x, true);
+
+					if (foundOverlap && foundOverlap.keyframes) {
+						if (foundOverlap.lane && foundOverlap.lane.keyframes) {
+							draggable.selectedItems = foundOverlap.lane.keyframes;
+						}
+
+						let firstMs = foundOverlap.keyframes.from;
+						let snapped = snapMs(firstMs);
+						// get snapped mouse pos based on the first keynode.
+						draggable.ms += firstMs - snapped;
+					}
+
+					return draggable;
+				}
 			}
 
 			// Check whether we can drag timeline.
 			var timeLinePos = msToPx(timeLine.ms);
-			if (pos.x >= timeLinePos - timeLine.width / 2 && pos.x <= timeLinePos + timeLine.width / 2) {
-				canvas.style.cursor = "move";
-				timeLine.selected = true;
+			let width = Math.max(((options.timelineThicknessPx || 1) * pixelRatio), options.timelineCapWidthPx * pixelRatio || 1) + helperSelector;
+			if (pos.x >= timeLinePos - width / 2 && pos.x <= timeLinePos + width / 2) {
 				return { obj: timeLine, type: "timeline" };
 			}
-
-			canvas.style.cursor = 'default';
 		}
 
 		canvas.addEventListener("wheel", function (event) {
@@ -351,19 +387,19 @@ var animationTimeline = function (window, document) {
 			currentPos = startPos;
 			startPos.scrollLeft = scrollContainer.scrollLeft;
 			startPos.scrollTop = scrollContainer.scrollTo;
-			drag = getDragableObject(currentPos);
+			drag = getDraggable(currentPos);
 			// Select keyframes on mouse down
-			if (drag && drag.type == 'keyframe') {
-				drag.startedWithCtrl = args.ctrlKey;
-				drag.startedWithShiftKey = args.shiftKey;
-				// get all related selected keyframes if we are selecting one.
-				if (!drag.obj.selected && !args.ctrlKey && !args.shiftKey) {
-					performSelection(true, drag.obj, 'keyframe');
-				}
+			if (drag) {
+				if (drag.type == 'keyframe') {
+					drag.startedWithCtrl = args.ctrlKey;
+					drag.startedWithShiftKey = args.shiftKey;
+					// get all related selected keyframes if we are selecting one.
+					if (!drag.obj.selected && !args.ctrlKey && !args.shiftKey) {
+						performSelection(true, drag.obj, 'keyframe');
+					}
 
-				drag.selectedItems = getSelectedKeyframes();
-				// redraw already performed.
-				return;
+					drag.selectedItems = getSelectedKeyframes();
+				}
 			}
 
 			redraw();
@@ -376,7 +412,6 @@ var animationTimeline = function (window, document) {
 				selectionRect.draw = true;
 			}
 
-			console.log('x: ' + currentPos.x + '. ms:' + pxToMS(currentPos.x));//+ '. px:' + msToPx(ms));
 			if (startPos) {
 				if (args.buttons == 1) {
 					scrollByMouse(currentPos.x);
@@ -386,11 +421,10 @@ var animationTimeline = function (window, document) {
 						let isChanged = false;
 						if (drag.type == 'timeline') {
 							isChanged = setTime(convertedMs);
-						} else if (drag.type == 'keyframe') {
+						} else if (drag.type == 'keyframe' || drag.type == 'lane') {
 
 							if (drag.selectedItems) {
-
-								let offset = Math.floor(convertedMs - drag.obj.ms);
+								let offset = Math.floor(convertedMs - drag.ms);
 								if (Math.abs(offset) > 0) {
 									// dont allow to move less than zero.
 									drag.selectedItems.forEach(function (p) {
@@ -411,9 +445,6 @@ var animationTimeline = function (window, document) {
 										// dont allow to move less than zero.
 										drag.selectedItems.forEach(function (p) {
 											let ms = p.ms + offset;
-											if (ms < 0) {
-
-											}
 
 											let toSet = p.ms + offset;
 											if (p.ms != toSet) {
@@ -421,8 +452,14 @@ var animationTimeline = function (window, document) {
 												isChanged = true;
 											}
 										});
+
+									}
+
+									if (isChanged) {
+										drag.ms += offset;
 									}
 								}
+
 							}
 						}
 
@@ -441,9 +478,21 @@ var animationTimeline = function (window, document) {
 				}
 				redraw();
 			} else {
-				// TODO: used to change mouse cursor. 
-				// Should be changed.
-				getDragableObject(currentPos);
+				let draggable = getDraggable(currentPos);
+				if (draggable) {
+					if (draggable.type == 'lane') {
+						canvas.style.cursor = "ew-resize";
+					}
+					else if (draggable.type == 'keyframe') {
+						canvas.style.cursor = "pointer";
+					}
+					else {
+						canvas.style.cursor = "ew-resize";
+					}
+				}
+				else {
+					canvas.style.cursor = 'default';
+				}
 			}
 		}, false);
 
@@ -507,22 +556,30 @@ var animationTimeline = function (window, document) {
 
 		selectedKeyframes = [];
 
-		function performSelection(value, selector, mode, ignoreOthers) {
-			if (value === undefined) {
-				value = true;
+		/**
+		 * Do the selection.
+		 * @param {boolean} isSelected 
+		 * @param {object} selector can be retangle or keyframe object.
+		 * @param {string} mode selector mode. keyframe | rectrangle | all  
+		 * @param {boolean} ignoreOthers value indicating whether all other object should be reversed. 
+		 * @return isChanged
+		 */
+		function performSelection(isSelected, selector, mode, ignoreOthers) {
+			if (isSelected === undefined) {
+				isSelected = true;
 			}
-			console.log('selection' + mode);
+
 			let deselectionMode = false;
 			if (!mode) {
 				mode = 'all';
 			}
 
 			if (mode == 'all') {
-				if (!value) {
-					value = false;
+				if (!isSelected) {
+					isSelected = false;
 				}
 
-				deselectionMode = value;
+				deselectionMode = isSelected;
 			}
 
 			selectedKeyframes.length = 0;
@@ -534,8 +591,8 @@ var animationTimeline = function (window, document) {
 					if ((mode == 'keyframe' && selector == keyframe) ||
 						(mode == 'rectangle' && selector && isOverlap(keyframePos.x, keyframePos.y, selector))) {
 						atleastOneSelected = true;
-						if (keyframe.selected != value) {
-							keyframe.selected = value;
+						if (keyframe.selected != isSelected) {
+							keyframe.selected = isSelected;
 							isChanged = true;
 						}
 
@@ -554,10 +611,9 @@ var animationTimeline = function (window, document) {
 
 			if (isChanged) {
 				onKeyframesSelected(selectedKeyframes);
-				redraw();
 			}
 
-			return selectedKeyframes;
+			return isChanged;
 		}
 
 		function iterateKeyframes(callback) {
@@ -565,15 +621,19 @@ var animationTimeline = function (window, document) {
 				return false;
 			}
 
+			let nextLane = false;
 			lanes.forEach(function lanesIterator(lane, index) {
 				if (!lane || !lane.keyframes || !lane.keyframes.forEach || lane.keyframes.length <= 0) {
 					return;
 				}
 
+				nextLane = true;
 				lane.keyframes.forEach(function keyframesIterator(keyframe, keyframeIndex) {
 					if (callback && keyframe) {
-						callback(keyframe, keyframeIndex, lane, index);
+						callback(keyframe, keyframeIndex, lane, index, nextLane);
 					}
+
+					nextLane = false;
 				});
 			});
 		}
@@ -826,77 +886,112 @@ var animationTimeline = function (window, document) {
 			ctx.restore();
 		}
 
+		function getLanesSizes() {
+			let lanes = []
+			if (!options.laneHeightPx) {
+				console.log('laneHeightPx should be set.');
+				return lanes;
+			}
+
+			let prevLane = null;
+			let laneSize = null;
+			iterateKeyframes(function (keyframe, index, lane, laneIndex, isNextLane) {
+				if (isNextLane) {
+
+					let laneY = getLanePosition(laneIndex);
+					prevLane = laneSize;
+					laneSize = {
+						x: 0,
+						y: laneY,
+						w: canvas.clientWidth,
+						h: options.laneHeightPx,
+						lane: lane,
+						index: laneIndex,
+						keyframes: {
+							from: null,
+							to: null,
+							count: lane.keyframes ? lane.keyframes.length : 0,
+						}
+					};
+
+					lanes.push(laneSize);
+
+					// Draw keyframes lane:
+					if (prevLane && !isNaN(prevLane.keyframes.from) && !isNaN(prevLane.keyframes.to)) {
+						// draw keyframes lane.
+						var fromPos = getSharp(msToPx(prevLane.keyframes.from))
+						var toPos = getSharp(msToPx(prevLane.keyframes.to));
+						const laneHeight = getKeyframeLaneHeight(lane, prevLane.y);
+
+						if (fromPos <= 0) {
+							fromPos = 0;
+						}
+
+						prevLane.keyframes.x = fromPos;
+						prevLane.keyframes.y = laneHeight.y;
+						prevLane.keyframes.w = getDistance(fromPos, toPos);
+						prevLane.keyframes.h = laneHeight.h;
+					}
+				}
+
+				if (laneSize.keyframes && keyframe && !isNaN(keyframe.ms)) {
+					let size = laneSize.keyframes;
+					if (size.from == null) {
+						size.from = keyframe.ms;
+					} else {
+						size.from = Math.min(keyframe.ms, size.from);
+					}
+
+					if (size.to == null) {
+						size.to = keyframe.ms
+					} else {
+						size.to = Math.max(keyframe.ms, size.to);
+					}
+				}
+			});
+
+			return lanes;
+		}
+
 		function drawLanes() {
 			if (!lanes || !lanes.forEach || lanes.length <= 0) {
 				return false;
 			}
 
-			ctx.save();
-			// Draw lane for each control
-			lanes.forEach(function (lane, index) {
-				if (lane.selected && options.selectedLaneColor) {
-					ctx.fillStyle = options.selectedLaneColor;
-				} else if (index % 2 != 0 && options.useAlternateLaneColor) {
-					ctx.fillStyle = options.alternateLaneColor || options.laneColor;
-				} else {
-					ctx.fillStyle = options.laneColor;
-				}
+			let lanesSizes = getLanesSizes();
+			if (lanesSizes && lanesSizes.forEach) {
+				ctx.save();
+				lanesSizes.forEach(function lanesSizesIterator(laneSize) {
 
+					if (!laneSize) {
+						return;
+					}
+					// Draw lane 
+					if (laneSize.lane.selected && options.selectedLaneColor) {
+						ctx.fillStyle = options.selectedLaneColor;
+					} else if (laneSize.index % 2 != 0 && options.useAlternateLaneColor) {
+						ctx.fillStyle = options.alternateLaneColor || options.laneColor;
+					} else {
+						ctx.fillStyle = options.laneColor;
+					}
 
-				let laneY = getLanePosition(index);
-				if (ctx.fillStyle) {
-					ctx.fillRect(0, laneY, canvas.clientWidth, options.laneHeightPx);
-				}
+					if (ctx.fillStyle) {
+						ctx.fillRect(laneSize.x, laneSize.y, laneSize.w, laneSize.h);
+					}
 
-				if (!lane || !lane.keyframes || !lane.keyframes.forEach || lane.keyframes.length <= 0) {
-					return;
-				}
+					let keyframesSize = laneSize.keyframes;
+					if (!keyframesSize || keyframesSize.count <= 1 || !options.keyframesLaneColor) {
+						return;
+					}
 
-				// Draw keyframes lanes
-				if (options.keyframesLaneColor) {
-					var from = null;
-					var to = null;
-					lane.keyframes.forEach(function (keyframe) {
-						if (keyframe && !isNaN(keyframe.ms)) {
-							if (from == null) {
-								from = keyframe.ms;
-							} else {
-								from = Math.min(keyframe.ms, from);
-							}
-
-							if (to == null) {
-								to = keyframe.ms
-							} else {
-								to = Math.max(keyframe.ms, to);
-							}
-						}
-					});
-
-					// draw keyframes lane.
-					var fromPos = getSharp(msToPx(from))
-					var toPos = getSharp(msToPx(to));
 					ctx.fillStyle = options.keyframesLaneColor;
-					let keyframeLaneHeight = lane.keyframesLaneSizePx || options.keyframesLaneSizePx;
-					if (isNaN(keyframeLaneHeight)) {
-						keyframeLaneHeight = 'auto';
-					}
+					// dont draw more than required:
+					let limitedWidth = Math.min(keyframesSize.w, canvas.clientWidth);
+					ctx.fillRect(keyframesSize.x, keyframesSize.y, limitedWidth, keyframesSize.h);
+				});
 
-					if (keyframeLaneHeight == 'auto') {
-						keyframeLaneHeight = options.laneHeightPx - 2;
-					}
-
-					if (keyframeLaneHeight > options.laneHeightPx) {
-						keyframeLaneHeight = options.laneHeightPx;
-					}
-
-					let margin = options.laneHeightPx - keyframeLaneHeight;
-
-					ctx.fillRect(fromPos, laneY + Math.floor(margin / 2), getDistance(fromPos, toPos), keyframeLaneHeight);
-
-				}
-
-			});
-			ctx.restore();
+				ctx.restore();
+			}
 
 			return true;
 		}
@@ -906,6 +1001,25 @@ var animationTimeline = function (window, document) {
 				laneIndex * options.laneHeightPx * pixelRatio +
 				laneIndex * options.laneMarginPX;
 			return laneY;
+		}
+
+		function getKeyframeLaneHeight(lane, laneY) {
+			let keyframeLaneHeight = lane.keyframesLaneSizePx || options.keyframesLaneSizePx;
+			if (isNaN(keyframeLaneHeight)) {
+				keyframeLaneHeight = 'auto';
+			}
+
+			if (keyframeLaneHeight == 'auto') {
+				keyframeLaneHeight = options.laneHeightPx - 2;
+			}
+
+			if (keyframeLaneHeight > options.laneHeightPx) {
+				keyframeLaneHeight = options.laneHeightPx;
+			}
+
+			let margin = options.laneHeightPx - keyframeLaneHeight;
+			y = laneY + Math.floor(margin / 2);
+			return { y: y, h: keyframeLaneHeight };
 		}
 
 		function getKeyframeSize(keyframe) {
@@ -934,13 +1048,14 @@ var animationTimeline = function (window, document) {
 			}
 
 			// get center of the lane:
-			var y = getLanePosition(laneIndex) + options.laneHeightPx / 2;
+			let laneY = getLanePosition(laneIndex);
+			var y = laneY + options.laneHeightPx / 2;
 
 			let size = getKeyframeSize(keyframe);
 
 			if (size > 0) {
 				if (!isNaN(ms)) {
-					return { x: Math.floor(msToPx(ms)), y: Math.floor(y), size: size };
+					return { x: Math.floor(msToPx(ms)), y: Math.floor(y), size: size, laneY: laneY };
 				}
 			}
 
@@ -1019,7 +1134,6 @@ var animationTimeline = function (window, document) {
 
 		function drawTimeLine() {
 			ctx.save();
-
 			var thickness = options.timelineThicknessPx;
 			ctx.lineWidth = thickness * pixelRatio;
 			var timeLinePos = getSharp(Math.round(msToPx(timeLine.ms)), thickness);
