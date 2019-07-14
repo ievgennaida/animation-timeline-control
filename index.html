@@ -64,16 +64,17 @@
   <script type="text/javascript">
     let lanes = [
       {
+        keyframesLaneSizePx: 1,
         selected: false,
         keyframes: [{
-          ms: 0
+          ms: 40
         },
         {
           ms: 3000,
           selected: false
         }
         ]
-      }, /*{
+      }, {
         selected: false,
         keyframes: [{
           ms: 2000
@@ -95,7 +96,7 @@
         ]
       }, {
         keyframes: [{
-          ms: 0
+          ms: 40
         }, {
           ms: 3000
         }
@@ -116,7 +117,7 @@
           ms: 100
         }
         ]
-      }*/
+      }
     ];
 
     let timeline = animationTimeline.initialize({ id: 'timeline', scrollId: 'timeline-container', sizeId: 'timeline-size-content' }, lanes);
