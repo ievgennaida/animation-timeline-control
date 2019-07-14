@@ -56,6 +56,8 @@ var animationTimeline = function (window, document) {
 		laneMarginPX: 1,
 		// Size of the lane in pixels. Can be 'auto' than size is based on the 'laneHeightPx'. can be overriden by lane 'lane.keyframesLaneSizePx'. 
 		keyframesLaneSizePx: 'auto',
+		// Allow to drag keyframes lane.
+		canDragLaneKeyframes: true,
 		headerHeight: 30,
 		lineHeight: 1,
 		autoWidth: true,
@@ -293,7 +295,7 @@ var animationTimeline = function (window, document) {
 
 			// Return keyframes lanes:
 			const lanesSizes = getLanesSizes();
-			if (lanesSizes && lanesSizes.find) {
+			if (options.canDragLaneKeyframes && lanesSizes && lanesSizes.find) {
 				let foundOverlap = lanesSizes.find(function lanesSizesIterator(laneSize) {
 					if (!laneSize || !laneSize.keyframes) {
 						return false;
@@ -892,70 +894,77 @@ var animationTimeline = function (window, document) {
 		}
 
 		function getLanesSizes() {
-			let lanes = []
+			let toReturn = []
 			if (!options.laneHeightPx) {
 				console.log('laneHeightPx should be set.');
-				return lanes;
+				return toReturn;
 			}
 
-			let prevLane = null;
-			let laneSize = null;
-			iterateKeyframes(function (keyframe, index, lane, laneIndex, isNextLane) {
-				if (isNextLane) {
+			if (!lanes || !lanes.forEach || lanes.length <= 0) {
+				return toReturn;
+			}
 
-					let laneY = getLanePosition(laneIndex);
-					prevLane = laneSize;
-					laneSize = {
-						x: 0,
-						y: laneY,
-						w: canvas.clientWidth,
-						h: options.laneHeightPx,
-						lane: lane,
-						index: laneIndex,
-						keyframes: {
-							from: null,
-							to: null,
-							count: lane.keyframes ? lane.keyframes.length : 0,
-						}
-					};
-
-					lanes.push(laneSize);
-
-					// Draw keyframes lane:
-					if (prevLane && !isNaN(prevLane.keyframes.from) && !isNaN(prevLane.keyframes.to)) {
-						// draw keyframes lane.
-						var fromPos = getSharp(msToPx(prevLane.keyframes.from))
-						var toPos = getSharp(msToPx(prevLane.keyframes.to));
-						const laneHeight = getKeyframeLaneHeight(lane, prevLane.y);
-
-						if (fromPos <= 0) {
-							fromPos = 0;
-						}
-
-						prevLane.keyframes.x = fromPos;
-						prevLane.keyframes.y = laneHeight.y;
-						prevLane.keyframes.w = getDistance(fromPos, toPos);
-						prevLane.keyframes.h = laneHeight.h;
-					}
+			lanes.forEach(function lanesIterator(lane, index) {
+				if (!lane || !lane.keyframes || !lane.keyframes.forEach || lane.keyframes.length <= 0) {
+					return;
 				}
+				let laneY = getLanePosition(index);
+				const laneSize = {
+					x: 0,
+					y: laneY,
+					w: canvas.clientWidth,
+					h: options.laneHeightPx,
+					lane: lane,
+					index: index,
+					keyframes: {
+						from: null,
+						to: null,
+						count: lane.keyframes ? lane.keyframes.length : 0,
+					}
+				};
 
-				if (laneSize.keyframes && keyframe && !isNaN(keyframe.ms)) {
-					let size = laneSize.keyframes;
-					if (size.from == null) {
-						size.from = keyframe.ms;
-					} else {
-						size.from = Math.min(keyframe.ms, size.from);
+				toReturn.push(laneSize);
+				let size = laneSize.keyframes;
+
+				lane.keyframes.forEach(function keyframesIterator(keyframe, keyframeIndex) {
+
+					if (size && keyframe && !isNaN(keyframe.ms)) {
+
+						if (size.from == null) {
+							size.from = keyframe.ms;
+						} else {
+							size.from = Math.min(keyframe.ms, size.from);
+						}
+
+						if (size.to == null) {
+							size.to = keyframe.ms
+						} else {
+							size.to = Math.max(keyframe.ms, size.to);
+						}
 					}
 
-					if (size.to == null) {
-						size.to = keyframe.ms
-					} else {
-						size.to = Math.max(keyframe.ms, size.to);
+				});
+
+				// Draw keyframes lane:
+				if (laneSize && !isNaN(size.from) && !isNaN(size.to)) {
+					// draw keyframes lane.
+					var fromPos = getSharp(msToPx(size.from))
+					var toPos = getSharp(msToPx(size.to));
+					const laneHeight = getKeyframeLaneHeight(lane, laneSize.y);
+
+					if (fromPos <= 0) {
+						fromPos = 0;
 					}
+
+					size.x = fromPos;
+					size.y = laneHeight.y;
+					size.w = getDistance(fromPos, toPos);
+					size.h = laneHeight.h;
 				}
 			});
 
-			return lanes;
+
+			return toReturn;
 		}
 
 		function drawLanes() {
@@ -1015,7 +1024,7 @@ var animationTimeline = function (window, document) {
 			}
 
 			if (keyframeLaneHeight == 'auto') {
-				keyframeLaneHeight = options.laneHeightPx - 2;
+				keyframeLaneHeight = Math.floor(options.laneHeightPx * 0.8);
 			}
 
 			if (keyframeLaneHeight > options.laneHeightPx) {
