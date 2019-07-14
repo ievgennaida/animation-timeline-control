@@ -388,6 +388,7 @@ var animationTimeline = function (window, document) {
 			// ctrl + a. Select all keyframes
 			if (e.which === 65 && e.ctrlKey) {
 				performSelection(true);
+				redraw();
 				e.preventDefault();
 				return false;
 			}
@@ -434,78 +435,75 @@ var animationTimeline = function (window, document) {
 						//redraw();
 						let isChanged = false;
 						if (drag.type == 'timeline') {
-							isChanged = setTime(convertedMs);
-						} else if (drag.type == 'keyframe' || drag.type == 'lane') {
+							isChanged |= setTime(convertedMs);
+						} else if ((drag.type == 'keyframe' || drag.type == 'lane') && drag.selectedItems) {
+							let offset = Math.floor(convertedMs - drag.ms);
+							if (Math.abs(offset) > 0) {
+								// dont allow to move less than zero.
+								drag.selectedItems.forEach(function (p) {
+									if (options.snapAllKeyframesOnMove) {
+										let toSet = snapMs(p.ms);
+										if (p.ms != toSet) {
+											p.ms = toSet;
+											isChanged = true;
+										}
+									}
+									let newPostion = p.ms + offset;
+									if (newPostion < 0) {
+										offset = -p.ms;
+									}
+								});
 
-							if (drag.selectedItems) {
-								let offset = Math.floor(convertedMs - drag.ms);
 								if (Math.abs(offset) > 0) {
 									// dont allow to move less than zero.
 									drag.selectedItems.forEach(function (p) {
-										if (options.snapAllKeyframesOnMove) {
-											let toSet = snapMs(p.ms);
-											if (p.ms != toSet) {
-												p.ms = toSet;
-												isChanged = true;
-											}
-										}
-										let newPostion = p.ms + offset;
-										if (newPostion < 0) {
-											offset = -p.ms;
+										let ms = p.ms + offset;
+
+										let toSet = p.ms + offset;
+										if (p.ms != toSet) {
+											p.ms = toSet;
+											isChanged = true;
 										}
 									});
 
-									if (Math.abs(offset) > 0) {
-										// dont allow to move less than zero.
-										drag.selectedItems.forEach(function (p) {
-											let ms = p.ms + offset;
-
-											let toSet = p.ms + offset;
-											if (p.ms != toSet) {
-												p.ms = toSet;
-												isChanged = true;
-											}
-										});
-
-									}
-
-									if (isChanged) {
-										drag.ms += offset;
-									}
 								}
 
+								if (isChanged) {
+									drag.ms += offset;
+								}
 							}
 						}
 
 						if (isChanged) {
 							// move all selected keyframes
 							redraw();
-						} else {
-
 						}
+
 						return;
 					}
 				}
 				else {
-					// Cancel mouse move when focus was lost.
+					// Fallback. Cancel mouse move when focus was lost and mouse down is still counted.
 					cleanUpSelection();
+					redraw();
 				}
-				redraw();
 			} else {
+				let cursor = 'default';
 				let draggable = getDraggable(currentPos);
 				if (draggable) {
 					if (draggable.type == 'lane') {
-						canvas.style.cursor = "ew-resize";
+						cursor = "ew-resize";
 					}
 					else if (draggable.type == 'keyframe') {
-						canvas.style.cursor = "pointer";
+						cursor = "pointer";
 					}
 					else {
-						canvas.style.cursor = "ew-resize";
+						cursor = "ew-resize";
 					}
 				}
-				else {
-					canvas.style.cursor = 'default';
+
+				if (canvas.style.cursor != cursor) {
+					canvas.style.cursor = cursor;
 				}
 			}
 		}, false);
@@ -532,6 +530,7 @@ var animationTimeline = function (window, document) {
 
 
 		function performClick(pos, args, drag) {
+			let isChanged = false;
 			if (drag && drag.type == 'keyframe') {
 				let isSelected = true;
 				if ((drag.startedWithCtrl && args.ctrlKey) || (drag.startedWithShiftKey && args.shiftKey)) {
@@ -540,24 +539,26 @@ var animationTimeline = function (window, document) {
 					}
 				}
 				// Reverse selected keyframe selection by a click:
-				performSelection(isSelected, drag.obj, 'keyframe', args.ctrlKey || args.shiftKey);
+				isChanged |= performSelection(isSelected, drag.obj, 'keyframe', args.ctrlKey || args.shiftKey);
 
 				if (args.shiftKey) {
 					// change timeline pos:
 					let convertedMs = mousePosToMs(pos.x, true);
 					// Set current timeline position if it's not a drag or selection rect small or fast click.
-					setTime(convertedMs);
+					isChanged |= setTime(convertedMs);
 				}
 			}
 			else {
 				// deselect keyframes if any:
-				performSelection(false);
+				isChanged |= performSelection(false);
 
 				// change timeline pos:
 				let convertedMs = mousePosToMs(pos.x, true);
 				// Set current timeline position if it's not a drag or selection rect small or fast click.
-				setTime(convertedMs);
+				isChanged |= setTime(convertedMs);
 			}
+
+			return isChanged;
 		}
 
 		selectedKeyframes = [];
@@ -702,7 +703,11 @@ var animationTimeline = function (window, document) {
 		let lastX = null;
 		let intervalReference = null;
 		let lastCallDate = null;
-		function startMoveInterval(x) {
+
+		/**
+		 * Automatically move canvas when selection and mouse over the bounds.
+		 */
+		function startMoveInterval() {
 			if (!intervalReference) {
 				// Repeat move calls to
 				intervalReference = setInterval(function () {
@@ -712,6 +717,7 @@ var animationTimeline = function (window, document) {
 				}, 300);
 			}
 		}
+
 		function clearMoveInterval() {
 			if (intervalReference) {
 				clearInterval(intervalReference);
@@ -752,7 +758,6 @@ var animationTimeline = function (window, document) {
 					return;
 				}
 
-
 				// One second distance: 
 				let speed = Math.floor(Math.max(options.stepPx, getDistance(x, canvas.clientWidth)));
 				let step = canvas.clientWidth / scrollContainer.scrollWidth;
@@ -771,8 +776,6 @@ var animationTimeline = function (window, document) {
 			rescale();
 			redraw();
 		}
-
-		scrollByMouse();
 
 		// Find ms from the the px coordinates
 		function pxToMS(coords) {
@@ -983,10 +986,6 @@ var animationTimeline = function (window, document) {
 					var fromPos = getSharp(msToPx(size.from))
 					var toPos = getSharp(msToPx(size.to));
 					const laneHeight = getKeyframeLaneHeight(lane, laneSize.y);
-
-					if (fromPos <= 0) {
-						fromPos = 0;
-					}
 
 					size.x = fromPos;
 					size.y = laneHeight.y;
