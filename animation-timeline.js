@@ -263,7 +263,7 @@ var animationTimeline = function (window, document) {
 		function getDraggable(pos) {
 
 			// few extra pixels to select items:
-			let helperSelector = 10;
+			let helperSelector = 2;
 			let draggable = null;
 
 			iterateKeyframes(function (keyframe, keyframeIndex, lane, laneIndex, isNextLane) {
@@ -538,6 +538,11 @@ var animationTimeline = function (window, document) {
 			else {
 				// deselect keyframes if any:
 				performSelection(false);
+
+				// change timeline pos:
+				let convertedMs = mousePosToMs(pos.x, true);
+				// Set current timeline position if it's not a drag or selection rect small or fast click.
+				setTime(convertedMs);
 			}
 		}
 
