@@ -393,7 +393,7 @@ var animationTimeline = function (window, document) {
 								let offset = Math.floor(convertedMs - drag.obj.ms);
 								if (Math.abs(offset) > 0) {
 									// dont allow to move less than zero.
-									drag.selectedItems.forEach(p => {
+									drag.selectedItems.forEach(function (p) {
 										if (options.snapAllKeyframesOnMove) {
 											let toSet = snapMs(p.ms);
 											if (p.ms != toSet) {
@@ -409,7 +409,7 @@ var animationTimeline = function (window, document) {
 
 									if (Math.abs(offset) > 0) {
 										// dont allow to move less than zero.
-										drag.selectedItems.forEach(p => {
+										drag.selectedItems.forEach(function (p) {
 											let ms = p.ms + offset;
 											if (ms < 0) {
 
@@ -470,27 +470,25 @@ var animationTimeline = function (window, document) {
 
 		function performClick(pos, args, drag) {
 			if (drag && drag.type == 'keyframe') {
+				let isSelected = true;
 				if ((drag.startedWithCtrl && args.ctrlKey) || (drag.startedWithShiftKey && args.shiftKey)) {
-					let isSelected = true;
 					if (args.ctrlKey) {
 						isSelected = !drag.obj.selected
 					}
-					// Reverse selected keyframe selection by a click:
-					performSelection(isSelected, drag.obj, 'keyframe', args.ctrlKey || args.shiftKey);
+				}
+				// Reverse selected keyframe selection by a click:
+				performSelection(isSelected, drag.obj, 'keyframe', args.ctrlKey || args.shiftKey);
 
-					if (args.shiftKey) {
-						// change timeline pos:
-						let convertedMs = mousePosToMs(pos.x, true);
-						// Set current timeline position if it's not a drag or selection rect small or fast click.
-						setTime(convertedMs);
-					}
+				if (args.shiftKey) {
+					// change timeline pos:
+					let convertedMs = mousePosToMs(pos.x, true);
+					// Set current timeline position if it's not a drag or selection rect small or fast click.
+					setTime(convertedMs);
 				}
 			}
 			else {
 				// deselect keyframes if any:
 				performSelection(false);
-
-
 			}
 		}
 
