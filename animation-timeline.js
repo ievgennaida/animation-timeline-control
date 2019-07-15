@@ -507,7 +507,7 @@ var animationTimeline = function (window, document) {
 
 			let isTouch = (args.changedTouches && args.changedTouches.length > 0);
 
-			trackMousePos(canvas, args);
+			currentPos = trackMousePos(canvas, args);
 
 			if (selectionRect && checkClickDurationOver()) {
 				selectionRect.draw = true;
@@ -750,18 +750,26 @@ var animationTimeline = function (window, document) {
 		}
 
 		function trackMousePos(canvas, mouseArgs) {
-			currentPos = getMousePos(canvas, mouseArgs);
+			const pos = getMousePos(canvas, mouseArgs);
+			pos.scrollLeft = scrollContainer.scrollLeft;
+			pos.scrollTop = scrollContainer.scrollTop;
+			pos.ms = pxToMS(pos.x);
+
 			if (startPos) {
 				if (!selectionRect) {
 					selectionRect = {};
 				}
-
-				selectionRect.x = Math.min(startPos.x, currentPos.x);
-				selectionRect.y = Math.min(startPos.y, currentPos.y);
-				selectionRect.w = Math.max(startPos.x, currentPos.x) - selectionRect.x;
-				selectionRect.h = Math.max(startPos.y, currentPos.y) - selectionRect.y;
+		
+				// get the pos with the virtualization:
+				let x = Math.floor(startPos.x+ (startPos.scrollLeft - pos.scrollLeft));
+				let y = Math.floor(startPos.y+ (startPos.scrollTop - pos.scrollTop));
+				selectionRect.x = Math.min(x, pos.x);
+				selectionRect.y = Math.min(y, pos.y);
+				selectionRect.w = Math.max(x, pos.x) - selectionRect.x;
+				selectionRect.h = Math.max(y, pos.y) - selectionRect.y;
 			}
-			return currentPos;
+
+			return pos;
 		}
 
 		function cleanUpSelection() {
