@@ -1,6 +1,5 @@
 var animationTimeline = function (window, document) {
 
-	let width = 0;
 	if (!Math.sign) {
 		Math.sign = function (p) {
 			return p >= 0 ? 1 : -1;
@@ -72,12 +71,12 @@ var animationTimeline = function (window, document) {
 	var clickDetectionMs = 120;
 
 	function getPixelRatio(ctx) {
-		dpr = window.devicePixelRatio || 1,
+		const dpr = window.devicePixelRatio || 1,
 			bsr = ctx.webkitBackingStorePixelRatio ||
-			ctx.mozBackingStorePixelRatio ||
-			ctx.msBackingStorePixelRatio ||
-			ctx.oBackingStorePixelRatio ||
-			ctx.backingStorePixelRatio || 1;
+				ctx.mozBackingStorePixelRatio ||
+				ctx.msBackingStorePixelRatio ||
+				ctx.oBackingStorePixelRatio ||
+				ctx.backingStorePixelRatio || 1;
 
 		return dpr / bsr;
 	}
@@ -201,7 +200,7 @@ var animationTimeline = function (window, document) {
 
 		// Merge options with the default:
 		for (var key in defaultOptions) {
-			if (defaultOptions.hasOwnProperty(key) && options[key] == undefined) {
+			if (Object.prototype.hasOwnProperty.call(defaultOptions, key) && options[key] == undefined) {
 				options[key] = defaultOptions[key];
 			}
 		}
@@ -222,7 +221,6 @@ var animationTimeline = function (window, document) {
 		var selectionRect = null;
 		var drag = null;
 		var clickDurarion = null;
-		var focusedByMouse = false;
 		var scrollingTimeRef = null;
 		var scrollContainer = document.getElementById(options.scrollId);
 		if (!scrollContainer) {
@@ -283,7 +281,7 @@ var animationTimeline = function (window, document) {
 			let sizes = getLanesSizes();
 			if (sizes && sizes.areaRect) {
 
-				additionalOffset = + 100;
+				const additionalOffset = + 100;
 				newWidth = newWidth || 0;
 				// not less than current timeline position
 				let timelineGlobalPos = msToPx(timeLine.ms, true);
@@ -407,7 +405,7 @@ var animationTimeline = function (window, document) {
 			}
 		});
 
-		scrollContainer.addEventListener('scroll', function (args) {
+		scrollContainer.addEventListener('scroll', function () {
 			var left = scrollContainer.scrollLeft + 'px';
 			if (canvas.style.left != left) {
 				canvas.style.left = left;
@@ -434,11 +432,11 @@ var animationTimeline = function (window, document) {
 			redraw();
 		});
 
-		window.addEventListener('blur', function (args) {
+		window.addEventListener('blur', function () {
 			cleanUpSelection();
 		}, false);
 
-		window.addEventListener('resize', function (args) {
+		window.addEventListener('resize', function () {
 			// Rescale and redraw
 			rescale();
 			redraw();
@@ -447,7 +445,7 @@ var animationTimeline = function (window, document) {
 		document.addEventListener('keydown', (function (e) {
 			// ctrl + a. Select all keyframes
 			if (e.which === 65 && e.ctrlKey) {
-				select(true);
+				performSelection(true);
 				e.preventDefault();
 				return false;
 			}
@@ -486,7 +484,7 @@ var animationTimeline = function (window, document) {
 		}
 
 
-		lastUseArgs = null;
+		let lastUseArgs = null;
 		window.addEventListener('mousemove', function (args) {
 			lastUseArgs = args;
 			onMouseMove(args);
@@ -544,8 +542,6 @@ var animationTimeline = function (window, document) {
 								if (Math.abs(offset) > 0) {
 									// dont allow to move less than zero.
 									drag.selectedItems.forEach(function (p) {
-										let ms = p.ms + offset;
-
 										let toSet = p.ms + offset;
 										if (p.ms != toSet) {
 											p.ms = toSet;
@@ -670,7 +666,7 @@ var animationTimeline = function (window, document) {
 			return selectedKeyframes;
 		}
 
-		selectedKeyframes = [];
+		var selectedKeyframes = [];
 
 		/**
 		 * Do the selection.
@@ -706,7 +702,6 @@ var animationTimeline = function (window, document) {
 				if (keyframePos) {
 					if ((mode == 'keyframe' && selector == keyframe) ||
 						(mode == 'rectangle' && selector && isOverlap(keyframePos.x, keyframePos.y, selector))) {
-						atleastOneSelected = true;
 						if (keyframe.selected != isSelected) {
 							keyframe.selected = isSelected;
 							isChanged = true;
@@ -756,11 +751,6 @@ var animationTimeline = function (window, document) {
 
 		function trackMousePos(canvas, mouseArgs) {
 			currentPos = getMousePos(canvas, mouseArgs);
-			if (currentPos && currentPos.x >= 0 && currentPos.y >= 0) {
-				focusedByMouse = true;
-			} else {
-				focusedByMouse = false;
-			}
 			if (startPos) {
 				if (!selectionRect) {
 					selectionRect = {};
@@ -839,13 +829,6 @@ var animationTimeline = function (window, document) {
 					return;
 				}
 
-				if (scrollLeft) {
-
-				}
-				else {
-
-				}
-
 				// Get normilized speed.
 				speed = -getDistance(x, 0) * (isNaN(options.scrollByDragSpeed) ? 1 : options.scrollByDragSpeed);
 
@@ -863,7 +846,7 @@ var animationTimeline = function (window, document) {
 				}
 
 				// Get normalized speed: 
-				speed = getDistance(x, canvas.clientWidth) * (isNaN(options.scrollByDragSpeed) ? 1 : options.scrollByDragSpeed);
+				var speed = getDistance(x, canvas.clientWidth) * (isNaN(options.scrollByDragSpeed) ? 1 : options.scrollByDragSpeed);
 
 				rescale(scrollContainer.scrollLeft + canvas.scrollWidth + speed);
 
@@ -891,7 +874,7 @@ var animationTimeline = function (window, document) {
 			if (options.snapPointsPerPixel && options.snapEnabled) {
 				var stopsPerPixel = (1000 / options.snapPointsPerPixel);
 				let step = ms / stopsPerPixel;
-				stepsFit = Math.round(step);
+				var stepsFit = Math.round(step);
 				ms = Math.round(stepsFit * stopsPerPixel);
 			}
 
@@ -928,7 +911,7 @@ var animationTimeline = function (window, document) {
 			var lastDistance = null;
 			var pow = getPowArgument(originaStep);
 			for (var i = 0; i < denominators.length; i++) {
-				denominator = denominators[i];
+				var denominator = denominators[i];
 				var calculatedStep = denominator * Math.pow(10, pow);
 				if (divisionCheck && (divisionCheck % calculatedStep) != 0) {
 					continue;
@@ -1210,8 +1193,8 @@ var animationTimeline = function (window, document) {
 				keyframeLaneHeight = options.laneHeightPx;
 			}
 
-			let margin = options.laneHeightPx - keyframeLaneHeight;
-			y = laneY + Math.floor(margin / 2);
+			const margin = options.laneHeightPx - keyframeLaneHeight;
+			const y = laneY + Math.floor(margin / 2);
 			return { y: y, h: keyframeLaneHeight };
 		}
 
@@ -1239,7 +1222,7 @@ var animationTimeline = function (window, document) {
 
 			if (size > 0) {
 				if (!isNaN(ms)) {
-					let toReturn = { x: Math.floor(msToPx(ms)), y: Math.floor(y), size: size, laneY: laneY };;
+					let toReturn = { x: Math.floor(msToPx(ms)), y: Math.floor(y), size: size, laneY: laneY };
 					return toReturn;
 				}
 			}
@@ -1381,12 +1364,11 @@ var animationTimeline = function (window, document) {
 				ctx.restore();
 			}
 		}
+
 		function redraw() {
 			redrawInternal();
 			if (window.requestAnimationFrame) {
 				window.requestAnimationFrame.call(this, redrawInternal);
-			} else {
-
 			}
 		}
 
@@ -1450,6 +1432,23 @@ var animationTimeline = function (window, document) {
 			return true;
 		}
 
+		/**
+		 * Navigate to the next frame (with the snapping if enabled)
+		 * @public
+		 */
+		this.nextFrame = function () {
+
+		}
+
+		/**
+		 * Navigate to the next frame (with the snapping if enabled)
+		 * @public
+		 */
+		this.nextFrame = function () {
+
+		}
+
+
 		this.setTime = function (ms) {
 			// Dont allow to change time during drag:
 			if (drag && drag.type == 'timeline') {
@@ -1490,13 +1489,17 @@ var animationTimeline = function (window, document) {
 			}
 		}
 
-		// remove event.
-		this.remove = function (topic, callback) {
+		/**
+		 * Remove the event from the subscriptions list.
+		 * @param {*} topic 
+		 * @param {*} callback 
+		 */
+		this.off = function (topic, callback) {
 			for (var i = subscriptions.length - 1; i >= 0; i--) {
 				var sub = subscriptions[i];
 				if (sub.topic == topic && sub.callback == callback) {
 					subscriptions = subscriptions.filter(function (ele) {
-						return ele != value;
+						return ele != callback;
 					});
 				}
 			}
