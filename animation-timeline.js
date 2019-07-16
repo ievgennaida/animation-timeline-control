@@ -67,8 +67,9 @@ var animationTimeline = function (window, document) {
 		id: '',
 		scrollId: ''
 	}
-	var denominators = [1, 2, 5, 10];
-	var clickDetectionMs = 120;
+
+	let denominators = [1, 2, 5, 10];
+	let clickDetectionMs = 120;
 
 	function getPixelRatio(ctx) {
 		const dpr = window.devicePixelRatio || 1,
@@ -216,12 +217,17 @@ var animationTimeline = function (window, document) {
 			}
 		}
 
-		var startPos = null;
-		var currentPos = null;
-		var selectionRect = null;
-		var drag = null;
-		var clickDurarion = null;
-		var scrollingTimeRef = null;
+		let startPos = null;
+		let currentPos = null;
+		let selectionRect = null;
+		let drag = null;
+		let clickDurarion = null;
+		let scrollingTimeRef = null;
+		let selectedKeyframes = [];
+		let intervalReference = null;
+		let lastCallDate = null;
+		let isPanStarted = false;
+		let isPanMode = false;
 		var scrollContainer = document.getElementById(options.scrollId);
 		if (!scrollContainer) {
 			console.log('options.scrollId is mandatory!');
@@ -422,11 +428,14 @@ var animationTimeline = function (window, document) {
 
 			// Set a timeout to run event 'scrolling end'.
 			scrollingTimeRef = setTimeout(function () {
-				if (scrollingTimeRef) {
-					clearTimeout(scrollingTimeRef);
-					scrollingTimeRef = null;
+				if (!isPanStarted) {
+					if (scrollingTimeRef) {
+						clearTimeout(scrollingTimeRef);
+						scrollingTimeRef = null;
+					}
+					rescale();
 				}
-				rescale();
+
 			}, 500);
 
 			redraw();
@@ -458,6 +467,7 @@ var animationTimeline = function (window, document) {
 		canvas.addEventListener('mousedown', function (args) {
 			onMouseDown(args);
 		}, false);
+
 
 		function onMouseDown(args) {
 			// Prevent drag of the canvas if canvas is selected as text:
@@ -508,9 +518,8 @@ var animationTimeline = function (window, document) {
 			let isTouch = (args.changedTouches && args.changedTouches.length > 0);
 
 			currentPos = trackMousePos(canvas, args);
-
-			if (selectionRect && checkClickDurationOver()) {
-				selectionRect.draw = true;
+			if (!isPanStarted && selectionRect && checkClickDurationOver()) {
+				selectionRect.enabled = true;
 			}
 
 			if (startPos) {
@@ -559,8 +568,14 @@ var animationTimeline = function (window, document) {
 
 					}
 
-					// Track scroll by mouse or touch
-					scrollByDrag(currentPos);
+					if (isPanMode && !drag) {
+						isPanStarted = true;
+						// Track scroll by drag.
+						scrollByPan(startPos, currentPos);
+					} else {
+						// Track scroll by mouse or touch out of the area.
+						scrollBySelectionOutOfBounds(currentPos);
+					}
 					redraw();
 				}
 				else {
@@ -569,27 +584,29 @@ var animationTimeline = function (window, document) {
 					redraw();
 				}
 			} else if (!isTouch) {
-				let cursor = 'default';
 				let draggable = getDraggable(currentPos);
+				setCursor('default');
 				if (draggable) {
 					if (draggable.type == 'lane') {
-						cursor = "ew-resize";
+						setCursor("ew-resize");
 					}
 					else if (draggable.type == 'keyframe') {
-						cursor = "pointer";
+						setCursor("pointer");
 					}
 					else {
-						cursor = "ew-resize";
+						setCursor("ew-resize");
 					}
-				}
-
-				if (canvas.style.cursor != cursor) {
-					canvas.style.cursor = cursor;
 				}
 			}
 
 			if (isTouch) {
 				args.preventDefault();
+			}
+		}
+
+		function setCursor(cursor) {
+			if (canvas.style.cursor != cursor) {
+				canvas.style.cursor = cursor;
 			}
 		}
 
@@ -612,7 +629,7 @@ var animationTimeline = function (window, document) {
 					(drag && drag.startedWithCtrl) ||
 					(drag && drag.startedWithShiftKey)) {
 					performClick(pos, args, drag);
-				} else if (!drag && selectionRect) {
+				} else if (!drag && selectionRect && selectionRect.enabled) {
 					performSelection(true, selectionRect, 'rectangle', args.shiftKey);
 				}
 
@@ -653,8 +670,15 @@ var animationTimeline = function (window, document) {
 			return isChanged;
 		}
 
-		selectedKeyframes = [];
+		function setPanMode(value) {
+			if (isPanMode != value) {
+				isPanMode = value;
+				// Awoid any conflicts with other modes:
+				cleanUpSelection();
+			}
+		}
 
+		this.setPanMode = setPanMode;
 		function getSelectedKeyframes() {
 			selectedKeyframes.length = 0;
 			iterateKeyframes(function selectionIterator(keyframe) {
@@ -666,7 +690,6 @@ var animationTimeline = function (window, document) {
 			return selectedKeyframes;
 		}
 
-		var selectedKeyframes = [];
 
 		/**
 		 * Do the selection.
@@ -759,10 +782,10 @@ var animationTimeline = function (window, document) {
 				if (!selectionRect) {
 					selectionRect = {};
 				}
-		
+
 				// get the pos with the virtualization:
-				let x = Math.floor(startPos.x+ (startPos.scrollLeft - pos.scrollLeft));
-				let y = Math.floor(startPos.y+ (startPos.scrollTop - pos.scrollTop));
+				let x = Math.floor(startPos.x + (startPos.scrollLeft - pos.scrollLeft));
+				let y = Math.floor(startPos.y + (startPos.scrollTop - pos.scrollTop));
 				selectionRect.x = Math.min(x, pos.x);
 				selectionRect.y = Math.min(y, pos.y);
 				selectionRect.w = Math.max(x, pos.x) - selectionRect.x;
@@ -777,6 +800,7 @@ var animationTimeline = function (window, document) {
 			drag = null;
 			selectionRect = null;
 			clickDurarion = null;
+			isPanStarted = false;
 			clearMoveInterval();
 		}
 
@@ -791,9 +815,6 @@ var animationTimeline = function (window, document) {
 
 		//stepsCanFit
 		rescale();
-
-		let intervalReference = null;
-		let lastCallDate = null;
 
 		/**
 		 * Automatically move canvas when selection and mouse over the bounds.
@@ -826,7 +847,41 @@ var animationTimeline = function (window, document) {
 			return false;
 		}
 
-		function scrollByDrag(pos) {
+
+		function scrollByPan(start, pos) {
+			if (!start || !pos) {
+				return;
+			}
+
+
+			let offsetY = pos.scrollTop;
+			//let  offsetX= msToPx(pos.ms, true) - msToPx(start.ms, true) 
+
+			let offsetX = Math.round(start.x - pos.x);
+			let newLeft = start.scrollLeft + offsetX;
+
+
+			let max = false;
+			if (max) {
+				console.log('drag!' + offsetX);
+				max = true;
+			}
+
+			if (offsetX > 0) {
+				rescale(newLeft + canvas.clientWidth);
+			}
+
+			scrollContainer.scrollTop = offsetY;
+			if (offsetX > 0 && newLeft + canvas.clientWidth >= scrollContainer.scrollWidth - 5) {
+				scrollContainer.scrollLeft = scrollContainer.scrollWidth;
+			}
+			else {
+				scrollContainer.scrollLeft = newLeft;
+			}
+
+		}
+
+		function scrollBySelectionOutOfBounds(pos) {
 			let x = pos.x;
 			let isChanged = false;
 			if (x <= 0) {
@@ -859,7 +914,7 @@ var animationTimeline = function (window, document) {
 				rescale(scrollContainer.scrollLeft + canvas.scrollWidth + speed);
 
 				if (Math.abs(speed) > 0) {
-					scrollLeft();
+					scrollContainer.scrollLeft += speed;
 					isChanged = true;
 				}
 			}
@@ -1214,7 +1269,6 @@ var animationTimeline = function (window, document) {
 
 			let ms = keyframe.ms;
 			if (isNaN(ms)) {
-				console.log('Cannot find x of the keyframe. ms is not a number!');
 				return null;
 			}
 
@@ -1295,7 +1349,7 @@ var animationTimeline = function (window, document) {
 
 			ctx.save();
 			var thickness = 1;
-			if (selectionRect && selectionRect.draw) {
+			if (selectionRect && selectionRect.enabled) {
 				ctx.setLineDash([4]);
 				ctx.lineWidth = pixelRatio;
 				ctx.strokeStyle = options.selectionColor;
@@ -1391,8 +1445,9 @@ var animationTimeline = function (window, document) {
 			// Rescale when timeline is goes more than 
 			if (msToPx(timeLine.ms, true) > scrollContainer.scrollWidth) {
 				rescale();
-				if (!drag && !selectionRect)
+				if (!isPanStarted) {
 					scrollLeft();
+				}
 			}
 
 			drawBackground();
