@@ -36,28 +36,28 @@ var animationTimeline = function (window, document) {
 		// additional left margin to start the gauge from
 		leftMarginPx: 25,
 		minTimelineToDispayMs: 5000,
-		headerBackground: 'black',
+		headerBackground: '#101011',
 		selectedLaneColor: '#333333',
-		// lanes colors
-		laneColor: 'white',
-		alternateLaneColor: 'black',//333333
-		useAlternateLaneColor: false,
-		keyframesLaneColor: 'red',
-		// keyframe color. can be overrided by a keyframe 'color' property.
-		keyframeColor: 'Yellow',
-		// selected keyframe color. can be overrider by a keyframe 'selectedColor' property.
-		selectedKeyframeColor: 'DarkOrange',
-		keyframeBorderColor: 'Black',
-		keyframeBorderThicknessPx: 0.2,
-		// can be a number or 'auto'. can be overriden by 'keyframe.size'. Auto is calculated based on the laneHeightPx.
-		keyframeSizePx: 'auto',
-		backgroundColor: 'black',//1E1E1E
+		backgroundColor: '#101011',
 		timeIndicatorColor: 'DarkOrange',
 		labelsColor: '#D5D5D5',
 		tickColor: '#D5D5D5',
 		selectionColor: 'White',
+		// lanes colors
+		laneColor: '#252526', //'#252526',37373D
+		alternateLaneColor: 'black',//333333
+		keyframesLaneColor: '#094771',
+		// keyframe color. can be overrided by a keyframe 'color' property.
+		keyframeColor: 'red',
+		// selected keyframe color. can be overrider by a keyframe 'selectedColor' property.
+		selectedKeyframeColor: 'DarkOrange',
+		keyframeBorderColor: 'Black',
+		useAlternateLaneColor: false,
+		keyframeBorderThicknessPx: 0.2,
+		// can be a number or 'auto'. can be overriden by 'keyframe.size'. Auto is calculated based on the laneHeightPx.
+		keyframeSizePx: 'auto',
 		laneHeightPx: 24,
-		laneMarginPX: 1,
+		laneMarginPx: 2,
 		// Size of the lane in pixels. Can be 'auto' than size is based on the 'laneHeightPx'. can be overriden by lane 'lane.keyframesLaneSizePx'. 
 		keyframesLaneSizePx: 'auto',
 		// Allow to drag keyframes lane.
@@ -70,7 +70,6 @@ var animationTimeline = function (window, document) {
 		// scroll by drag speed (from 0 to 1)
 		scrollByDragSpeed: 0.12,
 		id: '',
-		scrollId: '',
 		// Use from and to range to limit the animation payload: 
 		useTimelineAnimationRange: false,
 		from: null,
@@ -205,15 +204,59 @@ var animationTimeline = function (window, document) {
 
 
 	this.initialize = function (options, lanes) {
-		var timeLine = {
-			ms: 0,
+
+		var scrollContainer = document.getElementById(options.id);
+		if (!scrollContainer) {
+			console.log('options.scrollId is mandatory!');
+			return;
 		}
+
+
+		scrollContainer.style.overflow = "scroll";
+		scrollContainer.style.position = "relative";
+		scrollContainer.style.touchAction = "none";
+		var size = document.createElement("div");
+		var canvas = document.createElement("canvas");
+
+		if (!canvas || !canvas.getContext) {
+			console.log('Cannot initialize canvas context.');
+			return null;
+		}
+
+		// Generate size container:
+		canvas.style.cssText = 'image-rendering: -moz-crisp-edges;' +
+			' image-rendering: -webkit-crisp-edges;' +
+			'image-rendering: pixelated;' +
+			'image-rendering: crisp-edges;' +
+			' user-select: none;' +
+			'-webkit-user-select: none;' +
+			'-khtml-user-select: none;' +
+			'-moz-user-select: none;' +
+			'-o-user-select: none;' +
+			'user-select: none;' +
+			'touch-action: none;' +
+			'position: absolute;' +
+			'top: 0;' +
+			'left: 0;' +
+			'width: 100%;' +
+			'padding: inherit' +
+			'height: 100%;';
+
+		size.style.width = size.style.height = canvas.style.width = canvas.style.height = "100%";
+		// add the text node to the newly created div
+		scrollContainer.appendChild(size);
+		scrollContainer.appendChild(canvas);
+
 
 		// Merge options with the default:
 		for (var key in defaultOptions) {
 			if (Object.prototype.hasOwnProperty.call(defaultOptions, key) && options[key] == undefined) {
 				options[key] = defaultOptions[key];
 			}
+		}
+
+		if (options.backgroundColor) {
+			scrollContainer.style.background = options.backgroundColor;
 		}
 
 		if (!options.stepPx) {
@@ -227,6 +270,12 @@ var animationTimeline = function (window, document) {
 			}
 		}
 
+
+
+
+		let timeLine = {
+			ms: 0,
+		}
 		let startPos = null;
 		let currentPos = null;
 		let selectionRect = null;
@@ -238,19 +287,6 @@ var animationTimeline = function (window, document) {
 		let lastCallDate = null;
 		let isPanStarted = false;
 		let isPanMode = false;
-		var scrollContainer = document.getElementById(options.scrollId);
-		if (!scrollContainer) {
-			console.log('options.scrollId is mandatory!');
-			return;
-		}
-		var canvas = document.getElementById(options.id);
-		var size = document.getElementById(options.sizeId);
-
-		if (!canvas || !canvas.getContext) {
-			console.log('Cannot find canvas by id:' + options.id);
-			return null;
-		}
-
 		var ctx = canvas.getContext("2d");
 		ctx.drawLine = function (x1, y1, x2, y2) {
 			this.moveTo(x1, y1);
@@ -421,35 +457,46 @@ var animationTimeline = function (window, document) {
 			}
 		});
 
-		scrollContainer.addEventListener('scroll', function () {
-			var left = scrollContainer.scrollLeft + 'px';
-			if (canvas.style.left != left) {
-				canvas.style.left = left;
-			}
-			var top = scrollContainer.scrollTop + 'px';
-			if (top !== canvas.style.top) {
-				canvas.style.top = top;
-			}
-
-			if (scrollingTimeRef) {
-				clearTimeout(scrollingTimeRef);
-				scrollingTimeRef = null;
-			}
-
-			// Set a timeout to run event 'scrolling end'.
-			scrollingTimeRef = setTimeout(function () {
-				if (!isPanStarted) {
-					if (scrollingTimeRef) {
-						clearTimeout(scrollingTimeRef);
-						scrollingTimeRef = null;
-					}
-					rescale();
+		if (scrollContainer) {
+			scrollContainer.addEventListener('scroll', function (args) {
+				var left = scrollContainer.scrollLeft + 'px';
+				if (canvas.style.left != left) {
+					canvas.style.left = left;
+				}
+				var top = scrollContainer.scrollTop + 'px';
+				if (top !== canvas.style.top) {
+					canvas.style.top = top;
 				}
 
-			}, 500);
+				if (scrollingTimeRef) {
+					clearTimeout(scrollingTimeRef);
+					scrollingTimeRef = null;
+				}
 
-			redraw();
-		});
+				// Set a timeout to run event 'scrolling end'.
+				scrollingTimeRef = setTimeout(function () {
+					if (!isPanStarted) {
+						if (scrollingTimeRef) {
+							clearTimeout(scrollingTimeRef);
+							scrollingTimeRef = null;
+						}
+						rescale();
+					}
+
+				}, 500);
+
+				redraw();
+				let scrollData = {
+					args: args,
+					scrollLeft: scrollContainer.scrollLeft,
+					scrollTop: scrollContainer.scrollTop,
+					clientHeight: scrollContainer.scrollHeight,
+					clientWidth: scrollContainer.clientWidth
+				};
+
+				emit('scroll', scrollData);
+			});
+		}
 
 		window.addEventListener('blur', function () {
 			cleanUpSelection();
@@ -1248,7 +1295,7 @@ var animationTimeline = function (window, document) {
 		function getLanePosition(laneIndex) {
 			let laneY = options.headerHeight +
 				laneIndex * options.laneHeightPx +
-				laneIndex * options.laneMarginPX;
+				laneIndex * options.laneMarginPx;
 			return laneY;
 		}
 
@@ -1553,7 +1600,7 @@ var animationTimeline = function (window, document) {
 		}
 
 		// emit event.
-		this.emit = function (topic, args) {
+		function emit(topic, args) {
 			for (var i = subscriptions.length - 1; i >= 0; i--) {
 				var sub = subscriptions[i];
 				if (sub.topic == topic && sub.callback) {
@@ -1562,6 +1609,7 @@ var animationTimeline = function (window, document) {
 			}
 		}
 
+		this.emit = emit;
 		/**
 		 * Remove the event from the subscriptions list.
 		 * @param {*} topic 

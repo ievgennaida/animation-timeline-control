@@ -1,137 +1,134 @@
 <!DOCTYPE html>
 <html>
-
-<head>
-  <style>
-    #timeline-canvas-container {
-      position: absolute;
-      top: 0;
-      right: 0;
-      bottom: 0;
-    }
-
-    #timeline-size-content {
-      width: 100px;
-      height: 100%;
-    }
-
-    #timeline-scroll-container {
-      border: 1px solid #d3d3d3;
-      background: white;
-      overflow: scroll;
-      max-width: 100%;
-      height: 400px;
-      position: relative;
-      box-sizing: border-box;
-      width: 100%;
-      touch-action: none;
-    }
-
-    #timeline {
-
-      image-rendering: -moz-crisp-edges;
-      image-rendering: -webkit-crisp-edges;
-      image-rendering: pixelated;
-      image-rendering: crisp-edges;
-      user-select: none;
-      -webkit-user-select: none;
-      -khtml-user-select: none;
-      -moz-user-select: none;
-      -o-user-select: none;
-      user-select: none;
-      touch-action: none;
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      box-sizing: border-box;
-
-    }
-  </style>
-
-  <script src="animation-timeline.js" type="text/javascript">
-  </script>
-</head>
-
-<body>
-  <div id="timeline-scroll-container">
-    <div id="timeline-size-content">
-    </div>
-    <canvas id="timeline" height="100%" width="100%">
-      Your browser does not support the HTML5 canvas tag.</canvas>
-  </div>
-  <br>
-
-  <div id="currentTime">
-
-  </div>
-  <script type="text/javascript">
-    let lanes = [
-      {
-        keyframesLaneSizePx: 1,
-        selected: false,
-        keyframes: [{
-          ms: 40
-        },
-        {
-          ms: 3000,
-          selected: false
-        }
-        ]
-      }, {
-        selected: false,
-        keyframes: [{
-          ms: 2000
-        }, {
-          ms: 2500
-        },
-        {
-          ms: 2600
-        }
-        ]
-      }, {
-        keyframes: [{
-          ms: 1000
-        }, {
-          ms: 1500
-        }, {
-          ms: 2000
-        }
-        ]
-      }, {
-        keyframes: [{
-          ms: 40
-        }, {
-          ms: 3000
-        }
-        ]
-      }, {
-        keyframes: [{
-          ms: 100
-        }, {
-          ms: 3410
-        }, {
-          ms: 2000
-        }
-        ]
-      }, {
-        keyframes: [{
-          ms: 90
-        }, {
-          ms: 100
-        }
-        ]
+  <head>
+    <style>
+      head,
+      body {
+        margin: 0px;
       }
-    ];
+      #timeline {
+        box-sizing: border-box;
+        width: 100%;
+        height: 50vh;
+        scrollbar-color: gray #161616;
+      }
+      ::-webkit-scrollbar {
+        background: #161616;
+        color: gray;
+      }
 
-    let timeline = animationTimeline.initialize({ id: 'timeline', scrollId: 'timeline-scroll-container', sizeId: 'timeline-size-content' }, lanes);
+      ::-webkit-scrollbar-thumb {
+        background: gray;
+      }
 
-    timeline.on('timeChanged', function (object) {
-      document.getElementById('currentTime').innerHTML = object.ms + 'ms';
-    })
+      ::-webkit-scrollbar-corner {
+        background: #161616;
+      }
+    </style>
 
-  </script>
-</body>
+    <script src="animation-timeline.js" type="text/javascript"></script>
+  </head>
 
+  <body>
+    <div>
+      <div id="timeline"></div>
+    </div>
+    <br />
+
+    <div id="currentTime"></div>
+    <script type="text/javascript">
+      let lanes = [
+        {
+          keyframesLaneSizePx: 1,
+          selected: false,
+          keyframes: [
+            {
+              ms: 40
+            },
+            {
+              ms: 3000,
+              selected: false
+            }
+          ]
+        },
+        {
+          selected: false,
+          keyframes: [
+            {
+              ms: 2000
+            },
+            {
+              ms: 2500
+            },
+            {
+              ms: 2600
+            }
+          ]
+        },
+        {
+          keyframes: [
+            {
+              ms: 1000
+            },
+            {
+              ms: 1500
+            },
+            {
+              ms: 2000
+            }
+          ]
+        },
+        {
+          keyframes: [
+            {
+              ms: 40
+            },
+            {
+              ms: 3000
+            }
+          ]
+        },
+        {
+          keyframes: [
+            {
+              ms: 100
+            },
+            {
+              ms: 3410
+            },
+            {
+              ms: 2000
+            }
+          ]
+        },
+        {
+          keyframes: [
+            {
+              ms: 90
+            },
+            {
+              ms: 100
+            }
+          ]
+        },
+        {},
+        {},
+        {},
+        {},
+        {},
+        {}
+      ];
+
+      let timeline = animationTimeline.initialize(
+        {
+          id: "timeline"
+        },
+        lanes
+      );
+
+      timeline.on("timeChanged", function(object) {
+        document.getElementById("currentTime").innerHTML = object.ms + "ms";
+      });
+    </script>
+  </body>
 </html>

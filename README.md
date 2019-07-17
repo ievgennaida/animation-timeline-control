@@ -1,3 +1,16 @@
-# js-animation-timeline-control
+# js-animation-timeline-control (0.0.1-alpha)
 
-Pure javascript html 5 implementation of the amimation timeline editor.
+Animation timeline is a vanilla JavaScript, no-dependency canvas control to render the animation keyframes.
+
+Features:
+
+- Fast and customizable, rendered on a canvas.
+- Snap, Zoom, Pan mode, multiple keyframes selection.
+- Keyboard support.
+- Drag mutliple keyframes and keyframe ranges.
+- Area virtualization - only small displayed area is rendered.
+- Native browser scrollbars are used.
+
+## License
+
+MIT
