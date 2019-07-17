@@ -11,6 +11,11 @@ var animationTimeline = function (window, document) {
 		else if (document.selection) { document.selection.empty(); }
 	}
 
+	// lane format:
+	// hidden: true|false
+	// name: 'lane name',
+	// keyframes: [{}]
+
 	let defaultOptions = {
 		keysPerSecond: 60,
 		snapPointsPerPixel: 5, // from 1 to 60
@@ -65,7 +70,12 @@ var animationTimeline = function (window, document) {
 		// scroll by drag speed (from 0 to 1)
 		scrollByDragSpeed: 0.12,
 		id: '',
-		scrollId: ''
+		scrollId: '',
+		// Use from and to range to limit the animation payload: 
+		useTimelineAnimationRange: false,
+		from: null,
+		to: null,
+		fireEventsDuringTheDrag: true
 	}
 
 	let denominators = [1, 2, 5, 10];
@@ -505,6 +515,18 @@ var animationTimeline = function (window, document) {
 			onMouseMove(args);
 		}, false);
 
+		function setKeyframePos(keyframe, toSet, ignoreEmit) {
+			toSet = Math.floor(toSet);
+			if (keyframe && keyframe.ms != toSet) {
+				keyframe.ms = toSet;
+				if (!ignoreEmit) {
+					this.emit('keyframeChanged', [keyframe]);
+				}
+				return true;
+			}
+
+			return false;
+		}
 
 		function onMouseMove(args) {
 			if (!args) {
@@ -537,10 +559,7 @@ var animationTimeline = function (window, document) {
 								drag.selectedItems.forEach(function (p) {
 									if (options.snapAllKeyframesOnMove) {
 										let toSet = snapMs(p.ms);
-										if (p.ms != toSet) {
-											p.ms = toSet;
-											isChanged = true;
-										}
+										isChanged |= setKeyframePos(p, toSet);
 									}
 									let newPostion = p.ms + offset;
 									if (newPostion < 0) {
@@ -552,10 +571,7 @@ var animationTimeline = function (window, document) {
 									// dont allow to move less than zero.
 									drag.selectedItems.forEach(function (p) {
 										let toSet = p.ms + offset;
-										if (p.ms != toSet) {
-											p.ms = toSet;
-											isChanged = true;
-										}
+										isChanged |= setKeyframePos(p, toSet);
 									});
 
 								}
@@ -853,31 +869,21 @@ var animationTimeline = function (window, document) {
 				return;
 			}
 
-
-			let offsetY = pos.scrollTop;
-			//let  offsetX= msToPx(pos.ms, true) - msToPx(start.ms, true) 
-
+			let newTop = Math.round(start.y - pos.y);
 			let offsetX = Math.round(start.x - pos.x);
 			let newLeft = start.scrollLeft + offsetX;
-
-
-			let max = false;
-			if (max) {
-				console.log('drag!' + offsetX);
-				max = true;
-			}
 
 			if (offsetX > 0) {
 				rescale(newLeft + canvas.clientWidth);
 			}
 
-			scrollContainer.scrollTop = offsetY;
 			if (offsetX > 0 && newLeft + canvas.clientWidth >= scrollContainer.scrollWidth - 5) {
 				scrollContainer.scrollLeft = scrollContainer.scrollWidth;
 			}
 			else {
 				scrollContainer.scrollLeft = newLeft;
 			}
+			scrollContainer.scrollTop = newTop;
 
 		}
 
@@ -1187,6 +1193,10 @@ var animationTimeline = function (window, document) {
 					let bounds = laneSize.bounds;
 					if (bounds) {
 						ctx.fillRect(bounds.x, bounds.y, bounds.w, bounds.h);
+						if (laneSize.lane.name) {
+							ctx.fillStyle = 'black';
+							ctx.fillText(laneSize.lane.name, bounds.x + 10, bounds.y + bounds.h / 2);
+						}
 					}
 
 					let keyframesSize = laneSize.keyframes;
@@ -1445,7 +1455,7 @@ var animationTimeline = function (window, document) {
 			// Rescale when timeline is goes more than 
 			if (msToPx(timeLine.ms, true) > scrollContainer.scrollWidth) {
 				rescale();
-				if (!isPanStarted) {
+				if (!isPanStarted && (drag && drag.type != 'timeline')) {
 					scrollLeft();
 				}
 			}
