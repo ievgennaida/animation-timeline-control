@@ -41,6 +41,7 @@ var animationTimeline = function (window, document) {
 		backgroundColor: '#101011',
 		timeIndicatorColor: 'DarkOrange',
 		labelsColor: '#D5D5D5',
+		laneLabelsColor: '#D5D5D5',
 		tickColor: '#D5D5D5',
 		selectionColor: 'White',
 		// lanes colors
@@ -270,9 +271,6 @@ var animationTimeline = function (window, document) {
 			}
 		}
 
-
-
-
 		let timeLine = {
 			ms: 0,
 		}
@@ -318,7 +316,7 @@ var animationTimeline = function (window, document) {
 			}
 		}
 
-		function rescale(newWidth) {
+		function rescale(newWidth, newHeight) {
 			var width = scrollContainer.clientWidth * pixelRatio;
 			var height = scrollContainer.clientHeight * pixelRatio;
 			if (width != ctx.canvas.width) {
@@ -332,8 +330,7 @@ var animationTimeline = function (window, document) {
 			ctx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
 			let sizes = getLanesSizes();
 			if (sizes && sizes.areaRect) {
-
-				const additionalOffset = + 100;
+				const additionalOffset = options.stepPx;
 				newWidth = newWidth || 0;
 				// not less than current timeline position
 				let timelineGlobalPos = msToPx(timeLine.ms, true);
@@ -349,17 +346,22 @@ var animationTimeline = function (window, document) {
 					scrollContainer.scrollLeft + canvas.clientWidth,
 					timelinePos,
 				);
-
-				let h = Math.floor(sizes.areaRect.h + sizes.areaRect.h + 20) + "px";
-				if (size.style.minHeight != h) {
-					size.style.minHeight = h
-				}
-
 				newWidth = Math.floor(newWidth) + "px";
 
 				if (newWidth != size.style.minWidth) {
 					size.style.minWidth = newWidth
 				}
+
+				newHeight = Math.max(Math.floor(sizes.areaRect.h + options.laneHeightPx * 4),
+					scrollContainer.scrollTop + canvas.clientHeight,
+					newHeight || 0);
+
+				let h = newHeight + "px";
+				if (size.style.minHeight != h) {
+					size.style.minHeight = h
+				}
+
+
 			}
 
 		}
@@ -936,8 +938,17 @@ var animationTimeline = function (window, document) {
 
 		function scrollBySelectionOutOfBounds(pos) {
 			let x = pos.x;
+			let y = pos.y;
 			let isChanged = false;
-			if (x <= 0) {
+			let speedX = 0;
+			let speedY = 0;
+			let isLeft = x <= 0;
+			let isRight = x >= canvas.clientWidth;
+			let isTop = y <= 0;
+			let isBottom = y >= canvas.clientHeight;
+			let newWidth = null;
+			let newHeight = null;
+			if (isLeft || isRight || isTop || isBottom) {
 				// Auto move init
 				startAutoScrollInterval();
 
@@ -945,34 +956,41 @@ var animationTimeline = function (window, document) {
 					return;
 				}
 
-				// Get normilized speed.
-				speed = -getDistance(x, 0) * (isNaN(options.scrollByDragSpeed) ? 1 : options.scrollByDragSpeed);
-
-				if (Math.abs(speed) > 0) {
-					scrollContainer.scrollLeft += speed;
-					isChanged = true;
+				let scrollSpeedMultiplier = (isNaN(options.scrollByDragSpeed) ? 1 : options.scrollByDragSpeed);
+				if (isLeft) {
+					// Get normilized speed.
+					speedX = -getDistance(x, 0) * scrollSpeedMultiplier
+				} else if (isRight) {
+					// Get normalized speed: 
+					speedX = getDistance(x, canvas.clientWidth) * scrollSpeedMultiplier;
+					newWidth = scrollContainer.scrollLeft + canvas.clientWidth + speedX;
 				}
 
-			} else if (x >= canvas.clientWidth) {
-				// Auto move init
-				startAutoScrollInterval();
-
-				if (checkUpdateSpeedIsFast()) {
-					return;
-				}
-
-				// Get normalized speed: 
-				var speed = getDistance(x, canvas.clientWidth) * (isNaN(options.scrollByDragSpeed) ? 1 : options.scrollByDragSpeed);
-
-				rescale(scrollContainer.scrollLeft + canvas.scrollWidth + speed);
-
-				if (Math.abs(speed) > 0) {
-					scrollContainer.scrollLeft += speed;
-					isChanged = true;
+				if (isTop) {
+					// Get normilized speed.
+					speedY = -getDistance(x, 0) * scrollSpeedMultiplier / 4;
+				} else if (isBottom) {
+					// Get normalized speed: 
+					speedY = getDistance(x, canvas.clientHeight) * scrollSpeedMultiplier / 4;
+					newHeight = scrollContainer.scrollTop + canvas.clientHeight;
 				}
 			}
 			else {
 				clearMoveInterval();
+			}
+
+			if (newWidth || newHeight) {
+				rescale(newWidth, newHeight);
+			}
+
+			if (Math.abs(speedX) > 0) {
+				scrollContainer.scrollLeft += speedX;
+				isChanged = true;
+			}
+
+			if (Math.abs(speedY) > 0) {
+				scrollContainer.scrollTop += speedY;
+				isChanged = true;
 			}
 
 			return isChanged;
@@ -1241,7 +1259,7 @@ var animationTimeline = function (window, document) {
 					if (bounds) {
 						ctx.fillRect(bounds.x, bounds.y, bounds.w, bounds.h);
 						if (laneSize.lane.name) {
-							ctx.fillStyle = 'black';
+							ctx.fillStyle = options.laneLabelsColor;
 							ctx.fillText(laneSize.lane.name, bounds.x + 10, bounds.y + bounds.h / 2);
 						}
 					}
