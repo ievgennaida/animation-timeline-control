@@ -1430,6 +1430,7 @@ var animationTimeline = function (window, document) {
 					ctx.save();
 					// use clip only  when we are in the collision! Clip is slow!
 					if (bounds && bounds.overlapY) {
+						ctx.beginPath();
 						ctx.rect(0, options.headerHeight || 0, canvas.clientWidth, canvas.clientWidth);
 						ctx.clip();
 					}
