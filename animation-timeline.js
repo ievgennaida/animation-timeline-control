@@ -100,6 +100,13 @@ var animationTimeline = function (window, document) {
 		if (isSeconds) {
 			seconds = ms;
 		}
+
+		var year = Math.floor(seconds / (365 * 86400));
+		seconds = seconds % (365 * 86400);
+
+		var days = Math.floor(seconds / 86400);
+		seconds = seconds % 86400;
+
 		// 2- Extract hours:
 		var hours = parseInt(seconds / 3600); // 3,600 seconds in 1 hour
 		seconds = seconds % 3600; // seconds remaining after extracting hours
@@ -108,6 +115,14 @@ var animationTimeline = function (window, document) {
 		// 4- Keep only seconds not extracted to minutes:
 		seconds = (seconds % 60);
 		let str = '';
+		if (year) {
+			str += year + ":";
+		}
+
+		if (days) {
+			str += days + ":";
+		}
+
 		if (hours) {
 			str += hours + ":";
 		}
@@ -197,8 +212,9 @@ var animationTimeline = function (window, document) {
 		}
 		else if (toCheck > 0.0) {
 			// Get number of zeros before the number.
-			var zerosCount = -Math.floor(Math.log(toCheck) / Math.log(10) + 1);
-			return sign * (zerosCount - 1);
+			var zerosCount = Math.floor(Math.log(toCheck) / Math.log(10) + 1);
+			zerosCount = zerosCount - 1;
+			return zerosCount;
 		}
 		else {
 			return 1;
@@ -471,9 +487,9 @@ var animationTimeline = function (window, document) {
 				if (scrollContainer.scrollLeft != newScrollLeft) {
 					scrollContainer.scrollLeft = newScrollLeft;
 					// Scroll event will redraw the screen.
-				} else {
-					redraw();
 				}
+
+				redraw();
 			}
 		});
 
@@ -500,7 +516,9 @@ var animationTimeline = function (window, document) {
 							clearTimeout(scrollingTimeRef);
 							scrollingTimeRef = null;
 						}
+
 						rescale();
+						redraw();
 					}
 
 				}, 500);
@@ -1062,7 +1080,6 @@ var animationTimeline = function (window, document) {
 
 
 		function findGoodStep(originaStep, divisionCheck) {
-			originaStep = Math.round(originaStep);
 			var step = originaStep;
 			var lastDistance = null;
 			var pow = getPowArgument(originaStep);
@@ -1074,7 +1091,7 @@ var animationTimeline = function (window, document) {
 				}
 				var distance = getDistance(originaStep, calculatedStep);
 
-				if (distance <= 0.1) {
+				if (distance == 0 || (distance <= 0.1 && pow > 0)) {
 					lastDistance = distance;
 					step = calculatedStep;
 					break;
@@ -1096,9 +1113,10 @@ var animationTimeline = function (window, document) {
 			var dist = getDistance(from, to);
 			// normalize step.			
 			var stepsCanFit = areaWidth / options.stepPx;
-
+			let realStep = dist / stepsCanFit;
 			// Find the nearest 'beautiful' step for a gauge. This step should be devided by 1/2/5!
-			var step = findGoodStep(Math.round(dist / stepsCanFit));
+			//let step = realStep;
+			let step = findGoodStep(realStep);
 			var goodStepDistancePx = areaWidth / (dist / step);
 			var smallStepsCanFit = goodStepDistancePx / options.stepSmallPx;
 			var realSmallStep = step / smallStepsCanFit;
@@ -1114,7 +1132,6 @@ var animationTimeline = function (window, document) {
 
 			// Find a beautiful end point:
 			to = Math.ceil(visibleTo / step) * step + step;
-
 
 			let lastTextX = null;
 			for (var i = from; i <= to; i += step) {
