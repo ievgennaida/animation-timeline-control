@@ -7,7 +7,7 @@ Features:
 - Fast and customizable, rendered on a canvas.
 - Snap, Zoom, Pan mode, multiple keyframes selection.
 - Keyboard support.
-- Drag mutliple keyframes and keyframe ranges.
+- Drag mutliple keyframes, drag keyframe ranges.
 - Area virtualization - only small displayed area is rendered.
 - Native browser scrollbars are used.
 
