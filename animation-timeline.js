@@ -316,7 +316,7 @@ var animationTimeline = function (window, document) {
 			}
 		}
 
-		function rescale(newWidth, newHeight) {
+		function rescale(scrollMode, newWidth, newHeight) {
 			var width = scrollContainer.clientWidth * pixelRatio;
 			var height = scrollContainer.clientHeight * pixelRatio;
 			if (width != ctx.canvas.width) {
@@ -335,8 +335,12 @@ var animationTimeline = function (window, document) {
 				// not less than current timeline position
 				let timelineGlobalPos = msToPx(timeLine.ms, true);
 				let timelinePos = 0;
-				if (timelineGlobalPos > scrollContainer.scrollWidth) {
-					timelinePos = Math.floor(timelineGlobalPos + canvas.clientWidth / 1.5);
+				if (timelineGlobalPos > canvas.clientWidth) {
+					if (scrollMode == 'scrollBySelection') {
+						timelinePos = Math.floor(timelineGlobalPos + canvas.clientWidth + (options.stepPx || 0));
+					} else {
+						timelinePos = Math.floor(timelineGlobalPos + canvas.clientWidth / 1.5);
+					}
 				}
 
 				newWidth = Math.max(newWidth,
@@ -980,7 +984,7 @@ var animationTimeline = function (window, document) {
 			}
 
 			if (newWidth || newHeight) {
-				rescale(newWidth, newHeight);
+				rescale('scrollBySelection', newWidth, newHeight);
 			}
 
 			if (Math.abs(speedX) > 0) {
@@ -1519,7 +1523,7 @@ var animationTimeline = function (window, document) {
 		function redrawInternal() {
 			// Rescale when timeline is goes more than 
 			if (msToPx(timeLine.ms, true) > scrollContainer.scrollWidth) {
-				rescale();
+				rescale('play');
 				if (!isPanStarted && (drag && drag.type != 'timeline')) {
 					scrollLeft();
 				}
