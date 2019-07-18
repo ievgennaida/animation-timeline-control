@@ -44,12 +44,14 @@ var animationTimeline = function (window, document) {
 		laneLabelsColor: '#D5D5D5',
 		tickColor: '#D5D5D5',
 		selectionColor: 'White',
-		// lanes colors
+		// Lanes colors
 		laneColor: '#252526', //'#252526',37373D
 		alternateLaneColor: 'black',//333333
 		keyframesLaneColor: '#094771',
 		// keyframe color. can be overrided by a keyframe 'color' property.
 		keyframeColor: 'red',
+		// Shape of the keyframe: none|rhomb|circle|rect
+		keyframeShape: 'rhomb',
 		// selected keyframe color. can be overrider by a keyframe 'selectedColor' property.
 		selectedKeyframeColor: 'DarkOrange',
 		keyframeBorderColor: 'Black',
@@ -364,10 +366,7 @@ var animationTimeline = function (window, document) {
 				if (size.style.minHeight != h) {
 					size.style.minHeight = h
 				}
-
-
 			}
-
 		}
 
 
@@ -449,17 +448,32 @@ var animationTimeline = function (window, document) {
 			}
 		}
 
-		canvas.addEventListener("wheel", function (event) {
+		scrollContainer.addEventListener("wheel", function (event) {
 			if (event.ctrlKey) {
+				event.preventDefault();
+				let ms = pxToMS(Math.round(scrollContainer.scrollLeft + canvas.clientWidth / 2), true);
+
 				const delta = Math.sign(event.deltaY) * 10;
-				options.zoom += delta;
+				let zoom = options.zoom;
+				zoom += delta;
+				options.zoom = zoom;
 				if (options.zoom <= 0) {
 					options.zoom = 1 / 2;
 				}
 
-				rescale();
-				redraw();
-				event.preventDefault();
+				let zoomCenter = msToPx(ms, true);
+				let newScrollLeft = Math.round(zoomCenter - canvas.clientWidth / 2);
+				if (newScrollLeft <= 0) {
+					newScrollLeft = 0;
+				}
+
+				rescale('zoom', newScrollLeft + canvas.clientWidth);
+				if (scrollContainer.scrollLeft != newScrollLeft) {
+					scrollContainer.scrollLeft = newScrollLeft;
+					// Scroll event will redraw the screen.
+				} else {
+					redraw();
+				}
 			}
 		});
 
@@ -1001,10 +1015,23 @@ var animationTimeline = function (window, document) {
 		}
 
 		// Find ms from the the px coordinates
-		function pxToMS(coords) {
-			coords -= options.leftMarginPx;
+		function pxToMS(coords, globalCoords) {
+			if (!globalCoords) {
+				coords -= options.leftMarginPx;
+			}
 			var ms = coords / options.stepPx * options.zoom;
 			return ms;
+		}
+
+		// convert 
+		function msToPx(ms, globalCoords) {
+			// Respect current scroll container offset. (virtualization)
+			if (!globalCoords) {
+				var x = scrollContainer.scrollLeft;
+				ms -= pxToMS(x);
+			}
+
+			return (ms * options.stepPx / options.zoom);
 		}
 
 		function snapMs(ms) {
@@ -1032,16 +1059,7 @@ var animationTimeline = function (window, document) {
 			return convertedMs;
 		}
 
-		// convert 
-		function msToPx(ms, globalCoords) {
-			// Respect current scroll container offset. (virtualization)
-			var x = scrollContainer.scrollLeft;
-			if (!globalCoords) {
-				ms -= pxToMS(x);
-			}
 
-			return (ms * options.stepPx / options.zoom);
-		}
 
 		function findGoodStep(originaStep, divisionCheck) {
 			originaStep = Math.round(originaStep);
@@ -1395,25 +1413,53 @@ var animationTimeline = function (window, document) {
 						ctx.clip();
 					}
 
-					ctx.beginPath();
-					ctx.translate(x, y);
-					ctx.rotate(45 * Math.PI / 180);
-					let border = options.keyframeBorderThicknessPx;
-					if (border > 0 && options.keyframeBorderColor) {
-						ctx.fillStyle = options.keyframeBorderColor;
-						ctx.rect(-size / 2, -size / 2, size, size);
-						ctx.fill();
-						//	ctx.beginPath();
+					let border = options.keyframeBorderThicknessPx || 0;
+					let shape = keyframe.shape || lane.keyframesShape || options.keyframeShape;
+					let keyframeColor = keyframe.color || options.keyframeColor;
+					if (keyframe.selected) {
+						keyframeColor = keyframe.selectedColor || options.selectedKeyframeColor;
 					}
 
-					ctx.fillStyle = keyframe.color || options.keyframeColor;
-					if (keyframe.selected) {
-						ctx.fillStyle = keyframe.selectedColor || options.selectedKeyframeColor;
+					if (shape == "rhomb") {
+						ctx.beginPath();
+						ctx.translate(x, y);
+						ctx.rotate(45 * Math.PI / 180);
+						if (border > 0 && options.keyframeBorderColor) {
+							ctx.fillStyle = options.keyframeBorderColor;
+							ctx.rect(-size / 2, -size / 2, size, size);
+							ctx.fill();
+							//	ctx.beginPath();
+						}
+
+						ctx.fillStyle = keyframeColor;
+						// draw main keyframe data with offset.
+						ctx.translate(border, border);
+						ctx.rect(-size / 2, -size / 2, size - border * 2, size - border * 2);
+						ctx.fill();
+					} else if (shape == "circle") {
+						ctx.beginPath();
+						if (border > 0 && options.keyframeBorderColor) {
+							ctx.fillStyle = options.keyframeBorderColor;
+							ctx.arc(x, y, size, 0, 2 * Math.PI);
+						}
+						ctx.fillStyle = keyframeColor;
+						ctx.arc(x, y, size - border, 0, 2 * Math.PI);
+						ctx.fill();
+					} else if (shape == "rect") {
+						ctx.beginPath();
+						y = y - size / 2;
+						x = x - size / 2;
+						if (border > 0 && options.keyframeBorderColor) {
+							ctx.fillStyle = options.keyframeBorderColor;
+							ctx.rect(x, y, size, size);
+							ctx.fill();
+						}
+
+						ctx.fillStyle = keyframeColor;
+						ctx.rect(x + border, y + border, size - border, size - border);
+						ctx.fill();
 					}
-					// draw main keyframe data with offset.
-					ctx.translate(border, border);
-					ctx.rect(-size / 2, -size / 2, size - border * 2, size - border * 2);
-					ctx.fill();
+
 					ctx.restore();
 				}
 			});
