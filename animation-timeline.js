@@ -312,12 +312,14 @@ var animationTimeline = function (window, document) {
 		var pixelRatio = getPixelRatio(ctx);
 		function getMousePos(canvas, evt) {
 
+			let radius = 1;
 			if (evt.changedTouches && evt.changedTouches.length > 0) {
 				// TODO: implement better support of this:
 				let touch = evt.changedTouches[0];
 				if (isNaN(evt.clientX)) {
 					evt.clientX = touch.clientX;
 					evt.clientY = touch.clientY;
+					radius = Math.max(radius, touch.radiusX, touch.radiusY);
 				}
 			}
 
@@ -330,7 +332,8 @@ var animationTimeline = function (window, document) {
 			// scale mouse coordinates after they have been adjusted to be relative to element
 			return {
 				x: x,
-				y: y
+				y: y,
+				radius
 			}
 		}
 
@@ -390,7 +393,7 @@ var animationTimeline = function (window, document) {
 		function getDraggable(pos) {
 
 			// few extra pixels to select items:
-			let helperSelector = 2;
+			let helperSelector = Math.max(2, pos.radius);
 			let draggable = null;
 
 			if (pos.y >= options.headerHeight) {
@@ -1069,6 +1072,7 @@ var animationTimeline = function (window, document) {
 
 			return ms;
 		}
+
 		function mousePosToMs(x, snapEnabled) {
 			let convertedMs = pxToMS(scrollContainer.scrollLeft + Math.min(x, canvas.clientWidth));
 			convertedMs = Math.round(convertedMs);
@@ -1078,8 +1082,6 @@ var animationTimeline = function (window, document) {
 
 			return convertedMs;
 		}
-
-
 
 		function findGoodStep(originaStep, divisionCheck) {
 			var step = originaStep;
