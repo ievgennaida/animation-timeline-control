@@ -18,7 +18,7 @@ var animationTimeline = function (window, document) {
 
 	let defaultOptions = {
 		keysPerSecond: 60,
-		snapPointsPerPixel: 5, // from 1 to 60
+		snapsPerSeconds: 5, // from 1 to 60
 		snapEnabled: true,
 		extraRightMargin: 50,
 		// Snap all the keyframes when multiple is moved.
@@ -30,7 +30,7 @@ var animationTimeline = function (window, document) {
 		timelineTriangleCap: false,
 		timelineRectCap: true,
 		// approximate step in px for 1 second 
-		stepPx: 100,
+		stepPx: 120,
 		stepSmallPx: 30,
 		smallSteps: 50,
 		// additional left margin to start the gauge from
@@ -70,6 +70,12 @@ var animationTimeline = function (window, document) {
 		autoWidth: true,
 		ticksFont: "11px sans-serif",
 		zoom: 1000,
+		// Zoom speed. Use percent of the screen to set zoom speed. 
+		zoomSpeed: 0.1,
+		// Max zoom
+		zoomMin: 80,
+		// Min zoom
+		zoomMax: 8000,
 		// scroll by drag speed (from 0 to 1)
 		scrollByDragSpeed: 0.12,
 		id: '',
@@ -266,13 +272,7 @@ var animationTimeline = function (window, document) {
 		scrollContainer.appendChild(size);
 		scrollContainer.appendChild(canvas);
 
-
-		// Merge options with the default:
-		for (var key in defaultOptions) {
-			if (Object.prototype.hasOwnProperty.call(defaultOptions, key) && options[key] == undefined) {
-				options[key] = defaultOptions[key];
-			}
-		}
+		setOptions(options);
 
 		if (options.backgroundColor) {
 			scrollContainer.style.background = options.backgroundColor;
@@ -281,11 +281,11 @@ var animationTimeline = function (window, document) {
 		if (!options.stepPx) {
 			options.stepPx = defaultOptions.stepPx;
 		}
-		if (!options.snapPointsPerPixel) {
-			if (options.snapPointsPerPixel < 0) {
-				options.snapPointsPerPixel = 0;
-			} else if (options.snapPointsPerPixel > 60) {
-				options.snapPointsPerPixel = 60;
+		if (!options.snapsPerSeconds) {
+			if (options.snapsPerSeconds < 0) {
+				options.snapsPerSeconds = 0;
+			} else if (options.snapsPerSeconds > 60) {
+				options.snapsPerSeconds = 60;
 			}
 		}
 
@@ -467,29 +467,31 @@ var animationTimeline = function (window, document) {
 		scrollContainer.addEventListener("wheel", function (event) {
 			if (event.ctrlKey) {
 				event.preventDefault();
-				let ms = pxToMS(Math.round(scrollContainer.scrollLeft + canvas.clientWidth / 2), true);
+				if (options.zoomSpeed > 0 && options.zoomSpeed <= 1) {
+					let ms = pxToMS(Math.round(scrollContainer.scrollLeft + canvas.clientWidth / 2), true);
 
-				const delta = Math.sign(event.deltaY) * 10;
-				let zoom = options.zoom;
-				zoom += delta;
-				options.zoom = zoom;
-				if (options.zoom <= 0) {
-					options.zoom = 1 / 2;
+					let zoom = Math.sign(event.deltaY) * options.zoom * options.zoomSpeed;
+					options.zoom += zoom;
+					if (options.zoom > options.zoomMax) {
+						options.zoom = options.zoomMax;
+					}
+					if (options.zoom < options.zoomMin) {
+						options.zoom = options.zoomMin;
+					}
+					let zoomCenter = msToPx(ms, true);
+					let newScrollLeft = Math.round(zoomCenter - canvas.clientWidth / 2);
+					if (newScrollLeft <= 0) {
+						newScrollLeft = 0;
+					}
+
+					rescale('zoom', newScrollLeft + canvas.clientWidth);
+					if (scrollContainer.scrollLeft != newScrollLeft) {
+						scrollContainer.scrollLeft = newScrollLeft;
+						// Scroll event will redraw the screen.
+					}
+
+					redraw();
 				}
-
-				let zoomCenter = msToPx(ms, true);
-				let newScrollLeft = Math.round(zoomCenter - canvas.clientWidth / 2);
-				if (newScrollLeft <= 0) {
-					newScrollLeft = 0;
-				}
-
-				rescale('zoom', newScrollLeft + canvas.clientWidth);
-				if (scrollContainer.scrollLeft != newScrollLeft) {
-					scrollContainer.scrollLeft = newScrollLeft;
-					// Scroll event will redraw the screen.
-				}
-
-				redraw();
 			}
 		});
 
@@ -1054,8 +1056,8 @@ var animationTimeline = function (window, document) {
 
 		function snapMs(ms) {
 			// Apply snap to steps if enabled.
-			if (options.snapPointsPerPixel && options.snapEnabled) {
-				var stopsPerPixel = (1000 / options.snapPointsPerPixel);
+			if (options.snapsPerSeconds && options.snapEnabled) {
+				var stopsPerPixel = (1000 / options.snapsPerSeconds);
 				let step = ms / stopsPerPixel;
 				var stepsFit = Math.round(step);
 				ms = Math.round(stepsFit * stopsPerPixel);
@@ -1668,6 +1670,22 @@ var animationTimeline = function (window, document) {
 			redraw();
 		}
 
+		function getOptions() {
+			return options;
+		}
+
+		function setOptions(options) {
+			options = options || {};
+			// Merge options with the default:
+			for (var key in defaultOptions) {
+				if (Object.prototype.hasOwnProperty.call(defaultOptions, key) && options[key] == undefined) {
+					options[key] = defaultOptions[key];
+				}
+			}
+
+			return options;
+		}
+
 		this.redraw = redraw;
 
 		function onKeyframesSelected(keyframe) {
@@ -1694,6 +1712,15 @@ var animationTimeline = function (window, document) {
 			}
 		}
 
+		this.getOptions = getOptions;
+		this.setOptions = function (options) {
+			setOptions(options);
+			rescale();
+			redraw();
+		}
+
+		this.rescale = rescale;
+		this.redraw = redraw;
 		this.emit = emit;
 		/**
 		 * Remove the event from the subscriptions list.
