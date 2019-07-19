@@ -882,13 +882,13 @@ var animationTimeline = function (window, document) {
 			}
 
 			let nextLane = false;
-			lanes.forEach(function lanesIterator(lane, index) {
+			lanes.filter(p => p && !p.hidden).forEach(function lanesIterator(lane, index) {
 				if (!lane || !lane.keyframes || !lane.keyframes.forEach || lane.keyframes.length <= 0) {
 					return;
 				}
 
 				nextLane = true;
-				lane.keyframes.forEach(function keyframesIterator(keyframe, keyframeIndex) {
+				lane.keyframes.filter(p => p && !p.hidden).forEach(function keyframesIterator(keyframe, keyframeIndex) {
 					if (callback && keyframe) {
 						callback(keyframe, keyframeIndex, lane, index, nextLane);
 					}
@@ -1225,7 +1225,7 @@ var animationTimeline = function (window, document) {
 
 			const areaRect = toReturn.areaRect;
 
-			lanes.forEach(function lanesIterator(lane, index) {
+			lanes.filter(p => p && !p.hidden).forEach(function lanesIterator(lane, index) {
 				if (!lane) {
 					return;
 				}
@@ -1624,7 +1624,6 @@ var animationTimeline = function (window, document) {
 			drawKeyframes();
 			drawSelection();
 			drawTimeLine();
-
 		}
 
 		function getSharp(pos, thinkess) {
@@ -1745,10 +1744,11 @@ var animationTimeline = function (window, document) {
 		this.rescale = rescale;
 		this.redraw = redraw;
 		this.emit = emit;
+
 		/**
 		 * Remove the event from the subscriptions list.
-		 * @param {*} topic 
-		 * @param {*} callback 
+		 * @param {string} topic 
+		 * @param {Function} callback 
 		 */
 		this.off = function (topic, callback) {
 			for (var i = subscriptions.length - 1; i >= 0; i--) {
