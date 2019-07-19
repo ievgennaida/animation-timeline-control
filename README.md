@@ -18,12 +18,13 @@ Features:
 ### Description
 
 Despite of the main options each keyframe or lane has own properties that can override main configuration:
-| Lane property | description |
-| ------ | ------ |
-| draggable | whether lane draggable or not |
-| keyframes | An array of the keyframes |
-| hidden | used to hide lane |
-| name | label to be displayed |
+
+| Lane property | description                   |
+| ------------- | ----------------------------- |
+| draggable     | whether lane draggable or not |
+| keyframes     | an array of the keyframes     |
+| hidden        | used to hide lane             |
+| name          | label to be displayed         |
 
 | Keyframe property | description                       |
 | ----------------- | --------------------------------- |
