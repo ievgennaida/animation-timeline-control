@@ -300,7 +300,8 @@
 
 		let timeLine = {
 			ms: 0,
-		}
+		};
+
 		let startPos = null;
 		let currentPos = null;
 		let selectionRect = null;
@@ -1595,9 +1596,10 @@
 		}
 
 		function redraw() {
-			redrawInternal();
 			if (window.requestAnimationFrame) {
 				window.requestAnimationFrame.call(this, redrawInternal);
+			} else {
+				redrawInternal();
 			}
 		}
 
