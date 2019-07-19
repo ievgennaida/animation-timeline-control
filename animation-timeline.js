@@ -14,7 +14,14 @@ var animationTimeline = function (window, document) {
 	// lane format:
 	// hidden: true|false
 	// name: 'lane name',
-	// keyframes: [{}]
+	//// undefined = true. 
+	// draggable
+	// visible
+	// keyframes: [{ 
+	// undefined = true. 
+	// draggable
+	// visible
+	// }]
 
 	let defaultOptions = {
 		keysPerSecond: 60,
@@ -63,8 +70,6 @@ var animationTimeline = function (window, document) {
 		laneMarginPx: 2,
 		// Size of the lane in pixels. Can be 'auto' than size is based on the 'laneHeightPx'. can be overriden by lane 'lane.keyframesLaneSizePx'. 
 		keyframesLaneSizePx: 'auto',
-		// Allow to drag keyframes lane.
-		canDragLaneKeyframes: true,
 		headerHeight: 30,
 		lineHeight: 1,
 		autoWidth: true,
@@ -83,7 +88,11 @@ var animationTimeline = function (window, document) {
 		useTimelineAnimationRange: false,
 		from: null,
 		to: null,
-		fireEventsDuringTheDrag: true
+		fireEventsDuringTheDrag: true,
+		// Whether keyframes draggable
+		keyframesDraggable: true,
+		// Whether keyframes lanes draggable
+		keyframesLanesDraggalbe: true
 	}
 
 	let denominators = [1, 2, 5, 10];
@@ -395,9 +404,14 @@ var animationTimeline = function (window, document) {
 			// few extra pixels to select items:
 			let helperSelector = Math.max(2, pos.radius);
 			let draggable = null;
-
-			if (pos.y >= options.headerHeight) {
+			if (pos.y >= options.headerHeight && options.keyframesDraggable) {
 				iterateKeyframes(function (keyframe, keyframeIndex, lane, laneIndex) {
+					if (keyframe.draggable !== undefined) {
+						if (!keyframe.draggable) {
+							return;
+						}
+					}
+
 					let keyframePos = getKeyframePosition(keyframe, laneIndex);
 					if (keyframePos) {
 						const dist = getDistance(keyframePos.x, keyframePos.y, pos.x, pos.y);
@@ -424,10 +438,16 @@ var animationTimeline = function (window, document) {
 
 				// Return keyframes lanes:
 				const lanesSizes = getLanesSizes();
-				if (options.canDragLaneKeyframes && lanesSizes) {
+				if (options.keyframesLanesDraggalbe && lanesSizes) {
 					let foundOverlap = lanesSizes.sizes.find(function lanesSizesIterator(laneSize) {
 						if (!laneSize || !laneSize.keyframes) {
 							return false;
+						}
+
+						if (laneSize.lane.draggable !== undefined) {
+							if (!laneSize.lane.draggable) {
+								return;
+							}
 						}
 
 						let laneOverlaped = isOverlap(pos.x, pos.y, laneSize.keyframes);
