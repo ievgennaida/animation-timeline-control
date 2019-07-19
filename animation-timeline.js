@@ -1,27 +1,27 @@
-var animationTimeline = function (window, document) {
-
-	if (!Math.sign) {
-		Math.sign = function (p) {
-			return p >= 0 ? 1 : -1;
-		}
+(typeof navigator !== "undefined") && (function (window, factory) {
+	// Check require.js lib
+	if (typeof define === "function" && define.amd) {
+		define(function () { return factory(window) });
+	} else if (typeof module === "object" && module.exports) {
+		module.exports = factory(window);
+	} else {
+		window.animationTimeline = factory(window);
 	}
+}(window, function (window) {
+
+	function sign(p) {
+		if (Math.sign) {
+			return Math.sign(p);
+		}
+		return p >= 0 ? 1 : -1;
+	}
+
+	var document = window.document;
 
 	function clearBrowserSelection() {
 		if (window.getSelection) { window.getSelection().removeAllRanges(); }
 		else if (document.selection) { document.selection.empty(); }
 	}
-
-	// lane format:
-	// hidden: true|false
-	// name: 'lane name',
-	//// undefined = true. 
-	// draggable
-	// visible
-	// keyframes: [{ 
-	// undefined = true. 
-	// draggable
-	// visible
-	// }]
 
 	let defaultOptions = {
 		keysPerSecond: 60,
@@ -216,7 +216,7 @@ var animationTimeline = function (window, document) {
 
 		toCheck = Math.abs(toCheck);
 		var category = 0;
-		var sign = Math.sign(toCheck);
+		var sign = sign(toCheck);
 		if (toCheck > 1) {
 			while (toCheck >= 1) {
 				toCheck = Math.floor(toCheck / 10.0);
@@ -493,7 +493,7 @@ var animationTimeline = function (window, document) {
 				if (options.zoomSpeed > 0 && options.zoomSpeed <= 1) {
 					let ms = pxToMS(Math.round(scrollContainer.scrollLeft + canvas.clientWidth / 2), true);
 
-					let zoom = Math.sign(event.deltaY) * options.zoom * options.zoomSpeed;
+					let zoom = sign(event.deltaY) * options.zoom * options.zoomSpeed;
 					options.zoom += zoom;
 					if (options.zoom > options.zoomMax) {
 						options.zoom = options.zoomMax;
@@ -1768,4 +1768,4 @@ var animationTimeline = function (window, document) {
 	}
 
 	return this;
-}(window, document);
+}));
