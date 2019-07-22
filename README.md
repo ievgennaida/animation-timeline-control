@@ -11,7 +11,7 @@ Features:
 - Area virtualization - only small displayed area is rendered.
 - Native browser scrollbars are used.
 
-![gif preview](/timeline-demo.gif)
+![gif preview](demo/timeline-demo.gif)
 
 ## Configuration
 
