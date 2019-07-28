@@ -1,0 +1,34 @@
+{
+  "name": "animation-timeline-js",
+  "version": "1.0.0",
+  "description": "vanilla js animation timeline control based on the canvas.",
+  "main": "animation-timeline.js",
+  "dependencies": {},
+  "devDependencies": {
+    "eslint": "^6.0.1"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ievgennaida/js-animation-timeline-control.git"
+  },
+  "keywords": [
+    "js",
+    "animation",
+    "timeline",
+    "canvas",
+    "html5",
+    "no",
+    "libs",
+    "keyframes",
+    "editor"
+  ],
+  "author": "Ievgen Naida",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ievgennaida/js-animation-timeline-control/issues"
+  },
+  "homepage": "https://github.com/ievgennaida/js-animation-timeline-control#readme"
+}
