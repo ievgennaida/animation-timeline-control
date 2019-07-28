@@ -236,8 +236,8 @@
 		}
 	}
 
-
-	this.initialize = function (options, lanes) {
+	let instance = {};
+	instance.initialize = function (options, lanes) {
 
 		var scrollContainer = document.getElementById(options.id);
 		if (!scrollContainer) {
@@ -259,10 +259,10 @@
 
 		// Generate size container:
 		canvas.style.cssText = 'image-rendering: -moz-crisp-edges;' +
-			' image-rendering: -webkit-crisp-edges;' +
+			'image-rendering: -webkit-crisp-edges;' +
 			'image-rendering: pixelated;' +
 			'image-rendering: crisp-edges;' +
-			' user-select: none;' +
+			'user-select: none;' +
 			'-webkit-user-select: none;' +
 			'-khtml-user-select: none;' +
 			'-moz-user-select: none;' +
@@ -631,7 +631,7 @@
 			if (keyframe && keyframe.ms != toSet) {
 				keyframe.ms = toSet;
 				if (!ignoreEmit) {
-					this.emit('keyframeChanged', [keyframe]);
+					emit('keyframeChanged', [keyframe]);
 				}
 				return true;
 			}
@@ -1656,7 +1656,7 @@
 
 			if (timeLine.ms != ms) {
 				timeLine.ms = ms;
-				this.emit('timeChanged', { ms: ms, source: source });
+				emit('timeChanged', { ms: ms, source: source });
 				return true;
 			}
 
@@ -1713,7 +1713,7 @@
 		this.redraw = redraw;
 
 		function onKeyframesSelected(keyframe) {
-			this.emit('selected', keyframe);
+			emit('selected', keyframe);
 		}
 
 		let subscriptions = [];
@@ -1769,5 +1769,5 @@
 		return this;
 	}
 
-	return this;
+	return instance;
 }));

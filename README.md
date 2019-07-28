@@ -1,4 +1,4 @@
-# js-animation-timeline-control (1.0.0)
+# js-animation-timeline-control (1.0.1)
 
 Animation timeline is a vanilla JavaScript, no-dependency canvas control to render the animation keyframes.
 
@@ -14,6 +14,12 @@ Features:
 ![gif preview](demo/timeline-demo.gif)
 
 ## Configuration
+## Usage
+
+Angular:
+import * as timeline from 'node_modules/animation-timeline-js/index.js';
+
+timeline.initialize({ id: 'timeline' });
 
 ## Data structure
 
