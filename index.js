@@ -1672,10 +1672,10 @@
 		}
 
 		/**
-		 * Navigate to the next frame (with the snapping if enabled)
+		 * Navigate to the prev frame (with the snapping if enabled)
 		 * @public
 		 */
-		this.nextFrame = function () {
+		this.prevFrame = function () {
 
 		}
 
@@ -1743,6 +1743,16 @@
 			redraw();
 		}
 
+		function getLanes() {
+			return lanes;
+		}
+
+		function setLanes(data) {
+			lanes = data;
+		}
+
+		this.setLanes = setLanes;
+		this.getLanes = getLanes;
 		this.rescale = rescale;
 		this.redraw = redraw;
 		this.emit = emit;

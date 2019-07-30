@@ -1,4 +1,4 @@
-# js-animation-timeline-control (1.0.2)
+# js-animation-timeline-control (1.0.3)
 
 Animation timeline is a vanilla JavaScript, no-dependency canvas control to render the animation keyframes.
 

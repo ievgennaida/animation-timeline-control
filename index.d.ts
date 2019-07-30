@@ -5,6 +5,8 @@ export type Timeline = {
     rescale(): void;
     getOptions(): AnimationTimelineOptions;
     setOptions(options: AnimationTimelineOptions);
+    getLanes(): AnimationTimelineLane[];
+    setLanes(data: AnimationTimelineLane []);
     on(event: TimelineEvent, callback: Function);
     off(event: TimelineEvent, callback: Function);
     getTime():number;
@@ -12,6 +14,20 @@ export type Timeline = {
     nextFrame();
     prevFrame();
     setPanMode(value : boolean);
+}
+
+export type AnimationTimelineLane = {
+    ms: number,
+    shape: string
+    selected: boolean
+}
+
+export type AnimationTimelineKeyframe = {
+    keyframes: AnimationTimelineLane[];
+    keyframesLaneSizePx: number,
+    selected: boolean,
+    keyframesShape: string,
+    hidden: boolean
 }
 
 export type AnimationTimelineOptions = {
@@ -86,7 +102,7 @@ export type AnimationTimelineOptions = {
 }
 
 type AnimationTimeline = {
-    initialize(options: AnimationTimelineOptions): Timeline;
+    initialize(options: AnimationTimelineOptions, lanes?: AnimationTimelineLane[]): Timeline;
 };
 
 declare const timeline: AnimationTimeline;
