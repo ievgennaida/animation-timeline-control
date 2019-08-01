@@ -388,8 +388,8 @@
 				}
 
 				newHeight = Math.max(Math.floor(sizes.areaRect.h + options.laneHeightPx * 4),
-					scrollContainer.scrollTop + canvas.clientHeight,
-					newHeight || 0);
+					scrollContainer.scrollTop + canvas.clientHeight - 1,
+					Math.round(newHeight || 0));
 
 				let h = newHeight + "px";
 				if (size.style.minHeight != h) {
@@ -522,9 +522,10 @@
 		if (scrollContainer) {
 			scrollContainer.addEventListener('scroll', function (args) {
 				var left = scrollContainer.scrollLeft + 'px';
-				if (canvas.style.left != left) {
+				if (canvas.style.left !== left) {
 					canvas.style.left = left;
 				}
+
 				var top = scrollContainer.scrollTop + 'px';
 				if (top !== canvas.style.top) {
 					canvas.style.top = top;
@@ -1232,13 +1233,15 @@
 				}
 
 				// draw with scroll virtualization:
-				let laneY = getLanePosition(index) - scrollContainer.scrollTop;
+				var globalLaneY = getLanePosition(index);
+				var laneY = globalLaneY - scrollContainer.scrollTop;
 				if (index == 0) {
 					areaRect.y = laneY;
 				}
-				areaRect.h = areaRect.h == null ? laneY + options.laneHeightPx : Math.max(laneY + options.laneHeightPx, areaRect.h);
 
-				const laneSize = {
+				areaRect.h = Math.max(globalLaneY + options.laneHeightPx, areaRect.h);
+
+				var laneSize = {
 					x: 0,
 					y: laneY,
 					w: canvas.clientWidth,
