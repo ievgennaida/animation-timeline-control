@@ -1,6 +1,6 @@
 {
   "name": "animation-timeline-js",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "vanilla js animation timeline control based on the canvas.",
   "main": "animation-timeline.js",
   "dependencies": {},
