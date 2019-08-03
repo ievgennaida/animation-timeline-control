@@ -555,8 +555,8 @@
 					args: args,
 					scrollLeft: scrollContainer.scrollLeft,
 					scrollTop: scrollContainer.scrollTop,
-					clientHeight: scrollContainer.scrollHeight,
-					clientWidth: scrollContainer.clientWidth
+					scrollHeight: scrollContainer.scrollHeight,
+					scrollWidth: scrollContainer.scrollWidth
 				};
 
 				emit('scroll', scrollData);
@@ -1720,6 +1720,11 @@
 		}
 
 		let subscriptions = [];
+		
+		this.onScroll = function(callback) {
+			this.on('scroll', callback);
+		}
+
 		// on event.
 		this.on = function (topic, callback) {
 			if (!callback) {

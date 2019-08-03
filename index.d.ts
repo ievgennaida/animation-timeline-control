@@ -1,5 +1,14 @@
 export type TimelineEvent = 'selected' | 'timeChanged' | 'keyframeChanged' | 'scroll';
 
+export type SubscribeFunction = (args: any|ScrollEventArgs) => void;
+export type ScrollEventArgs = {
+    args: any,
+    scrollLeft: number,
+    scrollTop: number,
+    scrollHeight: number,
+    scrollWidth: number
+}
+
 export type Timeline = {
     redraw(): void;
     rescale(): void;
@@ -7,7 +16,8 @@ export type Timeline = {
     setOptions(options: AnimationTimelineOptions);
     getLanes(): AnimationTimelineLane[];
     setLanes(data: AnimationTimelineLane []);
-    on(event: TimelineEvent, callback: Function);
+    on(event: TimelineEvent, callback: SubscribeFunction);
+    onScroll(callback: SubscribeFunction);
     off(event: TimelineEvent, callback: Function);
     getTime():number;
     setTime(value: number);
