@@ -28,16 +28,21 @@ export type Timeline = {
 
 export type AnimationTimelineLane = {
     ms: number,
-    shape: string
-    selected: boolean
+    shape: string,
+    hidden: boolean,
+    selected: boolean,
+    name: string
+    keyframes: AnimationTimelineKeyframe[];
+    data: any;
 }
 
 export type AnimationTimelineKeyframe = {
-    keyframes: AnimationTimelineLane[];
     keyframesLaneSizePx: number,
     selected: boolean,
     keyframesShape: string,
-    hidden: boolean
+    hidden: boolean,
+    ms: number,
+    data: any;
 }
 
 export type AnimationTimelineOptions = {
