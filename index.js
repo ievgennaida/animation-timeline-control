@@ -299,7 +299,7 @@
 		}
 
 		let timeLine = {
-			ms: 0,
+			val: 0,
 		};
 
 		let startPos = null;
@@ -364,7 +364,7 @@
 				const additionalOffset = options.stepPx;
 				newWidth = newWidth || 0;
 				// not less than current timeline position
-				let timelineGlobalPos = msToPx(timeLine.ms, true);
+				let timelineGlobalPos = valToPx(timeLine.val, true);
 				let timelinePos = 0;
 				if (timelineGlobalPos > canvas.clientWidth) {
 					if (scrollMode == 'scrollBySelection') {
@@ -421,13 +421,13 @@
 								draggable = {
 									obj: keyframe,
 									pos: pos,
-									ms: keyframe.ms,
+									val: keyframe.val,
 									type: 'keyframe',
 									distance: dist
 								}
 							} else if (dist <= draggable.distance) {
 								draggable.obj = keyframe;
-								draggable.ms = keyframe.ms;
+								draggable.val = keyframe.val;
 							}
 						}
 					}
@@ -462,17 +462,17 @@
 							type: 'lane'
 						}
 
-						draggable.ms = mousePosToMs(pos.x, true);
+						draggable.val = mousePosToVal(pos.x, true);
 
 						if (foundOverlap && foundOverlap.keyframes) {
 							if (foundOverlap.lane && foundOverlap.lane.keyframes) {
 								draggable.selectedItems = foundOverlap.lane.keyframes;
 							}
 
-							let firstMs = foundOverlap.keyframes.from;
-							let snapped = snapMs(firstMs);
+							let firstVal = foundOverlap.keyframes.from;
+							let snapped = snapVal(firstVal);
 							// get snapped mouse pos based on the first keynode.
-							draggable.ms += firstMs - snapped;
+							draggable.val += firstVal - snapped;
 						}
 
 						return draggable;
@@ -481,7 +481,7 @@
 			}
 
 			// Check whether we can drag timeline.
-			var timeLinePos = msToPx(timeLine.ms);
+			var timeLinePos = valToPx(timeLine.val);
 			let width = Math.max(((options.timelineThicknessPx || 1) * pixelRatio), options.timelineCapWidthPx * pixelRatio || 1) + helperSelector;
 			if (pos.x >= timeLinePos - width / 2 && pos.x <= timeLinePos + width / 2) {
 				return { obj: timeLine, type: "timeline" };
@@ -492,7 +492,7 @@
 			if (event.ctrlKey) {
 				event.preventDefault();
 				if (options.zoomSpeed > 0 && options.zoomSpeed <= 1) {
-					let ms = pxToMS(Math.round(scrollContainer.scrollLeft + canvas.clientWidth / 2), true);
+					let val = pxToVal(Math.round(scrollContainer.scrollLeft + canvas.clientWidth / 2), true);
 
 					let zoom = sign(event.deltaY) * options.zoom * options.zoomSpeed;
 					options.zoom += zoom;
@@ -502,7 +502,7 @@
 					if (options.zoom < options.zoomMin) {
 						options.zoom = options.zoomMin;
 					}
-					let zoomCenter = msToPx(ms, true);
+					let zoomCenter = valToPx(val, true);
 					let newScrollLeft = Math.round(zoomCenter - canvas.clientWidth / 2);
 					if (newScrollLeft <= 0) {
 						newScrollLeft = 0;
@@ -629,8 +629,8 @@
 
 		function setKeyframePos(keyframe, toSet, ignoreEmit) {
 			toSet = Math.floor(toSet);
-			if (keyframe && keyframe.ms != toSet) {
-				keyframe.ms = toSet;
+			if (keyframe && keyframe.val != toSet) {
+				keyframe.val = toSet;
 				if (!ignoreEmit) {
 					emit('keyframeChanged', [keyframe]);
 				}
@@ -660,36 +660,36 @@
 				if (args.buttons == 1 || isTouch) {
 					let isChanged = false;
 					if (drag && drag.obj && !drag.startedWithCtrl) {
-						let convertedMs = mousePosToMs(currentPos.x, true);
+						let convertedVal = mousePosToVal(currentPos.x, true);
 						//redraw();
 						if (drag.type == 'timeline') {
-							isChanged |= setTimeInternal(convertedMs, 'user');
+							isChanged |= setTimeInternal(convertedVal, 'user');
 						} else if ((drag.type == 'keyframe' || drag.type == 'lane') && drag.selectedItems) {
-							let offset = Math.floor(convertedMs - drag.ms);
+							let offset = Math.floor(convertedVal - drag.val);
 							if (Math.abs(offset) > 0) {
 								// dont allow to move less than zero.
 								drag.selectedItems.forEach(function (p) {
 									if (options.snapAllKeyframesOnMove) {
-										let toSet = snapMs(p.ms);
+										let toSet = snapVal(p.val);
 										isChanged |= setKeyframePos(p, toSet);
 									}
-									let newPostion = p.ms + offset;
+									let newPostion = p.val + offset;
 									if (newPostion < 0) {
-										offset = -p.ms;
+										offset = -p.val;
 									}
 								});
 
 								if (Math.abs(offset) > 0) {
 									// dont allow to move less than zero.
 									drag.selectedItems.forEach(function (p) {
-										let toSet = p.ms + offset;
+										let toSet = p.val + offset;
 										isChanged |= setKeyframePos(p, toSet);
 									});
 
 								}
 
 								if (isChanged) {
-									drag.ms += offset;
+									drag.val += offset;
 								}
 							}
 						}
@@ -780,9 +780,9 @@
 
 				if (args.shiftKey) {
 					// change timeline pos:
-					let convertedMs = mousePosToMs(pos.x, true);
+					let convertedVal = mousePosToVal(pos.x, true);
 					// Set current timeline position if it's not a drag or selection rect small or fast click.
-					isChanged |= setTimeInternal(convertedMs, 'user');
+					isChanged |= setTimeInternal(convertedVal, 'user');
 				}
 			}
 			else {
@@ -790,9 +790,9 @@
 				isChanged |= performSelection(false);
 
 				// change timeline pos:
-				let convertedMs = mousePosToMs(pos.x, true);
+				let convertedVal = mousePosToVal(pos.x, true);
 				// Set current timeline position if it's not a drag or selection rect small or fast click.
-				isChanged |= setTimeInternal(convertedMs, 'user');
+				isChanged |= setTimeInternal(convertedVal, 'user');
 			}
 
 			return isChanged;
@@ -904,7 +904,7 @@
 			const pos = getMousePos(canvas, mouseArgs);
 			pos.scrollLeft = scrollContainer.scrollLeft;
 			pos.scrollTop = scrollContainer.scrollTop;
-			pos.ms = pxToMS(pos.x);
+			pos.val = pxToVal(pos.x);
 
 			if (startPos) {
 				if (!selectionRect) {
@@ -1060,7 +1060,7 @@
 		}
 
 		// Find ms from the the px coordinates
-		function pxToMS(coords, globalCoords) {
+		function pxToVal(coords, globalCoords) {
 			if (!globalCoords) {
 				coords -= options.leftMarginPx;
 			}
@@ -1069,17 +1069,17 @@
 		}
 
 		// convert 
-		function msToPx(ms, globalCoords) {
+		function valToPx(ms, globalCoords) {
 			// Respect current scroll container offset. (virtualization)
 			if (!globalCoords) {
 				var x = scrollContainer.scrollLeft;
-				ms -= pxToMS(x);
+				ms -= pxToVal(x);
 			}
 
 			return (ms * options.stepPx / options.zoom);
 		}
 
-		function snapMs(ms) {
+		function snapVal(ms) {
 			// Apply snap to steps if enabled.
 			if (options.snapsPerSeconds && options.snapEnabled) {
 				var stopsPerPixel = (1000 / options.snapsPerSeconds);
@@ -1095,14 +1095,14 @@
 			return ms;
 		}
 
-		function mousePosToMs(x, snapEnabled) {
-			let convertedMs = pxToMS(scrollContainer.scrollLeft + Math.min(x, canvas.clientWidth));
-			convertedMs = Math.round(convertedMs);
+		function mousePosToVal(x, snapEnabled) {
+			let convertedVal = pxToVal(scrollContainer.scrollLeft + Math.min(x, canvas.clientWidth));
+			convertedVal = Math.round(convertedVal);
 			if (snapEnabled) {
-				convertedMs = snapMs(convertedMs);
+				convertedVal = snapVal(convertedVal);
 			}
 
-			return convertedMs;
+			return convertedVal;
 		}
 
 		function findGoodStep(originaStep, divisionCheck) {
@@ -1134,8 +1134,8 @@
 			ctx.save();
 
 			var areaWidth = scrollContainer.scrollWidth - options.leftMarginPx;
-			var from = pxToMS(0);
-			var to = pxToMS(areaWidth);
+			var from = pxToVal(0);
+			var to = pxToVal(areaWidth);
 			var dist = getDistance(from, to);
 			// normalize step.			
 			var stepsCanFit = areaWidth / options.stepPx;
@@ -1151,8 +1151,8 @@
 				smallStep = realSmallStep;
 			}
 			// filter to draw only visible
-			var visibleFrom = pxToMS(scrollContainer.scrollLeft + options.leftMarginPx);
-			var visibleTo = pxToMS(scrollContainer.scrollLeft + scrollContainer.clientWidth);
+			var visibleFrom = pxToVal(scrollContainer.scrollLeft + options.leftMarginPx);
+			var visibleTo = pxToVal(scrollContainer.scrollLeft + scrollContainer.clientWidth);
 			// Find beautiful start point:
 			from = Math.floor(visibleFrom / step) * step;
 
@@ -1161,7 +1161,7 @@
 
 			let lastTextX = null;
 			for (var i = from; i <= to; i += step) {
-				var pos = msToPx(i);
+				var pos = valToPx(i);
 				var sharpPos = getSharp(Math.round(pos));
 				ctx.save();
 				ctx.beginPath();
@@ -1190,7 +1190,7 @@
 				ctx.restore();
 				// Draw small steps
 				for (let x = i + smallStep; x < i + step; x += smallStep) {
-					var nextPos = msToPx(x);
+					var nextPos = valToPx(x);
 					var nextSharpPos = getSharp(Math.floor(nextPos));
 					ctx.beginPath();
 					ctx.lineWidth = pixelRatio;
@@ -1267,9 +1267,11 @@
 
 				// Get min and max ms to draw keyframe lane:
 				lane.keyframes.forEach(function keyframesIterator(keyframe) {
-					if (size && keyframe && !isNaN(keyframe.ms)) {
-						size.from = size.from == null ? keyframe.ms : Math.min(keyframe.ms, size.from);
-						size.to = size.to == null ? keyframe.ms : Math.max(keyframe.ms, size.to);
+					let val = keyframe.val;
+
+					if (size && keyframe && !isNaN(val)) {
+						size.from = size.from == null ? val : Math.min(val, size.from);
+						size.to = size.to == null ? val : Math.max(val, size.to);
 					}
 				});
 
@@ -1280,8 +1282,8 @@
 				// get keyframes lane size
 				if (laneSize && !isNaN(size.from) && !isNaN(size.to)) {
 					// draw keyframes lane.
-					var fromPos = getSharp(msToPx(size.from))
-					var toPos = getSharp(msToPx(size.to));
+					var fromPos = getSharp(valToPx(size.from))
+					var toPos = getSharp(valToPx(size.to));
 					const laneHeight = getKeyframeLaneHeight(lane, laneSize.y);
 
 					size.x = fromPos;
@@ -1293,7 +1295,7 @@
 				}
 			});
 
-			areaRect.w = msToPx(areaRect.to, true);
+			areaRect.w = valToPx(areaRect.to, true);
 
 			return toReturn;
 		}
@@ -1409,8 +1411,8 @@
 				return null;
 			}
 
-			let ms = keyframe.ms;
-			if (isNaN(ms)) {
+			let val = keyframe.val;
+			if (isNaN(val)) {
 				return null;
 			}
 
@@ -1425,8 +1427,8 @@
 			}
 
 			if (size > 0) {
-				if (!isNaN(ms)) {
-					let toReturn = { x: Math.floor(msToPx(ms)), y: Math.floor(y), size: size, laneY: laneY };
+				if (!isNaN(val)) {
+					let toReturn = { x: Math.floor(valToPx(val)), y: Math.floor(y), size: size, laneY: laneY };
 					return toReturn;
 				}
 			}
@@ -1551,7 +1553,7 @@
 			ctx.save();
 			var thickness = options.timelineThicknessPx;
 			ctx.lineWidth = thickness * pixelRatio;
-			var timeLinePos = getSharp(Math.round(msToPx(timeLine.ms)), thickness);
+			var timeLinePos = getSharp(Math.round(valToPx(timeLine.val)), thickness);
 			ctx.strokeStyle = options.timeIndicatorColor;
 			ctx.fillStyle = ctx.strokeStyle;
 			var y = options.timelineMarginTopPx;
@@ -1615,7 +1617,7 @@
 		this.scrollLeft = scrollLeft;
 		function redrawInternal() {
 			// Rescale when timeline is goes more than 
-			if (msToPx(timeLine.ms, true) > scrollContainer.scrollWidth) {
+			if (valToPx(timeLine.val, true) > scrollContainer.scrollWidth) {
 				rescale('play');
 				if (!isPanStarted && (drag && drag.type != 'timeline')) {
 					scrollLeft();
@@ -1644,22 +1646,22 @@
 		}
 
 		/**
-		 * Get current time in ms.
+		 * Get current time in val.
 		 * @public
 		 */
 		this.getTime = function () {
-			return timeLine.ms;
+			return timeLine.val;
 		}
 
-		function setTimeInternal(ms, source) {
-			ms = Math.round(ms);
-			if (ms < 0) {
-				ms = 0;
+		function setTimeInternal(val, source) {
+			val = Math.round(val);
+			if (val < 0) {
+				val = 0;
 			}
 
-			if (timeLine.ms != ms) {
-				timeLine.ms = ms;
-				emit('timeChanged', { ms: ms, source: source });
+			if (timeLine.val != val) {
+				timeLine.val = val;
+				emit('timeChanged', { val: val, source: source });
 				return true;
 			}
 
@@ -1683,13 +1685,13 @@
 		}
 
 
-		this.setTime = function (ms) {
+		this.setTime = function (val) {
 			// Dont allow to change time during drag:
 			if (drag && drag.type == 'timeline') {
 				return false;
 			}
 
-			return setTimeInternal(ms);
+			return setTimeInternal(val);
 		};
 
 		this.select = function (value) {
@@ -1720,8 +1722,8 @@
 		}
 
 		let subscriptions = [];
-		
-		this.onScroll = function(callback) {
+
+		this.onScroll = function (callback) {
 			this.on('scroll', callback);
 		}
 

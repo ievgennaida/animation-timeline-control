@@ -44,12 +44,12 @@
           keyframesShape: "rect",
           keyframes: [
             {
-              ms: 40,
+              val: 40,
               shape: "rect"
             },
             {
               shape: "rect",
-              ms: 3000,
+              val: 3000,
               selected: false
             }
           ]
@@ -60,13 +60,13 @@
           hidden: false,
           keyframes: [
             {
-              ms: 2000
+              val: 2000
             },
             {
-              ms: 2500
+              val: 2500
             },
             {
-              ms: 2600
+              val: 2600
             }
           ]
         },
@@ -74,66 +74,60 @@
           hidden: false,
           keyframes: [
             {
-              ms: 1000
+              val: 1000
             },
             {
-              ms: 1500
+              val: 1500
             },
             {
-              ms: 2000
+              val: 2000
             }
           ]
         },
         {
           keyframes: [
             {
-              ms: 40
+              val: 40
             },
             {
-              ms: 3000
+              val: 3000
             }
           ]
         },
         {
           keyframes: [
             {
-              ms: 100
+              val: 100
             },
             {
-              ms: 3410
+              val: 3410
             },
             {
-              ms: 2000
+              val: 2000
             }
           ]
         },
         {
           keyframes: [
             {
-              ms: 90
+              val: 90
             },
             {
-              ms: 100
+              val: 100
             }
           ]
         },
-        {},
-        {},
-        {},
-        {},
-        {},
-        {}
       ];
 
       let timeline = animationTimeline.initialize(
         {
           id: "timeline"
-        },
-        lanes
-      );
+        });
+
+      timeline.setLanes(lanes);
 
       timeline.on("timeChanged", function(object) {
-        document.getElementById("currentTime").innerHTML = object.ms + "ms";
+        document.getElementById("currentTime").innerHTML = object.val + "ms";
       });
     </script>
   </body>
