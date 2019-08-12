@@ -45,7 +45,7 @@ export type AnimationTimelineKeyframe = {
   keyframesShape?: string;
   hidden?: boolean;
   val: number;
-  draggable?: number;
+  draggable?: boolean;
   data?: any;
 };
 

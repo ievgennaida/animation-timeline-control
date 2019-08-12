@@ -671,7 +671,7 @@
 								drag.selectedItems.forEach(function (p) {
 									if (options.snapAllKeyframesOnMove) {
 										let toSet = snapVal(p.val);
-										isChanged |= setKeyframePos(p, toSet);
+										isChanged |= setKeyframePos(p, toSet, true);
 									}
 									let newPostion = p.val + offset;
 									if (newPostion < 0) {
@@ -683,13 +683,14 @@
 									// dont allow to move less than zero.
 									drag.selectedItems.forEach(function (p) {
 										let toSet = p.val + offset;
-										isChanged |= setKeyframePos(p, toSet);
+										isChanged |= setKeyframePos(p, toSet, true);
 									});
 
 								}
 
 								if (isChanged) {
 									drag.val += offset;
+									emit('keyframeChanged', drag.selectedItems);
 								}
 							}
 						}

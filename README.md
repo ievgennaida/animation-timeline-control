@@ -38,7 +38,7 @@ Despite of the main options each keyframe or lane has own properties that can ov
 | ----------------- | --------------------------------- |
 | draggable         | whether keyframe draggable or not |
 | hidden            | used to hide lane                 |
-| ms                | keyframe position                 |
+| val                | keyframe position                 |
 
 Control is keeping the object references and passed payload is never modified, so you can pass additional metadata to have the related data when events are rised.
 
