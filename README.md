@@ -17,7 +17,13 @@ Features:
 ## Usage
 
 Angular:
-import * as timeline from 'node_modules/animation-timeline-js/index.js';
+import {
+  default as timeline,
+  AnimationTimelineOptions,
+  Timeline,
+  AnimationTimelineLane,
+  ScrollEventArgs
+} from "animation-timeline-js";
 
 timeline.initialize({ id: 'timeline' });
 
