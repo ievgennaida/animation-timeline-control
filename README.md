@@ -2,7 +2,7 @@
 
 [![NPM](https://nodei.co/npm/animation-timeline-js.png)](https://nodei.co/npm/animation-timeline-js/)
 
-Animation timeline is a vanilla JavaScript, no-dependency canvas control to render the animation keyframes.
+Animation timeline is a vanilla JavaScript, no-dependency, canvas component to draw and manipulate animation keyframes.
 
 Features:
 
@@ -18,7 +18,8 @@ Features:
 ## Configuration
 ## Usage
 
-Angular:
+### Angular:
+```
 import {
   default as timeline,
   AnimationTimelineOptions,
@@ -28,6 +29,7 @@ import {
 } from "animation-timeline-js";
 
 timeline.initialize({ id: 'timeline' });
+```
 
 ## Data structure
 
