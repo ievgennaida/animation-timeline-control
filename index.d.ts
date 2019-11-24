@@ -4,6 +4,15 @@ export type TimelineEvent =
   | "keyframeChanged"
   | "scroll";
 
+export type RenderLaneFunction = (ctx: any, laneBounds: any) => void;
+export type RenderKeyframeFunction = (
+  ctx: any,
+  pos: any,
+  bounds: any,
+  keyframe: AnimationTimelineKeyframe,
+  lane: AnimationTimelineLane
+) => void;
+
 export type SubscribeFunction = (args: any | ScrollEventArgs) => void;
 export type ScrollEventArgs = {
   args: any;
@@ -37,6 +46,18 @@ export type AnimationTimelineLane = {
   name?: string;
   keyframes?: AnimationTimelineKeyframe[];
   data?: any;
+  /**
+   * Custom renderer for the lane.
+   */
+  render: null | undefined | RenderLaneFunction;
+  /**
+   * Value indicating whether to draw keyframes or not.
+   */
+  drawKeyframes: boolean;
+  /**
+   * Custom renderer for all keyframes in a lane.
+   */
+  renderKeyframes: null | undefined | RenderKeyframeFunction;
 };
 
 export type AnimationTimelineKeyframe = {
@@ -47,6 +68,10 @@ export type AnimationTimelineKeyframe = {
   val: number;
   draggable?: boolean;
   data?: any;
+  /**
+   * Custom renderer for the keyframe.
+   */
+  render: null | undefined | RenderKeyframeFunction;
 };
 
 export type AnimationTimelineOptions = {
@@ -113,13 +138,16 @@ export type AnimationTimelineOptions = {
   useTimelineAnimationRange: boolean;
   from: number | null;
   to: number | null;
+  /**
+   * Fire intermediate events during the drag process. Default: true
+   */
   fireEventsDuringTheDrag: boolean;
   /**
-   * Whether all keyframes draggable
+   * Whether all keyframes draggable. Can be also configured by a keyframe property draggable
    */
   keyframesDraggable?: boolean;
   /**
-   * Whether keyframes lanes draggable
+   * Whether keyframes lanes draggable.  Can be also configured by a lane property draggable
    */
   keyframesLanesDraggalbe?: boolean;
 };

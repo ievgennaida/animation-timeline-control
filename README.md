@@ -1,5 +1,7 @@
 # js-animation-timeline-control
 
+[![NPM](https://nodei.co/npm/animation-timeline-js.png)](https://nodei.co/npm/animation-timeline-js/)
+
 Animation timeline is a vanilla JavaScript, no-dependency canvas control to render the animation keyframes.
 
 Features:

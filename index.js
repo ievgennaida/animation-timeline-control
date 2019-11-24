@@ -89,9 +89,9 @@
 		from: null,
 		to: null,
 		fireEventsDuringTheDrag: true,
-		// Whether keyframes draggable
+		// Whether keyframes draggable. Can be also configured by a keyframe property draggable 
 		keyframesDraggable: true,
-		// Whether keyframes lanes draggable
+		// Whether keyframes lanes draggable. Can be also configured by a lane property draggable 
 		keyframesLanesDraggalbe: true
 	}
 
@@ -1247,6 +1247,8 @@
 					y: laneY,
 					w: canvas.clientWidth,
 					h: options.laneHeightPx,
+					clientWidth: canvas.clientWidth,
+					clientHeight: canvas.clientHeight,
 					lane: lane,
 					index: index,
 					keyframes: {
@@ -1314,6 +1316,7 @@
 					if (!laneSize) {
 						return;
 					}
+
 					// Draw lane 
 					if (laneSize.lane.selected && options.selectedLaneColor) {
 						ctx.fillStyle = options.selectedLaneColor;
@@ -1334,15 +1337,19 @@
 						}
 					}
 
-					let keyframesSize = laneSize.keyframes;
-					if (!keyframesSize || keyframesSize.count <= 1 || !options.keyframesLaneColor) {
-						return;
-					}
+					if (laneSize.lane.render) {
+						laneSize.lane.render(ctx, laneSize);
+					} else {
+						let keyframesSize = laneSize.keyframes;
+						if (!keyframesSize || keyframesSize.count <= 1 || !options.keyframesLaneColor) {
+							return;
+						}
 
-					bounds = keyframesSize.bounds;
-					if (bounds) {
-						ctx.fillStyle = options.keyframesLaneColor;
-						ctx.fillRect(bounds.x, bounds.y, bounds.w, bounds.h);
+						bounds = keyframesSize.bounds;
+						if (bounds) {
+							ctx.fillStyle = options.keyframesLaneColor;
+							ctx.fillRect(bounds.x, bounds.y, bounds.w, bounds.h);
+						}
 					}
 				});
 
@@ -1445,71 +1452,84 @@
 			iterateKeyframes(function seletionIterator(keyframe, keyframeIndex, lane, laneIndex) {
 				var pos = getKeyframePosition(keyframe, laneIndex);
 				if (pos) {
+					if (lane.drawKeyframes !== undefined) {
+						if (!lane.drawKeyframes) {
+							return;
+						}
+					}
+
 					let x = getSharp(pos.x);
 					let y = pos.y;
 					let size = pos.size;
-
 					let bounds = cutBounds({ x: x - size / 2, y: y - size / 2, w: size, h: size });
-					if (!bounds) {
-						return;
-					}
+					const customRenderFunction = lane.renderKeyframes || keyframe.render;
+					if (customRenderFunction) {
+						ctx.save();
+						customRenderFunction(ctx, pos, bounds, keyframe, lane);
+						ctx.restore();
+					} else {
+						if (!bounds) {
+							return;
+						}
 
-					ctx.save();
-					// use clip only  when we are in the collision! Clip is slow!
-					if (bounds && bounds.overlapY) {
-						ctx.beginPath();
-						ctx.rect(0, options.headerHeight || 0, canvas.clientWidth, canvas.clientWidth);
-						ctx.clip();
-					}
+						ctx.save();
 
-					let border = options.keyframeBorderThicknessPx || 0;
-					let shape = keyframe.shape || lane.keyframesShape || options.keyframeShape;
-					let keyframeColor = keyframe.color || options.keyframeColor;
-					if (keyframe.selected) {
-						keyframeColor = keyframe.selectedColor || options.selectedKeyframeColor;
-					}
+						// Performance FIX: use clip only  when we are in the collision! Clip is slow! 
+						// Other keyframes should be hidden by bounds check.
+						if (bounds && bounds.overlapY) {
+							ctx.beginPath();
+							ctx.rect(0, options.headerHeight || 0, canvas.clientWidth, canvas.clientWidth);
+							ctx.clip();
+						}
 
-					if (shape == "rhomb") {
-						ctx.beginPath();
-						ctx.translate(x, y);
-						ctx.rotate(45 * Math.PI / 180);
-						if (border > 0 && options.keyframeBorderColor) {
-							ctx.fillStyle = options.keyframeBorderColor;
-							ctx.rect(-size / 2, -size / 2, size, size);
+						let border = options.keyframeBorderThicknessPx || 0;
+						let shape = keyframe.shape || lane.keyframesShape || options.keyframeShape;
+						let keyframeColor = keyframe.color || options.keyframeColor;
+						if (keyframe.selected) {
+							keyframeColor = keyframe.selectedColor || options.selectedKeyframeColor;
+						}
+
+						if (shape == "rhomb") {
+							ctx.beginPath();
+							ctx.translate(x, y);
+							ctx.rotate(45 * Math.PI / 180);
+							if (border > 0 && options.keyframeBorderColor) {
+								ctx.fillStyle = options.keyframeBorderColor;
+								ctx.rect(-size / 2, -size / 2, size, size);
+								ctx.fill();
+							}
+
+							ctx.fillStyle = keyframeColor;
+							// draw main keyframe data with offset.
+							ctx.translate(border, border);
+							ctx.rect(-size / 2, -size / 2, size - border * 2, size - border * 2);
 							ctx.fill();
-							//	ctx.beginPath();
-						}
+						} else if (shape == "circle") {
+							ctx.beginPath();
+							if (border > 0 && options.keyframeBorderColor) {
+								ctx.fillStyle = options.keyframeBorderColor;
+								ctx.arc(x, y, size, 0, 2 * Math.PI);
+							}
+							ctx.fillStyle = keyframeColor;
+							ctx.arc(x, y, size - border, 0, 2 * Math.PI);
+							ctx.fill();
+						} else if (shape == "rect") {
+							ctx.beginPath();
+							y = y - size / 2;
+							x = x - size / 2;
+							if (border > 0 && options.keyframeBorderColor) {
+								ctx.fillStyle = options.keyframeBorderColor;
+								ctx.rect(x, y, size, size);
+								ctx.fill();
+							}
 
-						ctx.fillStyle = keyframeColor;
-						// draw main keyframe data with offset.
-						ctx.translate(border, border);
-						ctx.rect(-size / 2, -size / 2, size - border * 2, size - border * 2);
-						ctx.fill();
-					} else if (shape == "circle") {
-						ctx.beginPath();
-						if (border > 0 && options.keyframeBorderColor) {
-							ctx.fillStyle = options.keyframeBorderColor;
-							ctx.arc(x, y, size, 0, 2 * Math.PI);
-						}
-						ctx.fillStyle = keyframeColor;
-						ctx.arc(x, y, size - border, 0, 2 * Math.PI);
-						ctx.fill();
-					} else if (shape == "rect") {
-						ctx.beginPath();
-						y = y - size / 2;
-						x = x - size / 2;
-						if (border > 0 && options.keyframeBorderColor) {
-							ctx.fillStyle = options.keyframeBorderColor;
-							ctx.rect(x, y, size, size);
+							ctx.fillStyle = keyframeColor;
+							ctx.rect(x + border, y + border, size - border, size - border);
 							ctx.fill();
 						}
 
-						ctx.fillStyle = keyframeColor;
-						ctx.rect(x + border, y + border, size - border, size - border);
-						ctx.fill();
+						ctx.restore();
 					}
-
-					ctx.restore();
 				}
 			});
 
@@ -1617,7 +1637,7 @@
 
 		this.scrollLeft = scrollLeft;
 		function redrawInternal() {
-			// Rescale when timeline is goes more than 
+			// Rescale when out of the bounds.
 			if (valToPx(timeLine.val, true) > scrollContainer.scrollWidth) {
 				rescale('play');
 				if (!isPanStarted && (drag && drag.type != 'timeline')) {
@@ -1767,6 +1787,9 @@
 		this.rescale = rescale;
 		this.redraw = redraw;
 		this.emit = emit;
+
+		// expose private methods:
+		this.__cutBounds = cutBounds;
 
 		/**
 		 * Remove the event from the subscriptions list.
