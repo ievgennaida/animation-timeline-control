@@ -46,9 +46,12 @@ Despite of the main options each keyframe or lane has own properties that can ov
 | ----------------- | --------------------------------- |
 | draggable         | whether keyframe draggable or not |
 | hidden            | used to hide lane                 |
-| val                | keyframe position                 |
+| val               | keyframe position                 |
 
-Control is keeping the object references and passed payload is never modified, so you can pass additional metadata to have the related data when events are rised.
+See the full list in the typescript definitions.
+
+Module is keeping the passed options as the read-only references.
+You can pass additional metadata for the keyframes to identify them when events are emitted.
 
 ### Initialization
 ```
