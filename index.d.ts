@@ -51,15 +51,15 @@ export type AnimationTimelineLane = {
   /**
    * Custom renderer for the lane.
    */
-  render: null | undefined | RenderLaneFunction;
+  render?: null | undefined | RenderLaneFunction;
   /**
    * Value indicating whether to draw keyframes or not.
    */
-  drawKeyframes: boolean;
+  drawKeyframes?: boolean;
   /**
    * Custom renderer for all keyframes in a lane.
    */
-  renderKeyframes: null | undefined | RenderKeyframeFunction;
+  renderKeyframes?: RenderKeyframeFunction;
 };
 
 export type AnimationTimelineKeyframe = {
@@ -73,7 +73,7 @@ export type AnimationTimelineKeyframe = {
   /**
    * Custom renderer for the keyframe.
    */
-  render: null | undefined | RenderKeyframeFunction;
+  render?: RenderKeyframeFunction;
 };
 
 export type AnimationTimelineOptions = {
