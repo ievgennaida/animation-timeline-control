@@ -1317,13 +1317,17 @@
 						return;
 					}
 
+					const selectedColor = laneSize.lane.selectedColor || options.selectedLaneColor;
+					const laneColor = laneSize.lane.color || options.laneColor;
+
 					// Draw lane 
-					if (laneSize.lane.selected && options.selectedLaneColor) {
-						ctx.fillStyle = options.selectedLaneColor;
-					} else if (laneSize.index % 2 != 0 && options.useAlternateLaneColor) {
-						ctx.fillStyle = options.alternateLaneColor || options.laneColor;
+					if (laneSize.lane.selected && selectedColor) {
+						ctx.fillStyle = selectedColor;
+					} else if (laneSize.index % 2 != 0 && options.useAlternateLaneColor && !laneSize.lane.color) {
+						// Use alternate when lane color not set
+						ctx.fillStyle = options.alternateLaneColor || laneColor;
 					} else {
-						ctx.fillStyle = options.laneColor;
+						ctx.fillStyle = laneColor;
 					}
 
 					//ctx.fillRect(lanesSizes.areaRect.x, lanesSizes.areaRect.y, lanesSizes.areaRect.w, lanesSizes.areaRect.h);

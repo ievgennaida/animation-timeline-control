@@ -44,6 +44,8 @@ export type AnimationTimelineLane = {
   hidden?: boolean;
   selected?: boolean;
   name?: string;
+  color: string;
+  selectedColor: string;
   keyframes?: AnimationTimelineKeyframe[];
   data?: any;
   /**
