@@ -716,14 +716,23 @@
 				let draggable = getDraggable(currentPos);
 				setCursor('default');
 				if (draggable) {
+					let cursor = null;
+					if (draggable.obj) {
+						cursor = draggable.obj.cursor;
+					}
+
 					if (draggable.type == 'lane') {
-						setCursor("ew-resize");
+						cursor = cursor || "ew-resize";
 					}
 					else if (draggable.type == 'keyframe') {
-						setCursor("pointer");
+						cursor = cursor || "pointer";
 					}
 					else {
-						setCursor("ew-resize");
+						cursor = cursor || "ew-resize";
+					}
+
+					if (cursor) {
+						setCursor(cursor);
 					}
 				}
 			}
@@ -1344,14 +1353,16 @@
 					if (laneSize.lane.render) {
 						laneSize.lane.render(ctx, laneSize);
 					} else {
+						const keyframeLaneColor = laneSize.lane.keyframesLaneColor || options.keyframesLaneColor;
+
 						let keyframesSize = laneSize.keyframes;
-						if (!keyframesSize || keyframesSize.count <= 1 || !options.keyframesLaneColor) {
+						if (!keyframesSize || keyframesSize.count <= 1 || !keyframeLaneColor) {
 							return;
 						}
 
 						bounds = keyframesSize.bounds;
 						if (bounds) {
-							ctx.fillStyle = options.keyframesLaneColor;
+							ctx.fillStyle = keyframeLaneColor;
 							ctx.fillRect(bounds.x, bounds.y, bounds.w, bounds.h);
 						}
 					}

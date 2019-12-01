@@ -43,9 +43,18 @@ export type AnimationTimelineLane = {
   shape?: string;
   hidden?: boolean;
   selected?: boolean;
+  cursor?: string;
   name?: string;
-  color: string;
-  selectedColor: string;
+  color?: string;
+  selectedColor?: string;
+  /**
+   * Keyframes bounds stripe size. When null default config is used.
+   */
+  keyframesLaneSizePx?: number;
+  /**
+   * Keyframes bounds stripe color. When null default config is used.
+   */
+  keyframesLaneColor?: string;
   keyframes?: AnimationTimelineKeyframe[];
   data?: any;
   /**
@@ -63,10 +72,10 @@ export type AnimationTimelineLane = {
 };
 
 export type AnimationTimelineKeyframe = {
-  keyframesLaneSizePx?: number;
   selected?: boolean;
   keyframesShape?: string;
   hidden?: boolean;
+  cursor?: string;
   val: number;
   draggable?: boolean;
   data?: any;
