@@ -627,13 +627,10 @@
 			onMouseMove(args);
 		}, false);
 
-		function setKeyframePos(keyframe, toSet, ignoreEmit) {
+		function setKeyframePos(keyframe, toSet) {
 			toSet = Math.floor(toSet);
 			if (keyframe && keyframe.val != toSet) {
 				keyframe.val = toSet;
-				if (!ignoreEmit) {
-					emit('keyframeChanged', [keyframe]);
-				}
 				return true;
 			}
 
@@ -671,8 +668,9 @@
 								drag.selectedItems.forEach(function (p) {
 									if (options.snapAllKeyframesOnMove) {
 										let toSet = snapVal(p.val);
-										isChanged |= setKeyframePos(p, toSet, true);
+										isChanged |= setKeyframePos(p, toSet);
 									}
+
 									let newPostion = p.val + offset;
 									if (newPostion < 0) {
 										offset = -p.val;
@@ -683,14 +681,20 @@
 									// dont allow to move less than zero.
 									drag.selectedItems.forEach(function (p) {
 										let toSet = p.val + offset;
-										isChanged |= setKeyframePos(p, toSet, true);
+										isChanged |= setKeyframePos(p, toSet);
 									});
 
 								}
 
 								if (isChanged) {
+									if(!drag.changed){
+										emit('dragStarted', { keyframes: drag.selectedItems });
+									}
+									
+									drag.changed = true;
+
 									drag.val += offset;
-									emit('keyframeChanged', drag.selectedItems);
+									emit('drag', { keyframes: drag.selectedItems });
 								}
 							}
 						}
@@ -934,6 +938,10 @@
 		}
 
 		function cleanUpSelection() {
+			if (drag && drag.changed) {
+				emit('dragFinished', { keyframes: drag.selectedItems });
+			}
+
 			startPos = null;
 			drag = null;
 			selectionRect = null;
@@ -1727,7 +1735,7 @@
 				return false;
 			}
 
-			return setTimeInternal(val);
+			return setTimeInternal(val, "setTime");
 		};
 
 		this.select = function (value) {

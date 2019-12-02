@@ -39,6 +39,7 @@
   <br />
 
   <div id="currentTime"></div>
+  <div id="currentKeyframes"></div>
   <script type="text/javascript">
     let lanes = [
       {
@@ -70,7 +71,7 @@
           ctx.fillStyle = 'gray';
           let size = 15;
           ctx.beginPath();
-          ctx.rect(pos.x, pos.y - size/2, 5, size);
+          ctx.rect(pos.x, pos.y - size / 2, 5, size);
           ctx.fill();
         },
         selected: false,
@@ -147,6 +148,15 @@
     timeline.on("timeChanged", function (object) {
       document.getElementById("currentTime").innerHTML = object.val + "ms";
     });
+
+    let dragHandler = function (object, eventName) {
+      document.getElementById("currentKeyframes").innerHTML = `Keyframe value: ${object.keyframes[0].val}. Selected (${object.keyframes.length}). ${eventName}`;
+    }
+
+    timeline.on("dragStarted", function (obj) { dragHandler(obj, 'dragStarted') });
+    timeline.on("drag", function (obj) { dragHandler(obj, 'drag') });
+    timeline.on("dragFinished", function (obj) { dragHandler(obj, 'dragFinished') });
+
   </script>
 </body>
 
