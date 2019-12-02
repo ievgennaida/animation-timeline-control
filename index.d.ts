@@ -1,7 +1,9 @@
 export type TimelineEvent =
   | "selected"
   | "timeChanged"
-  | "keyframeChanged"
+  | "dragStarted"
+  | "drag"
+  | "dragFinished"
   | "scroll";
 
 export type RenderLaneFunction = (ctx: any, laneBounds: any) => void;
