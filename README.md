@@ -41,8 +41,7 @@ Despite of the main options each keyframe or lane has own properties that can ov
 | ------------- | ----------------------------- |
 | timeChanged   			| time changed:  { val: val, source: "user" or "setTime" } |
 | selected     				| keyframe selected: keyframe   							|
-| scroll     				| On scroll. Can be used to sycnronize outline list with the current timeline container 
-{  args: args, scrollLeft, scrollTop, scrollHeight, scrollWidth }|
+| scroll     				| On scroll. Can be used to sycnronize outline list with the current timeline container {  args: args, scrollLeft, scrollTop, scrollHeight, scrollWidth } |
 | dragStarted               | emited on drag started: { keyframes: [] }            |
 | drag                      | emited when dragging: { keyframes: [] }        	|
 | dragFinished              | emited when drag finished: { keyframes: [] }      	|
