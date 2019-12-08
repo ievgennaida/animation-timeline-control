@@ -16,6 +16,10 @@ Features:
 
 ![gif preview](demo/timeline-demo.gif)
 
+
+
+![gif preview](demo/zoom-scale.gif)
+
 ## Configuration
 
 ## Usage
