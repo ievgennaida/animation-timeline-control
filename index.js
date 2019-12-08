@@ -483,7 +483,12 @@
 			if (event.ctrlKey) {
 				event.preventDefault();
 				if (options.zoomSpeed > 0 && options.zoomSpeed <= 1) {
-					let val = pxToVal(Math.round(scrollContainer.scrollLeft + canvas.clientWidth / 2), true);
+					let mousePos = getMousePos(canvas, event);
+					let x = mousePos.x;
+					if (x <= 0)
+						x = 0;
+					val = pxToVal(scrollContainer.scrollLeft + x, false);
+					let diff = canvas.clientWidth / x;
 
 					let zoom = sign(event.deltaY) * options.zoom * options.zoomSpeed;
 					options.zoom += zoom;
@@ -494,7 +499,7 @@
 						options.zoom = options.zoomMin;
 					}
 					let zoomCenter = valToPx(val, true);
-					let newScrollLeft = Math.round(zoomCenter - canvas.clientWidth / 2);
+					let newScrollLeft = Math.round(zoomCenter - canvas.clientWidth / diff);
 					if (newScrollLeft <= 0) {
 						newScrollLeft = 0;
 					}
@@ -678,10 +683,10 @@
 								}
 
 								if (isChanged) {
-									if(!drag.changed){
+									if (!drag.changed) {
 										emit('dragStarted', { keyframes: drag.selectedItems });
 									}
-									
+
 									drag.changed = true;
 
 									drag.val += offset;
