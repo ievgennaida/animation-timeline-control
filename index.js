@@ -24,7 +24,6 @@
 	}
 
 	let defaultOptions = {
-		keysPerSecond: 60,
 		snapsPerSeconds: 5, // from 1 to 60
 		snapEnabled: true,
 		extraRightMargin: 50,
@@ -71,8 +70,6 @@
 		// Size of the lane in pixels. Can be 'auto' than size is based on the 'laneHeightPx'. can be overriden by lane 'lane.keyframesLaneSizePx'. 
 		keyframesLaneSizePx: 'auto',
 		headerHeight: 30,
-		lineHeight: 1,
-		autoWidth: true,
 		ticksFont: "11px sans-serif",
 		zoom: 1000,
 		// Zoom speed. Use percent of the screen to set zoom speed. 
@@ -84,11 +81,6 @@
 		// scroll by drag speed (from 0 to 1)
 		scrollByDragSpeed: 0.12,
 		id: '',
-		// Use from and to range to limit the animation payload: 
-		useTimelineAnimationRange: false,
-		from: null,
-		to: null,
-		fireEventsDuringTheDrag: true,
 		// Whether keyframes draggable. Can be also configured by a keyframe property draggable 
 		keyframesDraggable: true,
 		// Whether keyframes lanes draggable. Can be also configured by a lane property draggable 
@@ -241,10 +233,9 @@
 
 		var scrollContainer = document.getElementById(options.id);
 		if (!scrollContainer) {
-			console.log('options.scrollId is mandatory!');
+			console.log('options.id is mandatory!');
 			return;
 		}
-
 
 		scrollContainer.style.overflow = "scroll";
 		scrollContainer.style.position = "relative";
@@ -314,9 +305,9 @@
 		let isPanStarted = false;
 		let isPanMode = false;
 		var ctx = canvas.getContext("2d");
-		ctx.drawLine = function (x1, y1, x2, y2) {
-			this.moveTo(x1, y1);
-			this.lineTo(x2, y2);
+		drawLine = function (ctx, x1, y1, x2, y2) {
+			ctx.moveTo(x1, y1);
+			ctx.lineTo(x2, y2);
 		}
 
 		var pixelRatio = getPixelRatio(ctx);
@@ -1186,7 +1177,7 @@
 				ctx.setLineDash([4]);
 				ctx.lineWidth = pixelRatio;
 				ctx.strokeStyle = options.tickColor;
-				ctx.drawLine(sharpPos, (options.headerHeight || 0) / 2, sharpPos, canvas.clientHeight);
+				drawLine(ctx, sharpPos, (options.headerHeight || 0) / 2, sharpPos, canvas.clientHeight);
 				ctx.stroke();
 
 				ctx.fillStyle = options.labelsColor;
@@ -1213,7 +1204,7 @@
 					ctx.beginPath();
 					ctx.lineWidth = pixelRatio;
 					ctx.strokeStyle = options.tickColor;
-					ctx.drawLine(nextSharpPos, (options.headerHeight || 0) / 1.3, nextSharpPos, options.headerHeight);
+					drawLine(ctx, nextSharpPos, (options.headerHeight || 0) / 1.3, nextSharpPos, options.headerHeight);
 					ctx.stroke();
 				}
 			}
@@ -1602,7 +1593,7 @@
 			ctx.fillStyle = ctx.strokeStyle;
 			var y = options.timelineMarginTopPx;
 			ctx.beginPath();
-			ctx.drawLine(timeLinePos, y, timeLinePos, canvas.clientHeight);
+			drawLine(ctx, timeLinePos, y, timeLinePos, canvas.clientHeight);
 			ctx.stroke();
 
 			if (options.timelineCapWidthPx && options.timelineCapHeightPx) {
@@ -1711,23 +1702,6 @@
 
 			return true;
 		}
-
-		/**
-		 * Navigate to the next frame (with the snapping if enabled)
-		 * @public
-		 */
-		this.nextFrame = function () {
-
-		}
-
-		/**
-		 * Navigate to the prev frame (with the snapping if enabled)
-		 * @public
-		 */
-		this.prevFrame = function () {
-
-		}
-
 
 		this.setTime = function (val) {
 			// Dont allow to change time during drag:
