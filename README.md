@@ -16,10 +16,35 @@ Features:
 ![gif preview](demo/timeline-demo.gif)
 
 ## Configuration
+
 ## Usage
 
-### Angular:
+### HTML
+
+```JavaScript
+   let lanes = [
+      {
+        keyframes: [
+          {
+            val: 40,
+          },
+          {
+            val: 3000
+          }
+        ]
+      }];
+
+    let timeline = animationTimeline.initialize(
+      {
+        id: "timeline"
+      });
+
+    timeline.setLanes(lanes);
 ```
+
+### Angular
+
+```TypeScript
 import {
   default as timeline,
   AnimationTimelineOptions,
@@ -31,21 +56,35 @@ import {
 timeline.initialize({ id: 'timeline' });
 ```
 
+### Draw the outline tree
+
+Use and syncronize scroll events to draw outline list/tree at the right side of the animation panel.
+
+- Each element of the list should have the same height.
+- Hide the vertical scroll of the outline container.
+
+```JavaScript
+  timeline.on("scroll", function (args) {
+	outlineScrollContainer.scrollTop = args.scrollTop;
+    outlineContent.height = args.scrollHeight;
+  });
+
+```
+
 ## Data structure
 
 ### Events
 
 Despite of the main options each keyframe or lane has own properties that can override main configuration:
 
-| Event name    | description                   |
-| ------------- | ----------------------------- |
-| timeChanged   			| time changed:  { val: val, source: "user" or "setTime" } |
-| selected     				| keyframe selected: keyframe   							|
-| scroll     				| On scroll. Can be used to sycnronize outline list with the current timeline container {  args: args, scrollLeft, scrollTop, scrollHeight, scrollWidth } |
-| dragStarted               | emited on drag started: { keyframes: [] }            |
-| drag                      | emited when dragging: { keyframes: [] }        	|
-| dragFinished              | emited when drag finished: { keyframes: [] }      	|
-
+| Event name   | description                                                                                                                                            |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| timeChanged  | time changed: { val: val, source: "user" or "setTime" }                                                                                                |
+| selected     | keyframe selected: keyframe                                                                                                                            |
+| scroll       | On scroll. Can be used to sycnronize outline list with the current timeline container { args: args, scrollLeft, scrollTop, scrollHeight, scrollWidth } |
+| dragStarted  | emited on drag started: { keyframes: [] }                                                                                                              |
+| drag         | emited when dragging: { keyframes: [] }                                                                                                                |
+| dragFinished | emited when drag finished: { keyframes: [] }                                                                                                           |
 
 ### Description
 
@@ -70,7 +109,8 @@ Module is keeping the passed options as the read-only references.
 You can pass additional metadata for the keyframes to identify them when events are emitted.
 
 ### Initialization
-```
+
+```JavaScript
 	let defaultOptions = {
 		keysPerSecond: 60,
 		snapsPerSeconds: 5, // from 1 to 60
@@ -84,7 +124,7 @@ You can pass additional metadata for the keyframes to identify them when events 
 		timelineCapHeightPx: 10,
 		timelineTriangleCap: false,
 		timelineRectCap: true,
-		// approximate step in px for 1 second 
+		// approximate step in px for 1 second
 		stepPx: 120,
 		stepSmallPx: 30,
 		smallSteps: 50,
@@ -100,7 +140,7 @@ You can pass additional metadata for the keyframes to identify them when events 
 		tickColor: '#D5D5D5',
 		selectionColor: 'White',
 		// Lanes colors
-		laneColor: '#252526', 
+		laneColor: '#252526',
 		alternateLaneColor: 'black',
 		keyframesLaneColor: '#094771',
 		// keyframe color. can be overrided by a keyframe 'color' property.
@@ -116,14 +156,14 @@ You can pass additional metadata for the keyframes to identify them when events 
 		keyframeSizePx: 'auto',
 		laneHeightPx: 24,
 		laneMarginPx: 2,
-		// Size of the lane in pixels. Can be 'auto' than size is based on the 'laneHeightPx'. can be overriden by lane 'lane.keyframesLaneSizePx'. 
+		// Size of the lane in pixels. Can be 'auto' than size is based on the 'laneHeightPx'. can be overriden by lane 'lane.keyframesLaneSizePx'.
 		keyframesLaneSizePx: 'auto',
 		headerHeight: 30,
 		lineHeight: 1,
 		autoWidth: true,
 		ticksFont: "11px sans-serif",
 		zoom: 1000,
-		// Zoom speed. Use percent of the screen to set zoom speed. 
+		// Zoom speed. Use percent of the screen to set zoom speed.
 		zoomSpeed: 0.1,
 		// Max zoom
 		zoomMin: 80,
@@ -132,7 +172,7 @@ You can pass additional metadata for the keyframes to identify them when events 
 		// scroll by drag speed (from 0 to 1)
 		scrollByDragSpeed: 0.12,
 		id: '',
-		// Use from and to range to limit the animation payload: 
+		// Use from and to range to limit the animation payload:
 		useTimelineAnimationRange: false,
 		from: null,
 		to: null,
