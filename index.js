@@ -26,8 +26,9 @@
 	let defaultOptions = {
 		snapsPerSeconds: 5, // from 1 to 60
 		snapEnabled: true,
-		extraRightMargin: 50,
-		// Snap all the keyframes when multiple is moved.
+		/**
+		 *  Snap all selected keyframes as bundle during the drag.
+		 */
 		snapAllKeyframesOnMove: false,
 		timelineThicknessPx: 2,
 		timelineMarginTopPx: 15,

@@ -88,11 +88,11 @@ export type AnimationTimelineKeyframe = {
 };
 
 export type AnimationTimelineOptions = {
-  keysPerSecond: number;
   snapsPerSeconds: number;
   snapEnabled: boolean;
-  extraRightMargin: number;
-  // Snap all the keyframes when multiple is moved.
+  /**
+   *  Snap all selected keyframes as bundle during the drag.
+   */
   snapAllKeyframesOnMove: boolean;
   timelineThicknessPx: number;
   timelineMarginTopPx: number;
@@ -134,7 +134,6 @@ export type AnimationTimelineOptions = {
   // Size of the lane in pixels. Can be 'auto' than size is based on the 'laneHeightPx'. can be overriden by lane 'lane.keyframesLaneSizePx'.
   keyframesLaneSizePx: string | number;
   headerHeight: number;
-  lineHeight: number;
   autoWidth: boolean;
   ticksFont: string;
   zoom: number;
@@ -149,12 +148,6 @@ export type AnimationTimelineOptions = {
   id: string;
   // Use from and to range to limit the animation payload:
   useTimelineAnimationRange: boolean;
-  from: number | null;
-  to: number | null;
-  /**
-   * Fire intermediate events during the drag process. Default: true
-   */
-  fireEventsDuringTheDrag: boolean;
   /**
    * Whether all keyframes draggable. Can be also configured by a keyframe property draggable
    */

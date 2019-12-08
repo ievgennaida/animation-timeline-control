@@ -111,13 +111,15 @@ You can pass additional metadata for the keyframes to identify them when events 
 
 ### Initialization
 
+Default options:
+
 ```JavaScript
-	let defaultOptions = {
-		keysPerSecond: 60,
+let defaultOptions = {
 		snapsPerSeconds: 5, // from 1 to 60
 		snapEnabled: true,
-		extraRightMargin: 50,
-		// Snap all the keyframes when multiple is moved.
+		/**
+		 *  Snap all selected keyframes as bundle during the drag.
+		 */
 		snapAllKeyframesOnMove: false,
 		timelineThicknessPx: 2,
 		timelineMarginTopPx: 15,
@@ -125,7 +127,7 @@ You can pass additional metadata for the keyframes to identify them when events 
 		timelineCapHeightPx: 10,
 		timelineTriangleCap: false,
 		timelineRectCap: true,
-		// approximate step in px for 1 second
+		// approximate step in px for 1 second 
 		stepPx: 120,
 		stepSmallPx: 30,
 		smallSteps: 50,
@@ -141,8 +143,8 @@ You can pass additional metadata for the keyframes to identify them when events 
 		tickColor: '#D5D5D5',
 		selectionColor: 'White',
 		// Lanes colors
-		laneColor: '#252526',
-		alternateLaneColor: 'black',
+		laneColor: '#252526', //'#252526',37373D
+		alternateLaneColor: 'black',//333333
 		keyframesLaneColor: '#094771',
 		// keyframe color. can be overrided by a keyframe 'color' property.
 		keyframeColor: 'red',
@@ -157,14 +159,12 @@ You can pass additional metadata for the keyframes to identify them when events 
 		keyframeSizePx: 'auto',
 		laneHeightPx: 24,
 		laneMarginPx: 2,
-		// Size of the lane in pixels. Can be 'auto' than size is based on the 'laneHeightPx'. can be overriden by lane 'lane.keyframesLaneSizePx'.
+		// Size of the lane in pixels. Can be 'auto' than size is based on the 'laneHeightPx'. can be overriden by lane 'lane.keyframesLaneSizePx'. 
 		keyframesLaneSizePx: 'auto',
 		headerHeight: 30,
-		lineHeight: 1,
-		autoWidth: true,
 		ticksFont: "11px sans-serif",
 		zoom: 1000,
-		// Zoom speed. Use percent of the screen to set zoom speed.
+		// Zoom speed. Use percent of the screen to set zoom speed. 
 		zoomSpeed: 0.1,
 		// Max zoom
 		zoomMin: 80,
@@ -173,14 +173,9 @@ You can pass additional metadata for the keyframes to identify them when events 
 		// scroll by drag speed (from 0 to 1)
 		scrollByDragSpeed: 0.12,
 		id: '',
-		// Use from and to range to limit the animation payload:
-		useTimelineAnimationRange: false,
-		from: null,
-		to: null,
-		fireEventsDuringTheDrag: true,
-		// Whether keyframes draggable
+		// Whether keyframes draggable. Can be also configured by a keyframe property draggable 
 		keyframesDraggable: true,
-		// Whether keyframes lanes draggable
+		// Whether keyframes lanes draggable. Can be also configured by a lane property draggable 
 		keyframesLanesDraggalbe: true
 	}
 ```
