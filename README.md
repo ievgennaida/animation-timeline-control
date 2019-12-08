@@ -12,6 +12,7 @@ Features:
 - Drag mutliple keyframes, drag keyframe ranges.
 - Area virtualization - only small displayed area is rendered.
 - Native browser scrollbars are used.
+- Horizontal scale with the automatically adjusted ticks.
 
 ![gif preview](demo/timeline-demo.gif)
 
