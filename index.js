@@ -85,7 +85,7 @@
 		// Whether keyframes draggable. Can be also configured by a keyframe property draggable 
 		keyframesDraggable: true,
 		// Whether keyframes lanes draggable. Can be also configured by a lane property draggable 
-		keyframesLanesDraggalbe: true
+		keyframesLanesDraggable: true
 	}
 
 	let denominators = [1, 2, 5, 10];
@@ -431,7 +431,7 @@
 
 				// Return keyframes lanes:
 				const lanesSizes = getLanesSizes();
-				if (options.keyframesLanesDraggalbe && lanesSizes) {
+				if (options.keyframesLanesDraggable && lanesSizes) {
 					let foundOverlap = lanesSizes.sizes.find(function lanesSizesIterator(laneSize) {
 						if (!laneSize || !laneSize.keyframes) {
 							return false;
