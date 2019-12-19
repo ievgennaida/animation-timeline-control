@@ -180,7 +180,7 @@ let defaultOptions = {
 		// Whether keyframes draggable. Can be also configured by a keyframe property draggable 
 		keyframesDraggable: true,
 		// Whether keyframes lanes draggable. Can be also configured by a lane property draggable 
-		keyframesLanesDraggalbe: true
+		keyframesLanesDraggable: true
 	}
 ```
 

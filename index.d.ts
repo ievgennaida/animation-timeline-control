@@ -155,7 +155,7 @@ export type AnimationTimelineOptions = {
   /**
    * Whether keyframes lanes draggable.  Can be also configured by a lane property draggable
    */
-  keyframesLanesDraggalbe?: boolean;
+  keyframesLanesDraggable?: boolean;
 };
 
 type AnimationTimeline = {
