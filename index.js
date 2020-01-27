@@ -273,7 +273,7 @@
 		scrollContainer.appendChild(size);
 		scrollContainer.appendChild(canvas);
 
-		setOptions(options);
+		mergeOptions(options);
 
 		if (options.backgroundColor) {
 			scrollContainer.style.background = options.backgroundColor;
@@ -282,9 +282,10 @@
 		if (!options.stepPx) {
 			options.stepPx = defaultOptions.stepPx;
 		}
-		if (!options.snapsPerSeconds) {
-			if (options.snapsPerSeconds < 0) {
-				options.snapsPerSeconds = 0;
+		
+		if (options.snapsPerSeconds) {
+			if (options.snapsPerSeconds < 1) {
+				options.snapsPerSeconds = 1;
 			} else if (options.snapsPerSeconds > 60) {
 				options.snapsPerSeconds = 60;
 			}
@@ -306,7 +307,7 @@
 		let isPanStarted = false;
 		let isPanMode = false;
 		var ctx = canvas.getContext("2d");
-		drawLine = function (ctx, x1, y1, x2, y2) {
+		var drawLine = function (ctx, x1, y1, x2, y2) {
 			ctx.moveTo(x1, y1);
 			ctx.lineTo(x2, y2);
 		}
@@ -1727,16 +1728,16 @@
 			return options;
 		}
 
-		function setOptions(options) {
-			options = options || {};
+		function mergeOptions(toSet) {
+			toSet = toSet || {};
 			// Merge options with the default:
 			for (var key in defaultOptions) {
-				if (Object.prototype.hasOwnProperty.call(defaultOptions, key) && options[key] == undefined) {
-					options[key] = defaultOptions[key];
+				if (Object.prototype.hasOwnProperty.call(defaultOptions, key) && toSet[key] == undefined) {
+					toSet[key] = defaultOptions[key];
 				}
 			}
 
-			return options;
+			return toSet;
 		}
 
 		this.redraw = redraw;
@@ -1771,8 +1772,8 @@
 		}
 
 		this.getOptions = getOptions;
-		this.setOptions = function (options) {
-			setOptions(options);
+		this.setOptions = function (toSet) {
+			options = mergeOptions(toSet);
 			rescale();
 			redraw();
 		}
