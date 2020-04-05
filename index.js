@@ -262,7 +262,7 @@
 			'touch-action: none;' +
 			'position: relative;' +
 			'padding: inherit';
-		
+
 		scrollContainer.style.cssText = 'overflow: scroll;' +
 			'position: absolute;' +
 			'width:  100%;' +
@@ -346,16 +346,19 @@
 		function rescale(scrollMode, newWidth, newHeight) {
 			var width = scrollContainer.clientWidth * pixelRatio;
 			var height = scrollContainer.clientHeight * pixelRatio;
-			if (width != ctx.canvas.width) {
+			if (Math.floor(width) != Math.floor(ctx.canvas.width)) {
 				ctx.canvas.width = width;
 			}
 
-			if (height != ctx.canvas.height) {
+			if (Math.floor(height) != Math.floor(ctx.canvas.height)) {
 				ctx.canvas.height = height;
 			}
 
 			ctx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
 			var sizes = getLanesSizes();
+			if (sizes.areaRect.w == 0) {
+				console.log('rescale n' + sizes.areaRect.w);
+			}
 			if (sizes && sizes.areaRect) {
 				var additionalOffset = options.stepPx;
 				newWidth = newWidth || 0;
@@ -369,10 +372,10 @@
 						timelinePos = Math.floor(timelineGlobalPos + canvas.clientWidth / 1.5);
 					}
 				}
-
+				var keyframeW = sizes.areaRect.w + options.leftMarginPx + additionalOffset;
 				newWidth = Math.max(newWidth,
 					// keyframes size
-					sizes.areaRect.w + options.leftMarginPx + additionalOffset,
+					keyframeW,
 					// not less than current scroll position
 					scrollContainer.scrollLeft + canvas.clientWidth,
 					timelinePos,
@@ -380,7 +383,7 @@
 				newWidth = Math.floor(newWidth) + "px";
 
 				if (newWidth != scrollContent.style.minWidth) {
-					scrollContent.style.minWidth = newWidth
+					scrollContent.style.minWidth = newWidth;
 				}
 
 				newHeight = Math.max(Math.floor(sizes.areaRect.h + options.laneHeightPx * 4),
@@ -389,7 +392,7 @@
 
 				var h = newHeight + "px";
 				if (scrollContent.style.minHeight != h) {
-					scrollContent.style.minHeight = h
+					scrollContent.style.minHeight = h;
 				}
 			}
 		}
@@ -484,7 +487,7 @@
 			}
 		}
 
-		scrollContainer.addEventListener("wheel", function (event) {
+		container.addEventListener("wheel", function (event) {
 			if (event.ctrlKey) {
 				event.preventDefault();
 				if (options.zoomSpeed > 0 && options.zoomSpeed <= 1) {
@@ -517,6 +520,9 @@
 
 					redraw();
 				}
+			} else {
+				scrollContainer.scrollTop += event.deltaY;
+				event.preventDefault();
 			}
 		});
 
@@ -1307,7 +1313,6 @@
 			});
 
 			areaRect.w = valToPx(areaRect.to, true);
-
 			return toReturn;
 		}
 
@@ -1776,7 +1781,11 @@
 		}
 
 		function setLanes(data) {
-			lanes = data;
+			if (lanes != data) {
+				lanes = data;
+				rescale();
+				redraw();
+			}
 		}
 
 		this.setLanes = setLanes;
