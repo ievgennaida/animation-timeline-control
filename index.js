@@ -1746,6 +1746,31 @@
 
 		var subscriptions = [];
 
+		this.setScrollLeft = function (value) {
+			if (scrollContainer) {
+				scrollContainer.scrollLeft = value;
+			}
+		}
+		this.setScrollTop = function (value) {
+			if (scrollContainer) {
+				scrollContainer.scrollTop = value;
+			}
+		}
+		this.getScrollLeft = function () {
+			if (scrollContainer) {
+				return scrollContainer.scrollLeft;
+			}
+
+			return 0;
+		};
+		this.getScrollTop = function () {
+			if (scrollContainer) {
+				return scrollContainer.scrollTop;
+			}
+
+			return 0;
+		};
+
 		this.onScroll = function (callback) {
 			this.on('scroll', callback);
 		}
