@@ -23,7 +23,7 @@
 		else if (document.selection) { document.selection.empty(); }
 	}
 
-	let defaultOptions = {
+	var defaultOptions = {
 		snapsPerSeconds: 5, // from 1 to 60
 		snapEnabled: true,
 		/**
@@ -88,11 +88,11 @@
 		keyframesLanesDraggalbe: true
 	}
 
-	let denominators = [1, 2, 5, 10];
-	let clickDetectionMs = 120;
+	var denominators = [1, 2, 5, 10];
+	var clickDetectionMs = 120;
 
 	function getPixelRatio(ctx) {
-		const dpr = window.devicePixelRatio || 1,
+		var dpr = window.devicePixelRatio || 1,
 			bsr = ctx.webkitBackingStorePixelRatio ||
 				ctx.mozBackingStorePixelRatio ||
 				ctx.msBackingStorePixelRatio ||
@@ -122,7 +122,7 @@
 		var minutes = parseInt(seconds / 60); // 60 seconds in 1 minute
 		// 4- Keep only seconds not extracted to minutes:
 		seconds = (seconds % 60);
-		let str = '';
+		var str = '';
 		if (year) {
 			str += year + ":";
 		}
@@ -229,19 +229,17 @@
 		}
 	}
 
-	let instance = {};
+	var instance = {};
 	instance.initialize = function (options, lanes) {
 
-		var scrollContainer = document.getElementById(options.id);
-		if (!scrollContainer) {
+		var container = document.getElementById(options.id);
+		if (!container) {
 			console.log('options.id is mandatory!');
 			return;
 		}
 
-		scrollContainer.style.overflow = "scroll";
-		scrollContainer.style.position = "relative";
-		scrollContainer.style.touchAction = "none";
-		var size = document.createElement("div");
+		var scrollContainer = document.createElement("div");
+		var scrollContent = document.createElement("div");
 		var canvas = document.createElement("canvas");
 
 		if (!canvas || !canvas.getContext) {
@@ -249,6 +247,7 @@
 			return null;
 		}
 
+		container.style.position = "relative";
 		// Generate size container:
 		canvas.style.cssText = 'image-rendering: -moz-crisp-edges;' +
 			'image-rendering: -webkit-crisp-edges;' +
@@ -261,18 +260,22 @@
 			'-o-user-select: none;' +
 			'user-select: none;' +
 			'touch-action: none;' +
+			'position: relative;' +
+			'padding: inherit';
+		
+		scrollContainer.style.cssText = 'overflow: scroll;' +
 			'position: absolute;' +
-			'top: 0;' +
-			'left: 0;' +
-			'width: 100%;' +
-			'padding: inherit' +
-			'height: 100%;';
+			'width:  100%;' +
+			'height:  100%;';
 
-		size.style.width = size.style.height = canvas.style.width = canvas.style.height = "100%";
+		scrollContent.style.width = scrollContent.style.height = "100%";
 		// add the text node to the newly created div
-		scrollContainer.appendChild(size);
-		scrollContainer.appendChild(canvas);
+		scrollContainer.appendChild(scrollContent);
+		container.appendChild(scrollContainer);
+		var scrollBarWidth = scrollContainer.offsetWidth - scrollContent.clientWidth;
+		canvas.style.width = canvas.style.height = "calc(100% -" + (scrollBarWidth || 17) + "px)";
 
+		container.appendChild(canvas);
 		mergeOptions(options);
 
 		if (options.backgroundColor) {
@@ -282,7 +285,7 @@
 		if (!options.stepPx) {
 			options.stepPx = defaultOptions.stepPx;
 		}
-		
+
 		if (options.snapsPerSeconds) {
 			if (options.snapsPerSeconds < 1) {
 				options.snapsPerSeconds = 1;
@@ -291,21 +294,21 @@
 			}
 		}
 
-		let timeLine = {
+		var timeLine = {
 			val: 0,
 		};
 
-		let startPos = null;
-		let currentPos = null;
-		let selectionRect = null;
-		let drag = null;
-		let clickDurarion = null;
-		let scrollingTimeRef = null;
-		let selectedKeyframes = [];
-		let intervalReference = null;
-		let lastCallDate = null;
-		let isPanStarted = false;
-		let isPanMode = false;
+		var startPos = null;
+		var currentPos = null;
+		var selectionRect = null;
+		var drag = null;
+		var clickDurarion = null;
+		var scrollingTimeRef = null;
+		var selectedKeyframes = [];
+		var intervalReference = null;
+		var lastCallDate = null;
+		var isPanStarted = false;
+		var isPanMode = false;
 		var ctx = canvas.getContext("2d");
 		var drawLine = function (ctx, x1, y1, x2, y2) {
 			ctx.moveTo(x1, y1);
@@ -315,10 +318,10 @@
 		var pixelRatio = getPixelRatio(ctx);
 		function getMousePos(canvas, evt) {
 
-			let radius = 1;
+			var radius = 1;
 			if (evt.changedTouches && evt.changedTouches.length > 0) {
 				// TODO: implement better support of this:
-				let touch = evt.changedTouches[0];
+				var touch = evt.changedTouches[0];
 				if (isNaN(evt.clientX)) {
 					evt.clientX = touch.clientX;
 					evt.clientY = touch.clientY;
@@ -330,8 +333,8 @@
 				scaleX = canvas.width / pixelRatio / rect.width, // relationship bitmap vs. element for X
 				scaleY = canvas.height / pixelRatio / rect.height; // relationship bitmap vs. element for Y
 
-			let x = (evt.clientX - rect.left) * scaleX;
-			let y = (evt.clientY - rect.top) * scaleY;
+			var x = (evt.clientX - rect.left) * scaleX;
+			var y = (evt.clientY - rect.top) * scaleY;
 			// scale mouse coordinates after they have been adjusted to be relative to element
 			return {
 				x: x,
@@ -352,13 +355,13 @@
 			}
 
 			ctx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
-			let sizes = getLanesSizes();
+			var sizes = getLanesSizes();
 			if (sizes && sizes.areaRect) {
-				const additionalOffset = options.stepPx;
+				var additionalOffset = options.stepPx;
 				newWidth = newWidth || 0;
 				// not less than current timeline position
-				let timelineGlobalPos = valToPx(timeLine.val, true);
-				let timelinePos = 0;
+				var timelineGlobalPos = valToPx(timeLine.val, true);
+				var timelinePos = 0;
 				if (timelineGlobalPos > canvas.clientWidth) {
 					if (scrollMode == 'scrollBySelection') {
 						timelinePos = Math.floor(timelineGlobalPos + canvas.clientWidth + (options.stepPx || 0));
@@ -376,17 +379,17 @@
 				);
 				newWidth = Math.floor(newWidth) + "px";
 
-				if (newWidth != size.style.minWidth) {
-					size.style.minWidth = newWidth
+				if (newWidth != scrollContent.style.minWidth) {
+					scrollContent.style.minWidth = newWidth
 				}
 
 				newHeight = Math.max(Math.floor(sizes.areaRect.h + options.laneHeightPx * 4),
 					scrollContainer.scrollTop + canvas.clientHeight - 1,
 					Math.round(newHeight || 0));
 
-				let h = newHeight + "px";
-				if (size.style.minHeight != h) {
-					size.style.minHeight = h
+				var h = newHeight + "px";
+				if (scrollContent.style.minHeight != h) {
+					scrollContent.style.minHeight = h
 				}
 			}
 		}
@@ -396,8 +399,8 @@
 		function getDraggable(pos) {
 
 			// few extra pixels to select items:
-			let helperSelector = Math.max(2, pos.radius);
-			let draggable = null;
+			var helperSelector = Math.max(2, pos.radius);
+			var draggable = null;
 			if (pos.y >= options.headerHeight && options.keyframesDraggable) {
 				iterateKeyframes(function (keyframe, keyframeIndex, lane, laneIndex) {
 					if (keyframe.draggable !== undefined) {
@@ -406,9 +409,9 @@
 						}
 					}
 
-					let keyframePos = getKeyframePosition(keyframe, laneIndex);
+					var keyframePos = getKeyframePosition(keyframe, laneIndex);
 					if (keyframePos) {
-						const dist = getDistance(keyframePos.x, keyframePos.y, pos.x, pos.y);
+						var dist = getDistance(keyframePos.x, keyframePos.y, pos.x, pos.y);
 						if (dist <= keyframePos.size + helperSelector) {
 							if (!draggable) {
 								draggable = {
@@ -431,9 +434,9 @@
 				}
 
 				// Return keyframes lanes:
-				const lanesSizes = getLanesSizes();
+				var lanesSizes = getLanesSizes();
 				if (options.keyframesLanesDraggalbe && lanesSizes) {
-					let foundOverlap = lanesSizes.sizes.find(function lanesSizesIterator(laneSize) {
+					var foundOverlap = lanesSizes.sizes.find(function lanesSizesIterator(laneSize) {
 						if (!laneSize || !laneSize.keyframes) {
 							return false;
 						}
@@ -444,7 +447,7 @@
 							}
 						}
 
-						let laneOverlaped = isOverlap(pos.x, pos.y, laneSize.keyframes);
+						var laneOverlaped = isOverlap(pos.x, pos.y, laneSize.keyframes);
 						return laneOverlaped;
 					});
 
@@ -462,8 +465,8 @@
 								draggable.selectedItems = foundOverlap.lane.keyframes;
 							}
 
-							let firstVal = foundOverlap.keyframes.from;
-							let snapped = snapVal(firstVal);
+							var firstVal = foundOverlap.keyframes.from;
+							var snapped = snapVal(firstVal);
 							// get snapped mouse pos based on the first keynode.
 							draggable.val += firstVal - snapped;
 						}
@@ -475,7 +478,7 @@
 
 			// Check whether we can drag timeline.
 			var timeLinePos = valToPx(timeLine.val);
-			let width = Math.max(((options.timelineThicknessPx || 1) * pixelRatio), options.timelineCapWidthPx * pixelRatio || 1) + helperSelector;
+			var width = Math.max(((options.timelineThicknessPx || 1) * pixelRatio), options.timelineCapWidthPx * pixelRatio || 1) + helperSelector;
 			if (pos.x >= timeLinePos - width / 2 && pos.x <= timeLinePos + width / 2) {
 				return { obj: timeLine, type: "timeline" };
 			}
@@ -485,14 +488,14 @@
 			if (event.ctrlKey) {
 				event.preventDefault();
 				if (options.zoomSpeed > 0 && options.zoomSpeed <= 1) {
-					let mousePos = getMousePos(canvas, event);
-					let x = mousePos.x;
+					var mousePos = getMousePos(canvas, event);
+					var x = mousePos.x;
 					if (x <= 0)
 						x = 0;
-					let val = pxToVal(scrollContainer.scrollLeft + x, false);
-					let diff = canvas.clientWidth / x;
+					var val = pxToVal(scrollContainer.scrollLeft + x, false);
+					var diff = canvas.clientWidth / x;
 
-					let zoom = sign(event.deltaY) * options.zoom * options.zoomSpeed;
+					var zoom = sign(event.deltaY) * options.zoom * options.zoomSpeed;
 					options.zoom += zoom;
 					if (options.zoom > options.zoomMax) {
 						options.zoom = options.zoomMax;
@@ -500,8 +503,8 @@
 					if (options.zoom < options.zoomMin) {
 						options.zoom = options.zoomMin;
 					}
-					let zoomCenter = valToPx(val, true);
-					let newScrollLeft = Math.round(zoomCenter - canvas.clientWidth / diff);
+					var zoomCenter = valToPx(val, true);
+					var newScrollLeft = Math.round(zoomCenter - canvas.clientWidth / diff);
 					if (newScrollLeft <= 0) {
 						newScrollLeft = 0;
 					}
@@ -519,16 +522,6 @@
 
 		if (scrollContainer) {
 			scrollContainer.addEventListener('scroll', function (args) {
-				var left = scrollContainer.scrollLeft + 'px';
-				if (canvas.style.left !== left) {
-					canvas.style.left = left;
-				}
-
-				var top = scrollContainer.scrollTop + 'px';
-				if (top !== canvas.style.top) {
-					canvas.style.top = top;
-				}
-
 				if (scrollingTimeRef) {
 					clearTimeout(scrollingTimeRef);
 					scrollingTimeRef = null;
@@ -549,7 +542,7 @@
 				}, 500);
 
 				redraw();
-				let scrollData = {
+				var scrollData = {
 					args: args,
 					scrollLeft: scrollContainer.scrollLeft,
 					scrollTop: scrollContainer.scrollTop,
@@ -614,7 +607,7 @@
 		}
 
 
-		let lastUseArgs = null;
+		var lastUseArgs = null;
 		window.addEventListener('mousemove', function (args) {
 			lastUseArgs = args;
 			onMouseMove(args);
@@ -644,7 +637,7 @@
 				return;
 			}
 
-			let isTouch = (args.changedTouches && args.changedTouches.length > 0);
+			var isTouch = (args.changedTouches && args.changedTouches.length > 0);
 
 			currentPos = trackMousePos(canvas, args);
 			if (!isPanStarted && selectionRect && checkClickDurationOver()) {
@@ -653,23 +646,23 @@
 
 			if (startPos) {
 				if (args.buttons == 1 || isTouch) {
-					let isChanged = false;
+					var isChanged = false;
 					if (drag && drag.obj && !drag.startedWithCtrl) {
-						let convertedVal = mousePosToVal(currentPos.x, true);
+						var convertedVal = mousePosToVal(currentPos.x, true);
 						//redraw();
 						if (drag.type == 'timeline') {
 							isChanged |= setTimeInternal(convertedVal, 'user');
 						} else if ((drag.type == 'keyframe' || drag.type == 'lane') && drag.selectedItems) {
-							let offset = Math.floor(convertedVal - drag.val);
+							var offset = Math.floor(convertedVal - drag.val);
 							if (Math.abs(offset) > 0) {
 								// dont allow to move less than zero.
 								drag.selectedItems.forEach(function (p) {
 									if (options.snapAllKeyframesOnMove) {
-										let toSet = snapVal(p.val);
+										var toSet = snapVal(p.val);
 										isChanged |= setKeyframePos(p, toSet);
 									}
 
-									let newPostion = p.val + offset;
+									var newPostion = p.val + offset;
 									if (newPostion < 0) {
 										offset = -p.val;
 									}
@@ -678,7 +671,7 @@
 								if (Math.abs(offset) > 0) {
 									// dont allow to move less than zero.
 									drag.selectedItems.forEach(function (p) {
-										let toSet = p.val + offset;
+										var toSet = p.val + offset;
 										isChanged |= setKeyframePos(p, toSet);
 									});
 
@@ -715,10 +708,10 @@
 					redraw();
 				}
 			} else if (!isTouch) {
-				let draggable = getDraggable(currentPos);
+				var draggable = getDraggable(currentPos);
 				setCursor('default');
 				if (draggable) {
-					let cursor = null;
+					var cursor = null;
 					if (draggable.obj) {
 						cursor = draggable.obj.cursor;
 					}
@@ -761,7 +754,7 @@
 		function onMouseUp(args) {
 			if (startPos) {
 				//window.releaseCapture();
-				let pos = trackMousePos(canvas, args);
+				var pos = trackMousePos(canvas, args);
 
 				// Click detection.
 				if (selectionRect && selectionRect.h <= 2 && selectionRect.w <= 2 ||
@@ -779,9 +772,9 @@
 		}
 
 		function performClick(pos, args, drag) {
-			let isChanged = false;
+			var isChanged = false;
 			if (drag && drag.type == 'keyframe') {
-				let isSelected = true;
+				var isSelected = true;
 				if ((drag.startedWithCtrl && args.ctrlKey) || (drag.startedWithShiftKey && args.shiftKey)) {
 					if (args.ctrlKey) {
 						isSelected = !drag.obj.selected
@@ -792,7 +785,7 @@
 
 				if (args.shiftKey) {
 					// change timeline pos:
-					let convertedVal = mousePosToVal(pos.x, true);
+					var convertedVal = mousePosToVal(pos.x, true);
 					// Set current timeline position if it's not a drag or selection rect small or fast click.
 					isChanged |= setTimeInternal(convertedVal, 'user');
 				}
@@ -802,7 +795,7 @@
 				isChanged |= performSelection(false);
 
 				// change timeline pos:
-				let convertedVal = mousePosToVal(pos.x, true);
+				var convertedVal = mousePosToVal(pos.x, true);
 				// Set current timeline position if it's not a drag or selection rect small or fast click.
 				isChanged |= setTimeInternal(convertedVal, 'user');
 			}
@@ -844,7 +837,7 @@
 				isSelected = true;
 			}
 
-			let deselectionMode = false;
+			var deselectionMode = false;
 			if (!mode) {
 				mode = 'all';
 			}
@@ -858,10 +851,10 @@
 			}
 
 			selectedKeyframes.length = 0;
-			let isChanged = true;
+			var isChanged = true;
 
 			iterateKeyframes(function selectionIterator(keyframe, keyframeIndex, lane, laneIndex) {
-				let keyframePos = getKeyframePosition(keyframe, laneIndex);
+				var keyframePos = getKeyframePosition(keyframe, laneIndex);
 				if (keyframePos) {
 					if ((mode == 'keyframe' && selector == keyframe) ||
 						(mode == 'rectangle' && selector && isOverlap(keyframePos.x, keyframePos.y, selector))) {
@@ -895,7 +888,7 @@
 				return false;
 			}
 
-			let nextLane = false;
+			var nextLane = false;
 			lanes.filter(p => p && !p.hidden).forEach(function lanesIterator(lane, index) {
 				if (!lane || !lane.keyframes || !lane.keyframes.forEach || lane.keyframes.length <= 0) {
 					return;
@@ -913,7 +906,7 @@
 		}
 
 		function trackMousePos(canvas, mouseArgs) {
-			const pos = getMousePos(canvas, mouseArgs);
+			var pos = getMousePos(canvas, mouseArgs);
 			pos.scrollLeft = scrollContainer.scrollLeft;
 			pos.scrollTop = scrollContainer.scrollTop;
 			pos.val = pxToVal(pos.x);
@@ -924,8 +917,8 @@
 				}
 
 				// get the pos with the virtualization:
-				let x = Math.floor(startPos.x + (startPos.scrollLeft - pos.scrollLeft));
-				let y = Math.floor(startPos.y + (startPos.scrollTop - pos.scrollTop));
+				var x = Math.floor(startPos.x + (startPos.scrollLeft - pos.scrollLeft));
+				var y = Math.floor(startPos.y + (startPos.scrollTop - pos.scrollTop));
 				selectionRect.x = Math.min(x, pos.x);
 				selectionRect.y = Math.min(y, pos.y);
 				selectionRect.w = Math.max(x, pos.x) - selectionRect.x;
@@ -997,9 +990,9 @@
 				return;
 			}
 
-			let newTop = Math.round(start.y - pos.y);
-			let offsetX = Math.round(start.x - pos.x);
-			let newLeft = start.scrollLeft + offsetX;
+			var newTop = Math.round(start.y - pos.y);
+			var offsetX = Math.round(start.x - pos.x);
+			var newLeft = start.scrollLeft + offsetX;
 
 			if (offsetX > 0) {
 				rescale(newLeft + canvas.clientWidth);
@@ -1016,17 +1009,17 @@
 		}
 
 		function scrollBySelectionOutOfBounds(pos) {
-			let x = pos.x;
-			let y = pos.y;
-			let isChanged = false;
-			let speedX = 0;
-			let speedY = 0;
-			let isLeft = x <= 0;
-			let isRight = x >= canvas.clientWidth;
-			let isTop = y <= 0;
-			let isBottom = y >= canvas.clientHeight;
-			let newWidth = null;
-			let newHeight = null;
+			var x = pos.x;
+			var y = pos.y;
+			var isChanged = false;
+			var speedX = 0;
+			var speedY = 0;
+			var isLeft = x <= 0;
+			var isRight = x >= canvas.clientWidth;
+			var isTop = y <= 0;
+			var isBottom = y >= canvas.clientHeight;
+			var newWidth = null;
+			var newHeight = null;
 			if (isLeft || isRight || isTop || isBottom) {
 				// Auto move init
 				startAutoScrollInterval();
@@ -1035,7 +1028,7 @@
 					return;
 				}
 
-				let scrollSpeedMultiplier = (isNaN(options.scrollByDragSpeed) ? 1 : options.scrollByDragSpeed);
+				var scrollSpeedMultiplier = (isNaN(options.scrollByDragSpeed) ? 1 : options.scrollByDragSpeed);
 				if (isLeft) {
 					// Get normilized speed.
 					speedX = -getDistance(x, 0) * scrollSpeedMultiplier
@@ -1099,7 +1092,7 @@
 			// Apply snap to steps if enabled.
 			if (options.snapsPerSeconds && options.snapEnabled) {
 				var stopsPerPixel = (1000 / options.snapsPerSeconds);
-				let step = ms / stopsPerPixel;
+				var step = ms / stopsPerPixel;
 				var stepsFit = Math.round(step);
 				ms = Math.round(stepsFit * stopsPerPixel);
 			}
@@ -1112,7 +1105,7 @@
 		}
 
 		function mousePosToVal(x, snapEnabled) {
-			let convertedVal = pxToVal(scrollContainer.scrollLeft + Math.min(x, canvas.clientWidth));
+			var convertedVal = pxToVal(scrollContainer.scrollLeft + Math.min(x, canvas.clientWidth));
 			convertedVal = Math.round(convertedVal);
 			if (snapEnabled) {
 				convertedVal = snapVal(convertedVal);
@@ -1155,10 +1148,10 @@
 			var dist = getDistance(from, to);
 			// normalize step.			
 			var stepsCanFit = areaWidth / options.stepPx;
-			let realStep = dist / stepsCanFit;
+			var realStep = dist / stepsCanFit;
 			// Find the nearest 'beautiful' step for a gauge. This step should be devided by 1/2/5!
-			//let step = realStep;
-			let step = findGoodStep(realStep);
+			//var step = realStep;
+			var step = findGoodStep(realStep);
 			var goodStepDistancePx = areaWidth / (dist / step);
 			var smallStepsCanFit = goodStepDistancePx / options.stepSmallPx;
 			var realSmallStep = step / smallStepsCanFit;
@@ -1175,7 +1168,7 @@
 			// Find a beautiful end point:
 			to = Math.ceil(visibleTo / step) * step + step;
 
-			let lastTextX = null;
+			var lastTextX = null;
 			for (var i = from; i <= to; i += step) {
 				var pos = valToPx(i);
 				var sharpPos = getSharp(Math.round(pos));
@@ -1195,7 +1188,7 @@
 				var text = msToHMS(i)
 				var textSize = ctx.measureText(text);
 
-				let textX = sharpPos - textSize.width / 2;
+				var textX = sharpPos - textSize.width / 2;
 				// skip text render if there is no space for it.
 				if (isNaN(lastTextX) || lastTextX <= textX) {
 
@@ -1205,7 +1198,7 @@
 
 				ctx.restore();
 				// Draw small steps
-				for (let x = i + smallStep; x < i + step; x += smallStep) {
+				for (var x = i + smallStep; x < i + step; x += smallStep) {
 					var nextPos = valToPx(x);
 					var nextSharpPos = getSharp(Math.floor(nextPos));
 					ctx.beginPath();
@@ -1220,7 +1213,7 @@
 		}
 
 		function getLanesSizes() {
-			let toReturn = {
+			var toReturn = {
 				sizes: [],
 				areaRect: {
 					x: 0,
@@ -1241,7 +1234,7 @@
 				return toReturn;
 			}
 
-			const areaRect = toReturn.areaRect;
+			var areaRect = toReturn.areaRect;
 
 			lanes.filter(p => p && !p.hidden).forEach(function lanesIterator(lane, index) {
 				if (!lane) {
@@ -1277,7 +1270,7 @@
 				laneSize.bounds = cutBounds({ x: laneSize.x, y: laneSize.y, w: laneSize.w, h: laneSize.h });
 
 				toReturn.sizes.push(laneSize);
-				let size = laneSize.keyframes;
+				var size = laneSize.keyframes;
 
 				if (!lane.keyframes || !lane.keyframes.forEach || lane.keyframes.length <= 0) {
 					return;
@@ -1285,7 +1278,7 @@
 
 				// Get min and max ms to draw keyframe lane:
 				lane.keyframes.forEach(function keyframesIterator(keyframe) {
-					let val = keyframe.val;
+					var val = keyframe.val;
 
 					if (size && keyframe && !isNaN(val)) {
 						size.from = size.from == null ? val : Math.min(val, size.from);
@@ -1302,7 +1295,7 @@
 					// draw keyframes lane.
 					var fromPos = getSharp(valToPx(size.from))
 					var toPos = getSharp(valToPx(size.to));
-					const laneHeight = getKeyframeLaneHeight(lane, laneSize.y);
+					var laneHeight = getKeyframeLaneHeight(lane, laneSize.y);
 
 					size.x = fromPos;
 					size.y = laneHeight.y;
@@ -1323,7 +1316,7 @@
 				return false;
 			}
 
-			let lanesSizes = getLanesSizes();
+			var lanesSizes = getLanesSizes();
 			if (lanesSizes && lanesSizes.sizes) {
 				ctx.save();
 				lanesSizes.sizes.forEach(function lanesSizesIterator(laneSize) {
@@ -1332,8 +1325,8 @@
 						return;
 					}
 
-					const selectedColor = laneSize.lane.selectedColor || options.selectedLaneColor;
-					const laneColor = laneSize.lane.color || options.laneColor;
+					var selectedColor = laneSize.lane.selectedColor || options.selectedLaneColor;
+					var laneColor = laneSize.lane.color || options.laneColor;
 
 					// Draw lane 
 					if (laneSize.lane.selected && selectedColor) {
@@ -1347,7 +1340,7 @@
 
 					//ctx.fillRect(lanesSizes.areaRect.x, lanesSizes.areaRect.y, lanesSizes.areaRect.w, lanesSizes.areaRect.h);
 					// Note: bounds used instead of the clip while clip is slow!
-					let bounds = laneSize.bounds;
+					var bounds = laneSize.bounds;
 					if (bounds) {
 						ctx.fillRect(bounds.x, bounds.y, bounds.w, bounds.h);
 						if (laneSize.lane.name) {
@@ -1359,9 +1352,9 @@
 					if (laneSize.lane.render) {
 						laneSize.lane.render(ctx, laneSize);
 					} else {
-						const keyframeLaneColor = laneSize.lane.keyframesLaneColor || options.keyframesLaneColor;
+						var keyframeLaneColor = laneSize.lane.keyframesLaneColor || options.keyframesLaneColor;
 
-						let keyframesSize = laneSize.keyframes;
+						var keyframesSize = laneSize.keyframes;
 						if (!keyframesSize || keyframesSize.count <= 1 || !keyframeLaneColor) {
 							return;
 						}
@@ -1382,13 +1375,13 @@
 
 		function cutBounds(rect) {
 			// default bounds: minX, maxX, minY, maxY
-			let minX = 0, maxX = canvas.clientWidth, minY = options.headerHeight || 0, maxY = canvas.clientWidth;
+			var minX = 0, maxX = canvas.clientWidth, minY = options.headerHeight || 0, maxY = canvas.clientWidth;
 
 			if (isRectOverlap(rect, { x: minX, y: minY, w: getDistance(minX, maxX), h: getDistance(minY, maxY) })) {
-				let y = Math.max(rect.y, minY);
-				let x = Math.max(rect.x, minX);
-				let offsetW = rect.x - x;
-				let offsetH = rect.y - y;
+				var y = Math.max(rect.y, minY);
+				var x = Math.max(rect.x, minX);
+				var offsetW = rect.x - x;
+				var offsetH = rect.y - y;
 				rect.h += offsetH;
 				rect.w += offsetW;
 				rect.x = x;
@@ -1409,14 +1402,14 @@
 		}
 
 		function getLanePosition(laneIndex) {
-			let laneY = options.headerHeight +
+			var laneY = options.headerHeight +
 				laneIndex * options.laneHeightPx +
 				laneIndex * options.laneMarginPx;
 			return laneY;
 		}
 
 		function getKeyframeLaneHeight(lane, laneY) {
-			let keyframeLaneHeight = lane.keyframesLaneSizePx || options.keyframesLaneSizePx;
+			var keyframeLaneHeight = lane.keyframesLaneSizePx || options.keyframesLaneSizePx;
 			if (isNaN(keyframeLaneHeight)) {
 				keyframeLaneHeight = 'auto';
 			}
@@ -1429,8 +1422,8 @@
 				keyframeLaneHeight = options.laneHeightPx;
 			}
 
-			const margin = options.laneHeightPx - keyframeLaneHeight;
-			const y = laneY + Math.floor(margin / 2);
+			var margin = options.laneHeightPx - keyframeLaneHeight;
+			var y = laneY + Math.floor(margin / 2);
 			return { y: y, h: keyframeLaneHeight };
 		}
 
@@ -1440,24 +1433,24 @@
 				return null;
 			}
 
-			let val = keyframe.val;
+			var val = keyframe.val;
 			if (isNaN(val)) {
 				return null;
 			}
 
 			// get center of the lane:
-			let laneY = getLanePosition(laneIndex);
+			var laneY = getLanePosition(laneIndex);
 			var y = laneY + options.laneHeightPx / 2 - scrollContainer.scrollTop;
 
 			// keyframe size:
-			let size = options.keyframeSizePx || keyframe.size;
+			var size = options.keyframeSizePx || keyframe.size;
 			if (size == 'auto') {
 				size = options.laneHeightPx / 3;
 			}
 
 			if (size > 0) {
 				if (!isNaN(val)) {
-					let toReturn = { x: Math.floor(valToPx(val)), y: Math.floor(y), size: size, laneY: laneY };
+					var toReturn = { x: Math.floor(valToPx(val)), y: Math.floor(y), size: size, laneY: laneY };
 					return toReturn;
 				}
 			}
@@ -1479,11 +1472,11 @@
 						}
 					}
 
-					let x = getSharp(pos.x);
-					let y = pos.y;
-					let size = pos.size;
-					let bounds = cutBounds({ x: x - size / 2, y: y - size / 2, w: size, h: size });
-					const customRenderFunction = lane.renderKeyframes || keyframe.render;
+					var x = getSharp(pos.x);
+					var y = pos.y;
+					var size = pos.size;
+					var bounds = cutBounds({ x: x - size / 2, y: y - size / 2, w: size, h: size });
+					var customRenderFunction = lane.renderKeyframes || keyframe.render;
 					if (customRenderFunction) {
 						ctx.save();
 						customRenderFunction(ctx, pos, bounds, keyframe, lane);
@@ -1503,9 +1496,9 @@
 							ctx.clip();
 						}
 
-						let border = options.keyframeBorderThicknessPx || 0;
-						let shape = keyframe.shape || lane.keyframesShape || options.keyframeShape;
-						let keyframeColor = keyframe.color || options.keyframeColor;
+						var border = options.keyframeBorderThicknessPx || 0;
+						var shape = keyframe.shape || lane.keyframesShape || options.keyframeShape;
+						var keyframeColor = keyframe.color || options.keyframeColor;
 						if (keyframe.selected) {
 							keyframeColor = keyframe.selectedColor || options.selectedKeyframeColor;
 						}
@@ -1746,7 +1739,7 @@
 			emit('selected', keyframe);
 		}
 
-		let subscriptions = [];
+		var subscriptions = [];
 
 		this.onScroll = function (callback) {
 			this.on('scroll', callback);
