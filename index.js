@@ -92,14 +92,7 @@
 	var clickDetectionMs = 120;
 
 	function getPixelRatio(ctx) {
-		var dpr = window.devicePixelRatio || 1,
-			bsr = ctx.webkitBackingStorePixelRatio ||
-				ctx.mozBackingStorePixelRatio ||
-				ctx.msBackingStorePixelRatio ||
-				ctx.oBackingStorePixelRatio ||
-				ctx.backingStorePixelRatio || 1;
-
-		return dpr / bsr;
+		return 1;
 	}
 
 	function msToHMS(ms, isSeconds) {
