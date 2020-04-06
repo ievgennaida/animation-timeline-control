@@ -356,9 +356,6 @@
 
 			ctx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
 			var sizes = getLanesSizes();
-			if (sizes.areaRect.w == 0) {
-				console.log('rescale n' + sizes.areaRect.w);
-			}
 			if (sizes && sizes.areaRect) {
 				var additionalOffset = options.stepPx;
 				newWidth = newWidth || 0;
