@@ -1,8 +1,12 @@
 (typeof navigator !== "undefined") && (function (window, factory) {
 	// Check require.js lib
+	// eslint-disable-next-line no-undef
 	if (typeof define === "function" && define.amd) {
+		// eslint-disable-next-line no-undef
 		define(function () { return factory(window) });
+		// eslint-disable-next-line no-undef
 	} else if (typeof module === "object" && module.exports) {
+		// eslint-disable-next-line no-undef
 		module.exports = factory(window);
 	} else {
 		window.animationTimeline = factory(window);
@@ -91,7 +95,7 @@
 	var denominators = [1, 2, 5, 10];
 	var clickDetectionMs = 120;
 
-	function getPixelRatio(ctx) {
+	function getPixelRatio() {
 		return 1;
 	}
 
@@ -188,7 +192,7 @@
 	}
 
 	function getPowArgument(toCheck) {
-		if (!toCheck || toCheck === 0) {
+		if (!toCheck || toCheck === 0 || !isFinite(toCheck)) {
 			return 1;
 		}
 		// some optimiazation for numbers:
@@ -202,14 +206,14 @@
 
 		toCheck = Math.abs(toCheck);
 		var category = 0;
-		var sign = sign(toCheck);
+		var s = sign(toCheck);
 		if (toCheck > 1) {
 			while (toCheck >= 1) {
 				toCheck = Math.floor(toCheck / 10.0);
 				category++;
 			}
 
-			return sign * category - 1;
+			return s * category - 1;
 		}
 		else if (toCheck > 0.0) {
 			// Get number of zeros before the number.
@@ -791,9 +795,8 @@
 				isChanged |= performSelection(false);
 
 				// change timeline pos:
-				var convertedVal = mousePosToVal(pos.x, true);
 				// Set current timeline position if it's not a drag or selection rect small or fast click.
-				isChanged |= setTimeInternal(convertedVal, 'user');
+				isChanged |= setTimeInternal(mousePosToVal(pos.x, true), 'user');
 			}
 
 			return isChanged;
@@ -1142,12 +1145,20 @@
 			var from = pxToVal(0);
 			var to = pxToVal(areaWidth);
 			var dist = getDistance(from, to);
+			if (dist === 0) {
+				return;
+			}
+
 			// normalize step.			
 			var stepsCanFit = areaWidth / options.stepPx;
 			var realStep = dist / stepsCanFit;
 			// Find the nearest 'beautiful' step for a gauge. This step should be devided by 1/2/5!
 			//var step = realStep;
 			var step = findGoodStep(realStep);
+			if (step == 0 || isNaN(step) || !isFinite(step)) {
+				return;
+			}
+
 			var goodStepDistancePx = areaWidth / (dist / step);
 			var smallStepsCanFit = goodStepDistancePx / options.stepSmallPx;
 			var realSmallStep = step / smallStepsCanFit;
