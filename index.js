@@ -464,7 +464,7 @@ export default class AnimationTimeline {
             // Check whether we can drag timeline.
             var timeLinePos = valToPx(timeLine.val);
             let width = Math.max(((options.timelineThicknessPx || 1) * pixelRatio), options.timelineCapWidthPx * pixelRatio || 1) + helperSelector;
-            if (pos.x >= timeLinePos - width / 2 && pos.x <= timeLinePos + width / 2) {
+            if (pos.y <= options.headerHeight || (pos.x >= timeLinePos - width / 2 && pos.x <= timeLinePos + width / 2)) {
                 return {
                     obj: timeLine,
                     type: "timeline"
