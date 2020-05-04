@@ -82,10 +82,12 @@
 		// scroll by drag speed (from 0 to 1)
 		scrollByDragSpeed: 0.12,
 		id: '',
-		// Whether keyframes draggable. Can be also configured by a keyframe property draggable 
+		// Whether keyframes draggable. Can be also configured by a keyframe property draggable
 		keyframesDraggable: true,
-		// Whether keyframes lanes draggable. Can be also configured by a lane property draggable 
-		keyframesLanesDraggable: true
+		// Whether keyframes lanes draggable. Can be also configured by a lane property draggable
+		keyframesLanesDraggable: true,
+		// On macOS, the Meta aka Command key is used instead of Ctrl. Set this to true if you are running on a mac environment.
+		controlKeyIsMetaKey: false
 	}
 
 	let denominators = [1, 2, 5, 10];
@@ -476,7 +478,7 @@
 		}
 
 		scrollContainer.addEventListener("wheel", function (event) {
-			if (event.ctrlKey) {
+			if (controlKeyPressed(event)) {
 				event.preventDefault();
 				if (options.zoomSpeed > 0 && options.zoomSpeed <= 1) {
 					let mousePos = getMousePos(canvas, event);
@@ -567,7 +569,7 @@
 
 		document.addEventListener('keydown', (function (e) {
 			// ctrl + a. Select all keyframes
-			if (e.which === 65 && e.ctrlKey) {
+			if (e.which === 65 && controlKeyPressed(e)) {
 				performSelection(true);
 				e.preventDefault();
 				return false;
@@ -593,10 +595,10 @@
 			// Select keyframes on mouse down
 			if (drag) {
 				if (drag.type == 'keyframe') {
-					drag.startedWithCtrl = args.ctrlKey;
+					drag.startedWithCtrl = controlKeyPressed(args);
 					drag.startedWithShiftKey = args.shiftKey;
 					// get all related selected keyframes if we are selecting one.
-					if (!drag.obj.selected && !args.ctrlKey && !args.shiftKey) {
+					if (!drag.obj.selected && !controlKeyPressed(args) && !args.shiftKey) {
 						performSelection(true, drag.obj, 'keyframe');
 					}
 
@@ -776,13 +778,13 @@
 			let isChanged = false;
 			if (drag && drag.type == 'keyframe') {
 				let isSelected = true;
-				if ((drag.startedWithCtrl && args.ctrlKey) || (drag.startedWithShiftKey && args.shiftKey)) {
-					if (args.ctrlKey) {
+				if ((drag.startedWithCtrl && controlKeyPressed(args)) || (drag.startedWithShiftKey && args.shiftKey)) {
+                    if (controlKeyPressed(args)) {
 						isSelected = !drag.obj.selected
 					}
 				}
 				// Reverse selected keyframe selection by a click:
-				isChanged |= performSelection(isSelected, drag.obj, 'keyframe', args.ctrlKey || args.shiftKey);
+				isChanged |= performSelection(isSelected, drag.obj, 'keyframe', controlKeyPressed(args) || args.shiftKey);
 
 				if (args.shiftKey) {
 					// change timeline pos:
@@ -1735,6 +1737,10 @@
 		}
 
 		this.redraw = redraw;
+
+		function controlKeyPressed(e) {
+            return (options.controlKeyIsMetaKey || defaultOptions.controlKeyIsMetaKey) ? e.metaKey : e.ctrlKey;
+        }
 
 		function onKeyframesSelected(keyframe) {
 			emit('selected', keyframe);
