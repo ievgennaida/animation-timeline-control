@@ -79,7 +79,9 @@ let defaultOptions = {
     keyframesDraggable: true,
     // Whether keyframes lanes draggable. Can be also configured by a lane property draggable
     keyframesLanesDraggable: true,
+    // Set this to true in a macos environment: The Meta key will be used instead of the Ctrl key.
     controlKeyIsMetaKey: false,
+    // Access the scroll container via this class for e.g. scrollbar styling.
     scrollContainerClass: 'scroll-container'
 }
 
