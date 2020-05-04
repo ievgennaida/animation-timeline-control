@@ -92,6 +92,7 @@
 
 	let denominators = [1, 2, 5, 10];
 	let clickDetectionMs = 120;
+    let doubleClickTimeoutMs = 400;
 
 	function getPixelRatio(ctx) {
 		const dpr = window.devicePixelRatio || 1,
@@ -296,6 +297,7 @@
 		let selectionRect = null;
 		let drag = null;
 		let clickDurarion = null;
+        let lastClickTime = 0;
 		let scrollingTimeRef = null;
 		let selectedKeyframes = [];
 		let intervalReference = null;
@@ -586,9 +588,21 @@
 
 
 		function onMouseDown(args) {
+            var isDoubleClick = Date.now() - lastClickTime < doubleClickTimeoutMs;
+            lastClickTime = Date.now();
+
 			// Prevent drag of the canvas if canvas is selected as text:
 			clearBrowserSelection();
 			startPos = trackMousePos(canvas, args);
+            startPos.snapVal = snapVal(startPos.val);
+
+            if (isDoubleClick) {
+                emit('doubleclick', startPos);
+                return;
+            }
+
+            emit('mousedown', startPos);
+
 			clickDurarion = new Date();
 			currentPos = startPos;
 			drag = getDraggable(currentPos);
