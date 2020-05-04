@@ -282,13 +282,8 @@
 		if (!options.stepPx) {
 			options.stepPx = defaultOptions.stepPx;
 		}
-		if (!options.snapsPerSeconds) {
-			if (options.snapsPerSeconds < 0) {
-				options.snapsPerSeconds = 0;
-			} else if (options.snapsPerSeconds > 60) {
-				options.snapsPerSeconds = 60;
-			}
-		}
+
+		options.snapsPerSeconds = Math.max(0, Math.min(60, options.snapsPerSeconds));
 
 		let timeLine = {
 			val: 0,
