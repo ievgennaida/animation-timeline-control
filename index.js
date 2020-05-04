@@ -40,7 +40,7 @@
 		timelineCapHeightPx: 10,
 		timelineTriangleCap: false,
 		timelineRectCap: true,
-		// approximate step in px for 1 second 
+		// approximate step in px for 1 second
 		stepPx: 120,
 		stepSmallPx: 30,
 		smallSteps: 50,
@@ -72,12 +72,12 @@
 		keyframeSizePx: 'auto',
 		laneHeightPx: 24,
 		laneMarginPx: 2,
-		// Size of the lane in pixels. Can be 'auto' than size is based on the 'laneHeightPx'. can be overriden by lane 'lane.keyframesLaneSizePx'. 
+		// Size of the lane in pixels. Can be 'auto' than size is based on the 'laneHeightPx'. can be overriden by lane 'lane.keyframesLaneSizePx'.
 		keyframesLaneSizePx: 'auto',
 		headerHeight: 30,
 		ticksFont: "11px sans-serif",
 		zoom: 1000,
-		// Zoom speed. Use percent of the screen to set zoom speed. 
+		// Zoom speed. Use percent of the screen to set zoom speed.
 		zoomSpeed: 0.1,
 		// Max zoom
 		zoomMin: 80,
@@ -86,9 +86,9 @@
 		// scroll by drag speed (from 0 to 1)
 		scrollByDragSpeed: 0.12,
 		id: '',
-		// Whether keyframes draggable. Can be also configured by a keyframe property draggable 
+		// Whether keyframes draggable. Can be also configured by a keyframe property draggable
 		keyframesDraggable: true,
-		// Whether keyframes lanes draggable. Can be also configured by a lane property draggable 
+		// Whether keyframes lanes draggable. Can be also configured by a lane property draggable
 		keyframesLanesDraggable: true
 	}
 
@@ -146,9 +146,9 @@
 
 	/**
 	 * Check rectangle overlap.
-	 * @param {number} x1 
-	 * @param {number} y1 
-	 * @param {object} rectangle 
+	 * @param {number} x1
+	 * @param {number} y1
+	 * @param {object} rectangle
 	 */
 	function isOverlap(x, y, rectangle) {
 		if (!rectangle) {
@@ -170,12 +170,12 @@
 			return false;
 		}
 
-		// If one rectangle is on left side of other  
+		// If one rectangle is on left side of other
 		if (rect.x > rect2.x + rect2.w || rect2.x > rect.x + rect.w) {
 			return true;
 		}
 
-		// If one rectangle is above other  
+		// If one rectangle is above other
 		if (rect.y < rect2.y + rect2.h || rect2.y < rect.y + rect.h) {
 			return true;
 		}
@@ -476,7 +476,7 @@
 			// Check whether we can drag timeline.
 			var timeLinePos = valToPx(timeLine.val);
 			var width = Math.max(((options.timelineThicknessPx || 1) * pixelRatio), options.timelineCapWidthPx * pixelRatio || 1) + helperSelector;
-			if (pos.x >= timeLinePos - width / 2 && pos.x <= timeLinePos + width / 2) {
+			if (pos.y <= options.headerHeight || (pos.x >= timeLinePos - width / 2 && pos.x <= timeLinePos + width / 2)) {
 				return { obj: timeLine, type: "timeline" };
 			}
 		}
@@ -825,10 +825,10 @@
 
 		/**
 		 * Do the selection.
-		 * @param {boolean} isSelected 
+		 * @param {boolean} isSelected
 		 * @param {object} selector can be retangle or keyframe object.
-		 * @param {string} mode selector mode. keyframe | rectrangle | all  
-		 * @param {boolean} ignoreOthers value indicating whether all other object should be reversed. 
+		 * @param {string} mode selector mode. keyframe | rectrangle | all
+		 * @param {boolean} ignoreOthers value indicating whether all other object should be reversed.
 		 * @return isChanged
 		 */
 		function performSelection(isSelected, selector, mode, ignoreOthers) {
@@ -1032,7 +1032,7 @@
 					// Get normilized speed.
 					speedX = -getDistance(x, 0) * scrollSpeedMultiplier
 				} else if (isRight) {
-					// Get normalized speed: 
+					// Get normalized speed:
 					speedX = getDistance(x, canvas.clientWidth) * scrollSpeedMultiplier;
 					newWidth = scrollContainer.scrollLeft + canvas.clientWidth + speedX;
 				}
@@ -1041,7 +1041,7 @@
 					// Get normilized speed.
 					speedY = -getDistance(x, 0) * scrollSpeedMultiplier / 4;
 				} else if (isBottom) {
-					// Get normalized speed: 
+					// Get normalized speed:
 					speedY = getDistance(x, canvas.clientHeight) * scrollSpeedMultiplier / 4;
 					newHeight = scrollContainer.scrollTop + canvas.clientHeight;
 				}
@@ -1076,7 +1076,7 @@
 			return ms;
 		}
 
-		// convert 
+		// convert
 		function valToPx(ms, globalCoords) {
 			// Respect current scroll container offset. (virtualization)
 			if (!globalCoords) {
@@ -1149,7 +1149,7 @@
 				return;
 			}
 
-			// normalize step.			
+			// normalize step.
 			var stepsCanFit = areaWidth / options.stepPx;
 			var realStep = dist / stepsCanFit;
 			// Find the nearest 'beautiful' step for a gauge. This step should be devided by 1/2/5!
@@ -1334,7 +1334,7 @@
 					var selectedColor = laneSize.lane.selectedColor || options.selectedLaneColor;
 					var laneColor = laneSize.lane.color || options.laneColor;
 
-					// Draw lane 
+					// Draw lane
 					if (laneSize.lane.selected && selectedColor) {
 						ctx.fillStyle = selectedColor;
 					} else if (laneSize.index % 2 != 0 && options.useAlternateLaneColor && !laneSize.lane.color) {
@@ -1494,7 +1494,7 @@
 
 						ctx.save();
 
-						// Performance FIX: use clip only  when we are in the collision! Clip is slow! 
+						// Performance FIX: use clip only  when we are in the collision! Clip is slow!
 						// Other keyframes should be hidden by bounds check.
 						if (bounds && bounds.overlapY) {
 							ctx.beginPath();
@@ -1825,8 +1825,8 @@
 
 		/**
 		 * Remove the event from the subscriptions list.
-		 * @param {string} topic 
-		 * @param {Function} callback 
+		 * @param {string} topic
+		 * @param {Function} callback
 		 */
 		this.off = function (topic, callback) {
 			for (var i = subscriptions.length - 1; i >= 0; i--) {
