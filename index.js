@@ -926,7 +926,7 @@
 			const pos = getMousePos(canvas, mouseArgs);
 			pos.scrollLeft = scrollContainer.scrollLeft;
 			pos.scrollTop = scrollContainer.scrollTop;
-			pos.val = pxToVal(pos.x);
+			pos.val = pxToVal(pos.x + pos.scrollLeft);
 
 			if (startPos) {
 				if (!selectionRect) {
