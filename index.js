@@ -1638,7 +1638,7 @@
 
 		function redraw() {
 			if (window.requestAnimationFrame) {
-				window.requestAnimationFrame.call(this, redrawInternal);
+				window.requestAnimationFrame(redrawInternal);
 			} else {
 				redrawInternal();
 			}
