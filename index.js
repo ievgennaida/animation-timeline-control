@@ -78,22 +78,16 @@ let defaultOptions = {
     keyframesDraggable: true,
     // Whether keyframes lanes draggable. Can be also configured by a lane property draggable
     keyframesLanesDraggable: true,
-    controlKeyIsMetaKey: false
+    controlKeyIsMetaKey: false,
+    scrollContainerClass: 'scroll-container'
 }
 
 let denominators = [1, 2, 5, 10];
 let clickDetectionMs = 120;
 let doubleClickTimeoutMs = 400;
 
-function getPixelRatio(ctx) {
-    const dpr = window.devicePixelRatio || 1,
-        bsr = ctx.webkitBackingStorePixelRatio ||
-        ctx.mozBackingStorePixelRatio ||
-        ctx.msBackingStorePixelRatio ||
-        ctx.oBackingStorePixelRatio ||
-        ctx.backingStorePixelRatio || 1;
-
-    return dpr / bsr;
+function getPixelRatio() {
+    return 1;
 }
 
 function msToHMS(ms, isSeconds) {
@@ -116,7 +110,7 @@ function msToHMS(ms, isSeconds) {
     var minutes = parseInt(seconds / 60); // 60 seconds in 1 minute
     // 4- Keep only seconds not extracted to minutes:
     seconds = (seconds % 60);
-    let str = '';
+    var str = '';
     if (year) {
         str += year + ":";
     }
@@ -188,7 +182,7 @@ function getDistance(x1, y1, x2, y2) {
 }
 
 function getPowArgument(toCheck) {
-    if (!toCheck || toCheck === 0) {
+    if (!toCheck || toCheck === 0 || !isFinite(toCheck)) {
         return 1;
     }
     // some optimiazation for numbers:
@@ -202,14 +196,14 @@ function getPowArgument(toCheck) {
 
     toCheck = Math.abs(toCheck);
     var category = 0;
-    var sign = sign(toCheck);
+    var s = sign(toCheck);
     if (toCheck > 1) {
         while (toCheck >= 1) {
             toCheck = Math.floor(toCheck / 10.0);
             category++;
         }
 
-        return sign * category - 1;
+        return s * category - 1;
     } else if (toCheck > 0.0) {
         // Get number of zeros before the number.
         var zerosCount = Math.floor(Math.log(toCheck) / Math.log(10) + 1);
@@ -223,16 +217,29 @@ function getPowArgument(toCheck) {
 export default class AnimationTimeline {
     constructor(options, lanes) {
 
-        var scrollContainer = document.getElementById(options.id);
-        if (!scrollContainer) {
+        function mergeOptions(toSet) {
+            toSet = toSet || {};
+            options = options || {};
+            // Merge options with the default:
+            for (var key in defaultOptions) {
+                if (Object.prototype.hasOwnProperty.call(defaultOptions, key) && toSet[key] == undefined) {
+                    toSet[key] = defaultOptions[key];
+                }
+            }
+
+            return toSet;
+        }
+
+        mergeOptions(options);
+
+        var container = document.getElementById(options.id);
+        if (!container) {
             console.log('options.id is mandatory!');
             return;
         }
 
-        scrollContainer.style.overflow = "scroll";
-        scrollContainer.style.position = "relative";
-        scrollContainer.style.touchAction = "none";
-        var size = document.createElement("div");
+        var scrollContainer = document.createElement("div");
+        var scrollContent = document.createElement("div");
         var canvas = document.createElement("canvas");
 
         if (!canvas || !canvas.getContext) {
@@ -240,6 +247,7 @@ export default class AnimationTimeline {
             return null;
         }
 
+        container.style.position = "relative";
         // Generate size container:
         canvas.style.cssText = 'image-rendering: -moz-crisp-edges;' +
             'image-rendering: -webkit-crisp-edges;' +
@@ -252,19 +260,24 @@ export default class AnimationTimeline {
             '-o-user-select: none;' +
             'user-select: none;' +
             'touch-action: none;' +
+            'position: relative;' +
+            'padding: inherit';
+
+        scrollContainer.classList.add(options.scrollContainerClass);
+        scrollContainer.style.cssText = 'overflow: scroll;' +
             'position: absolute;' +
-            'top: 0;' +
-            'left: 0;' +
-            'width: 100%;' +
-            'padding: inherit' +
-            'height: 100%;';
+            'width:  100%;' +
+            'height:  100%;';
 
-        size.style.width = size.style.height = canvas.style.width = canvas.style.height = "100%";
+        scrollContent.style.width = scrollContent.style.height = "100%";
+
         // add the text node to the newly created div
-        scrollContainer.appendChild(size);
-        scrollContainer.appendChild(canvas);
+        scrollContainer.appendChild(scrollContent);
+        container.appendChild(scrollContainer);
+        var scrollBarWidth = scrollContainer.offsetWidth - scrollContent.clientWidth;
+        canvas.style.width = canvas.style.height = "calc(100% -" + (scrollBarWidth || 17) + "px)";
 
-        setOptions(options);
+        container.appendChild(canvas);
 
         if (options.backgroundColor) {
             scrollContainer.style.background = options.backgroundColor;
@@ -280,18 +293,19 @@ export default class AnimationTimeline {
             val: 0,
         };
 
-        let startPos = null;
-        let currentPos = null;
-        let selectionRect = null;
-        let drag = null;
-        let clickDurarion = null;
-        let lastClickTime = 0;
-        let scrollingTimeRef = null;
-        let selectedKeyframes = [];
-        let intervalReference = null;
-        let lastCallDate = null;
-        let isPanStarted = false;
-        let isPanMode = false;
+        var startPos = null;
+        var currentPos = null;
+        var selectionRect = null;
+        var drag = null;
+        var clickDuration = null;
+        var lastClickTime = 0;
+        var scrollingTimeRef = null;
+        var selectedKeyframes = [];
+        var intervalReference = null;
+        var lastCallDate = null;
+        var isPanStarted = false;
+        var isPanMode = false;
+
         var ctx = canvas.getContext("2d");
 
         var drawLine = function (ctx, x1, y1, x2, y2) {
@@ -306,7 +320,7 @@ export default class AnimationTimeline {
             let radius = 1;
             if (evt.changedTouches && evt.changedTouches.length > 0) {
                 // TODO: implement better support of this:
-                let touch = evt.changedTouches[0];
+                var touch = evt.changedTouches[0];
                 if (isNaN(evt.clientX)) {
                     evt.clientX = touch.clientX;
                     evt.clientY = touch.clientY;
@@ -318,8 +332,8 @@ export default class AnimationTimeline {
                 scaleX = canvas.width / pixelRatio / rect.width, // relationship bitmap vs. element for X
                 scaleY = canvas.height / pixelRatio / rect.height; // relationship bitmap vs. element for Y
 
-            let x = (evt.clientX - rect.left) * scaleX;
-            let y = (evt.clientY - rect.top) * scaleY;
+            var x = (evt.clientX - rect.left) * scaleX;
+            var y = (evt.clientY - rect.top) * scaleY;
             // scale mouse coordinates after they have been adjusted to be relative to element
             return {
                 x: x,
@@ -331,22 +345,22 @@ export default class AnimationTimeline {
         function rescale(scrollMode, newWidth, newHeight) {
             var width = scrollContainer.clientWidth * pixelRatio;
             var height = scrollContainer.clientHeight * pixelRatio;
-            if (width != ctx.canvas.width) {
+            if (Math.floor(width) != Math.floor(ctx.canvas.width)) {
                 ctx.canvas.width = width;
             }
 
-            if (height != ctx.canvas.height) {
+            if (Math.floor(height) != Math.floor(ctx.canvas.height)) {
                 ctx.canvas.height = height;
             }
 
             ctx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
-            let sizes = getLanesSizes();
+            var sizes = getLanesSizes();
             if (sizes && sizes.areaRect) {
-                const additionalOffset = options.stepPx;
+                var additionalOffset = options.stepPx;
                 newWidth = newWidth || 0;
                 // not less than current timeline position
-                let timelineGlobalPos = valToPx(timeLine.val, true);
-                let timelinePos = 0;
+                var timelineGlobalPos = valToPx(timeLine.val, true);
+                var timelinePos = 0;
                 if (timelineGlobalPos > canvas.clientWidth) {
                     if (scrollMode == 'scrollBySelection') {
                         timelinePos = Math.floor(timelineGlobalPos + canvas.clientWidth + (options.stepPx || 0));
@@ -354,27 +368,28 @@ export default class AnimationTimeline {
                         timelinePos = Math.floor(timelineGlobalPos + canvas.clientWidth / 1.5);
                     }
                 }
+                var keyframeW = sizes.areaRect.w + options.leftMarginPx + additionalOffset;
 
                 newWidth = Math.max(newWidth,
                     // keyframes size
-                    sizes.areaRect.w + options.leftMarginPx + additionalOffset,
+                    keyframeW,
                     // not less than current scroll position
                     scrollContainer.scrollLeft + canvas.clientWidth,
                     timelinePos,
                 );
                 newWidth = Math.floor(newWidth) + "px";
 
-                if (newWidth != size.style.minWidth) {
-                    size.style.minWidth = newWidth
+                if (newWidth != scrollContent.style.minWidth) {
+                    scrollContent.style.minWidth = newWidth;
                 }
 
                 newHeight = Math.max(Math.floor(sizes.areaRect.h + options.laneHeightPx * 4),
                     scrollContainer.scrollTop + canvas.clientHeight - 1,
                     Math.round(newHeight || 0));
 
-                let h = newHeight + "px";
-                if (size.style.minHeight != h) {
-                    size.style.minHeight = h
+                var h = newHeight + "px";
+                if (scrollContent.style.minHeight != h) {
+                    scrollContent.style.minHeight = h;
                 }
             }
         }
@@ -384,8 +399,8 @@ export default class AnimationTimeline {
         function getDraggable(pos) {
 
             // few extra pixels to select items:
-            let helperSelector = Math.max(2, pos.radius);
-            let draggable = null;
+            var helperSelector = Math.max(2, pos.radius);
+            var draggable = null;
             if (pos.y >= options.headerHeight && options.keyframesDraggable) {
                 iterateKeyframes(function (keyframe, keyframeIndex, lane, laneIndex) {
                     if (keyframe.draggable !== undefined) {
@@ -394,9 +409,9 @@ export default class AnimationTimeline {
                         }
                     }
 
-                    let keyframePos = getKeyframePosition(keyframe, laneIndex);
+                    var keyframePos = getKeyframePosition(keyframe, laneIndex);
                     if (keyframePos) {
-                        const dist = getDistance(keyframePos.x, keyframePos.y, pos.x, pos.y);
+                        var dist = getDistance(keyframePos.x, keyframePos.y, pos.x, pos.y);
                         if (dist <= keyframePos.size + helperSelector) {
                             if (!draggable) {
                                 draggable = {
@@ -432,7 +447,7 @@ export default class AnimationTimeline {
                             }
                         }
 
-                        let laneOverlaped = isOverlap(pos.x, pos.y, laneSize.keyframes);
+                        var laneOverlaped = isOverlap(pos.x, pos.y, laneSize.keyframes);
                         return laneOverlaped;
                     });
 
@@ -450,8 +465,8 @@ export default class AnimationTimeline {
                                 draggable.selectedItems = foundOverlap.lane.keyframes;
                             }
 
-                            let firstVal = foundOverlap.keyframes.from;
-                            let snapped = snapVal(firstVal);
+                            var firstVal = foundOverlap.keyframes.from;
+                            var snapped = snapVal(firstVal);
                             // get snapped mouse pos based on the first keynode.
                             draggable.val += firstVal - snapped;
                         }
@@ -463,7 +478,7 @@ export default class AnimationTimeline {
 
             // Check whether we can drag timeline.
             var timeLinePos = valToPx(timeLine.val);
-            let width = Math.max(((options.timelineThicknessPx || 1) * pixelRatio), options.timelineCapWidthPx * pixelRatio || 1) + helperSelector;
+            var width = Math.max(((options.timelineThicknessPx || 1) * pixelRatio), options.timelineCapWidthPx * pixelRatio || 1) + helperSelector;
             if (pos.y <= options.headerHeight || (pos.x >= timeLinePos - width / 2 && pos.x <= timeLinePos + width / 2)) {
                 return {
                     obj: timeLine,
@@ -473,18 +488,18 @@ export default class AnimationTimeline {
         }
         this.getDraggable = getDraggable;
 
-        scrollContainer.addEventListener("wheel", function (event) {
+        container.addEventListener("wheel", function (event) {
             if (controlKeyPressed(event)) {
                 event.preventDefault();
                 if (options.zoomSpeed > 0 && options.zoomSpeed <= 1) {
-                    let mousePos = getMousePos(canvas, event);
-                    let x = mousePos.x;
+                    var mousePos = getMousePos(canvas, event);
+                    var x = mousePos.x;
                     if (x <= 0)
                         x = 0;
                     var val = pxToVal(scrollContainer.scrollLeft + x, false);
-                    let diff = canvas.clientWidth / x;
+                    var diff = canvas.clientWidth / x;
 
-                    let zoom = sign(event.deltaY) * options.zoom * options.zoomSpeed;
+                    var zoom = sign(event.deltaY) * options.zoom * options.zoomSpeed;
                     options.zoom += zoom;
                     if (options.zoom > options.zoomMax) {
                         options.zoom = options.zoomMax;
@@ -492,8 +507,8 @@ export default class AnimationTimeline {
                     if (options.zoom < options.zoomMin) {
                         options.zoom = options.zoomMin;
                     }
-                    let zoomCenter = valToPx(val, true);
-                    let newScrollLeft = Math.round(zoomCenter - canvas.clientWidth / diff);
+                    var zoomCenter = valToPx(val, true);
+                    var newScrollLeft = Math.round(zoomCenter - canvas.clientWidth / diff);
                     if (newScrollLeft <= 0) {
                         newScrollLeft = 0;
                     }
@@ -506,20 +521,14 @@ export default class AnimationTimeline {
 
                     redraw();
                 }
+            } else {
+                scrollContainer.scrollTop += event.deltaY;
+                event.preventDefault();
             }
         });
 
         if (scrollContainer) {
             scrollContainer.addEventListener('scroll', function (args) {
-                var left = scrollContainer.scrollLeft + 'px';
-                if (canvas.style.left !== left) {
-                    canvas.style.left = left;
-                }
-
-                var top = scrollContainer.scrollTop + 'px';
-                if (top !== canvas.style.top) {
-                    canvas.style.top = top;
-                }
 
                 if (scrollingTimeRef) {
                     clearTimeout(scrollingTimeRef);
@@ -541,7 +550,7 @@ export default class AnimationTimeline {
                 }, 500);
 
                 redraw();
-                let scrollData = {
+                var scrollData = {
                     args: args,
                     scrollLeft: scrollContainer.scrollLeft,
                     scrollTop: scrollContainer.scrollTop,
@@ -598,7 +607,7 @@ export default class AnimationTimeline {
 
             emit('mousedown', startPos);
 
-            clickDurarion = new Date();
+            clickDuration = new Date();
             currentPos = startPos;
             drag = getDraggable(currentPos);
             // Select keyframes on mouse down
@@ -619,7 +628,7 @@ export default class AnimationTimeline {
         }
 
 
-        let lastUseArgs = null;
+        var lastUseArgs = null;
         window.addEventListener('mousemove', function (args) {
             lastUseArgs = args;
             onMouseMove(args);
@@ -649,7 +658,7 @@ export default class AnimationTimeline {
                 return;
             }
 
-            let isTouch = (args.changedTouches && args.changedTouches.length > 0);
+            var isTouch = (args.changedTouches && args.changedTouches.length > 0);
 
             currentPos = trackMousePos(canvas, args);
             if (!isPanStarted && selectionRect && checkClickDurationOver()) {
@@ -660,21 +669,21 @@ export default class AnimationTimeline {
                 if (args.buttons == 1 || isTouch) {
                     let isChanged = false;
                     if (drag && drag.obj && !drag.startedWithCtrl) {
-                        let convertedVal = mousePosToVal(currentPos.x, true);
+                        var convertedVal = mousePosToVal(currentPos.x, true);
                         //redraw();
                         if (drag.type == 'timeline') {
                             isChanged |= setTimeInternal(convertedVal, 'user');
                         } else if ((drag.type == 'keyframe' || drag.type == 'lane') && drag.selectedItems) {
-                            let offset = Math.floor(convertedVal - drag.val);
+                            var offset = Math.floor(convertedVal - drag.val);
                             if (Math.abs(offset) > 0) {
                                 // dont allow to move less than zero.
                                 drag.selectedItems.forEach(function (p) {
                                     if (options.snapAllKeyframesOnMove) {
-                                        let toSet = snapVal(p.val);
+                                        var toSet = snapVal(p.val);
                                         isChanged |= setKeyframePos(p, toSet);
                                     }
 
-                                    let newPostion = p.val + offset;
+                                    var newPostion = p.val + offset;
                                     if (newPostion < 0) {
                                         offset = -p.val;
                                     }
@@ -683,7 +692,7 @@ export default class AnimationTimeline {
                                 if (Math.abs(offset) > 0) {
                                     // dont allow to move less than zero.
                                     drag.selectedItems.forEach(function (p) {
-                                        let toSet = p.val + offset;
+                                        var toSet = p.val + offset;
                                         isChanged |= setKeyframePos(p, toSet);
                                     });
 
@@ -807,9 +816,8 @@ export default class AnimationTimeline {
                 isChanged |= performSelection(false);
 
                 // change timeline pos:
-                let convertedVal = mousePosToVal(pos.x, true);
                 // Set current timeline position if it's not a drag or selection rect small or fast click.
-                isChanged |= setTimeInternal(convertedVal, 'user');
+                isChanged |= setTimeInternal(mousePosToVal(pos.x, true), 'user');
             }
 
             return isChanged;
@@ -919,7 +927,7 @@ export default class AnimationTimeline {
         }
 
         function trackMousePos(canvas, mouseArgs) {
-            const pos = getMousePos(canvas, mouseArgs);
+            let pos = getMousePos(canvas, mouseArgs);
             pos.scrollLeft = scrollContainer.scrollLeft;
             pos.scrollTop = scrollContainer.scrollTop;
             pos.val = pxToVal(pos.x + pos.scrollLeft);
@@ -951,14 +959,14 @@ export default class AnimationTimeline {
             startPos = null;
             drag = null;
             selectionRect = null;
-            clickDurarion = null;
+            clickDuration = null;
             isPanStarted = false;
             clearMoveInterval();
         }
 
         function checkClickDurationOver() {
             // Duration before the selection can be tracked.
-            if ((clickDurarion && new Date() - clickDurarion > clickDetectionMs)) {
+            if ((clickDuration && new Date() - clickDuration > clickDetectionMs)) {
                 return true;
             }
 
@@ -1159,12 +1167,18 @@ export default class AnimationTimeline {
             var from = pxToVal(0);
             var to = pxToVal(areaWidth);
             var dist = getDistance(from, to);
+            if (dist === 0) {
+                return;
+            }
             // normalize step.
             var stepsCanFit = areaWidth / options.stepPx;
             let realStep = dist / stepsCanFit;
             // Find the nearest 'beautiful' step for a gauge. This step should be devided by 1/2/5!
             //let step = realStep;
             let step = findGoodStep(realStep);
+            if (step == 0 || isNaN(step) || !isFinite(step)) {
+                return;
+            }
             var goodStepDistancePx = areaWidth / (dist / step);
             var smallStepsCanFit = goodStepDistancePx / options.stepSmallPx;
             var realSmallStep = step / smallStepsCanFit;
@@ -1247,7 +1261,7 @@ export default class AnimationTimeline {
                 return toReturn;
             }
 
-            const areaRect = toReturn.areaRect;
+            let areaRect = toReturn.areaRect;
 
             lanes.filter(p => p && !p.hidden).forEach(function lanesIterator(lane, index) {
                 if (!lane) {
@@ -1768,18 +1782,6 @@ export default class AnimationTimeline {
             return options;
         }
 
-        function setOptions(options) {
-            options = options || {};
-            // Merge options with the default:
-            for (var key in defaultOptions) {
-                if (Object.prototype.hasOwnProperty.call(defaultOptions, key) && options[key] == undefined) {
-                    options[key] = defaultOptions[key];
-                }
-            }
-
-            return options;
-        }
-
         this.redraw = redraw;
 
         function controlKeyPressed(e) {
@@ -1791,6 +1793,32 @@ export default class AnimationTimeline {
         }
 
         let subscriptions = [];
+
+        this.setScrollLeft = function (value) {
+            if (scrollContainer) {
+                scrollContainer.scrollLeft = value;
+            }
+        }
+        this.setScrollTop = function (value) {
+            if (scrollContainer) {
+                scrollContainer.scrollTop = value;
+            }
+        }
+        this.getScrollLeft = function () {
+            if (scrollContainer) {
+                return scrollContainer.scrollLeft;
+            }
+
+            return 0;
+        };
+        this.getScrollTop = function () {
+            if (scrollContainer) {
+                return scrollContainer.scrollTop;
+            }
+
+            return 0;
+        };
+
 
         this.onScroll = function (callback) {
             this.on('scroll', callback);
@@ -1819,8 +1847,8 @@ export default class AnimationTimeline {
         }
 
         this.getOptions = getOptions;
-        this.setOptions = function (options) {
-            setOptions(options);
+        this.setOptions = function (toSet) {
+            options = mergeOptions(toSet);
             rescale();
             redraw();
         }
@@ -1830,7 +1858,11 @@ export default class AnimationTimeline {
         }
 
         function setLanes(data) {
-            lanes = data;
+            if (lanes != data) {
+                lanes = data;
+                rescale();
+                redraw();
+            }
         }
 
         this.setLanes = setLanes;
