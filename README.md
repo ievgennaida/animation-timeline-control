@@ -63,9 +63,9 @@ timeline.initialize({ id: 'timeline' });
 
 ### Draw the outline tree
 
-Use and syncronize scroll events to draw outline list/tree at the right side of the animation panel.
+Use and syncronize scroll events to draw outline list/tree at the left side of the animation panel.
 
-- Each element of the list should have the same height.
+- Each element of the list should have the same height as animation lane.
 - Hide the vertical scroll of the outline container.
 
 ```JavaScript
