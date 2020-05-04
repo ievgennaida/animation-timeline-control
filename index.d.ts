@@ -33,6 +33,11 @@ export type Timeline = {
   setLanes(data: AnimationTimelineLane[]);
   on(event: TimelineEvent, callback: SubscribeFunction);
   onScroll(callback: SubscribeFunction);
+  setScrollLeft(value: number);
+  setScrollTop(value: number);
+  getScrollLeft(): number;
+  getScrollTop(): number;
+  setLanes(data: AnimationTimelineLane[]);
   off(event: TimelineEvent, callback: Function);
   getTime(): number;
   setTime(value: number);

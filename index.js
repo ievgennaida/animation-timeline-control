@@ -1,3 +1,4 @@
+
 function sign(p) {
     if (Math.sign) {
         return Math.sign(p);
