@@ -487,7 +487,7 @@
 					let x = mousePos.x;
 					if (x <= 0)
 						x = 0;
-					val = pxToVal(scrollContainer.scrollLeft + x, false);
+					let val = pxToVal(scrollContainer.scrollLeft + x, false);
 					let diff = canvas.clientWidth / x;
 
 					let zoom = sign(event.deltaY) * options.zoom * options.zoomSpeed;
