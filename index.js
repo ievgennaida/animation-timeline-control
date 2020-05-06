@@ -596,7 +596,6 @@ export default class AnimationTimeline {
         function onMouseDown(args) {
 
             var isDoubleClick = Date.now() - lastClickTime < doubleClickTimeoutMs;
-            lastClickTime = Date.now();
 
             // Prevent drag of the canvas if canvas is selected as text:
             clearBrowserSelection();
@@ -607,6 +606,7 @@ export default class AnimationTimeline {
                 emit('doubleclick', startPos);
                 return;
             }
+            lastClickTime = Date.now();
 
             emit('mousedown', startPos);
 
@@ -1868,11 +1868,21 @@ export default class AnimationTimeline {
             }
         }
 
+        function yToLaneIndex(y) {
+            return getLanesSizes().sizes.reduce( (match, lane) => {
+                if (lane.y < y) {
+                    match = lane.index
+                }
+                return match
+            }, 0)
+        }
+
         this.setLanes = setLanes;
         this.getLanes = getLanes;
         this.rescale = rescale;
         this.redraw = redraw;
         this.emit = emit;
+        this.yToLaneIndex = yToLaneIndex;
 
         // expose private methods:
         this.__cutBounds = cutBounds;
