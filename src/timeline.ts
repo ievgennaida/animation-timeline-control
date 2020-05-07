@@ -1743,6 +1743,8 @@ export class Timeline extends TimelineEventsEmitter {
         if (!draggable) {
           return false;
         }
+      } else if (element.type === TimelineElementType.Row) {
+        return false;
       }
       return true;
     });
@@ -1788,6 +1790,16 @@ export class Timeline extends TimelineEventsEmitter {
       this.forEachKeyframe((keyframe, keyframeIndex, rowModel, rowIndex, isNextRow): boolean => {
         // Check keyframes stripe overlap
         if (isNextRow && rowModel.stripeRect) {
+          const rowOverlapped = TimelineUtils.isOverlap(pos.x, pos.y, rowModel);
+          if (rowOverlapped) {
+            const row = {
+              val: this.mousePosToVal(pos.x, true),
+              type: TimelineElementType.Row,
+              row: rowModel.row,
+            } as TimelineClickableElement;
+            toReturn.push(row);
+          }
+
           const keyframesStripeOverlapped = TimelineUtils.isOverlap(pos.x, pos.y, rowModel.stripeRect);
           if (keyframesStripeOverlapped) {
             const stripe = {

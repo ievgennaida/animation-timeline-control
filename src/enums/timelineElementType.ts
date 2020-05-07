@@ -11,4 +11,8 @@ export enum TimelineElementType {
    * Keyframes stripe
    */
   Stripe = 'stripe',
+  /**
+   * Row
+   */
+  Row = 'row',
 }
