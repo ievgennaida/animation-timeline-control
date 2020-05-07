@@ -1,15 +1,16 @@
-import { TimelineKeyframe } from '../timelineKeyframe';
-import { TimelineDraggableType } from '../enums/timelineDraggableType';
+import { TimelineClickableElement } from './timelineClickableElement';
+import { TimelineElementType } from '..';
+
 export interface TimelineDraggableData {
-  type: TimelineDraggableType;
-  /**
-   * First selected keyframe (clicked one)
-   */
-  keyframe?: TimelineKeyframe;
-  /**
-   * Related draggable keyframes.
-   */
-  keyframes?: Array<TimelineKeyframe>;
   changed: boolean;
+  /**
+   * Drag click target
+   */
+  target: TimelineClickableElement;
+  elements: Array<TimelineClickableElement>;
+  type: TimelineElementType;
+  /**
+   * Current drag data.
+   */
   val: number;
 }

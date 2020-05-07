@@ -13,6 +13,7 @@
         "esnext",
         "khtml",
         "pixelated",
+        "prio",
         "sourcemap",
         "timechanged",
         "tslib"

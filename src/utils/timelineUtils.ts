@@ -9,7 +9,6 @@ export class TimelineUtils {
    */
   static isOverlap(x: number, y: number, rectangle: DOMRect): boolean {
     if (!rectangle) {
-      console.error('rectangle argument cannot be empty');
       return false;
     }
 
