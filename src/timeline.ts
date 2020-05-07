@@ -1429,6 +1429,18 @@ export class Timeline extends TimelineEventsEmitter {
   };
 
   /**
+   * Get row by y coordinate.
+   * @param posY y screen coordinate.
+   */
+  public getRowByY(posY: number): TimelineRow {
+    const model = this.calculateRowsBounds();
+    if (model && model.rows) {
+      return model.rows.find((rowData) => rowData.y >= posY && posY <= rowData.y + rowData.height);
+    }
+
+    return null;
+  }
+  /**
    * Find sharp pixel position
    */
   private getSharp(pos: number, thickness = 1): number {
