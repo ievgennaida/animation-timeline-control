@@ -29,7 +29,7 @@
     }
   </style>
 
-  <script src="index.js" type="text/javascript"></script>
+  <script src="../lib/animation-timeline.js" type="text/javascript"></script>
 </head>
 
 <body>
@@ -41,12 +41,17 @@
   <div id="currentTime"></div>
   <div id="currentKeyframes"></div>
   <script type="text/javascript">
-    let lanes = [
+    let rows = [
       {
-        keyframesLaneSizePx: 1,
+        style: {
+          height: 1,
+          keyframesStyle: {
+            shape: "rect"
+          }
+        },
         selected: false,
         draggable: false,
-        keyframesShape: "rect",
+
         keyframes: [
           {
             val: 40,
@@ -138,14 +143,11 @@
       },
     ];
 
-    let timeline = animationTimeline.initialize(
-      {
-        id: "timeline"
-      });
+    let timeline = new timelineModule.Timeline({id:'timeline'})
 
-    timeline.setLanes(lanes);
+    timeline.setModel({ rows: rows });
 
-    timeline.on("timeChanged", function (object) {
+    timeline.on("timechanged", function (object) {
       document.getElementById("currentTime").innerHTML = object.val + "ms";
     });
 
@@ -153,9 +155,9 @@
       document.getElementById("currentKeyframes").innerHTML = `Keyframe value: ${object.keyframes[0].val}. Selected (${object.keyframes.length}). ${eventName}`;
     }
 
-    timeline.on("dragStarted", function (obj) { dragHandler(obj, 'dragStarted') });
+    timeline.on("dragstarted", function (obj) { dragHandler(obj, 'dragstarted') });
     timeline.on("drag", function (obj) { dragHandler(obj, 'drag') });
-    timeline.on("dragFinished", function (obj) { dragHandler(obj, 'dragFinished') });
+    timeline.on("dragfinished", function (obj) { dragHandler(obj, 'dragfinished') });
 
   </script>
 </body>
