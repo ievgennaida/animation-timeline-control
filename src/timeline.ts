@@ -307,7 +307,6 @@ export class Timeline extends TimelineEventsEmitter {
    */
   private handleMouseDownEvent = (args: MouseEvent): void => {
     const isDoubleClick = Date.now() - this.lastClickTime < this.consts.doubleClickTimeoutMs;
-    this.lastClickTime = Date.now();
 
     // Prevent drag of the canvas if canvas is selected as text:
     TimelineUtils.clearBrowserSelection();
@@ -316,10 +315,13 @@ export class Timeline extends TimelineEventsEmitter {
       x: this.scrollContainer.scrollLeft,
       y: this.scrollContainer.scrollTop,
     } as DOMPoint;
+
     if (isDoubleClick) {
       super.emit(TimelineEvents.DoubleClick, this.startPos);
       return;
     }
+
+    this.lastClickTime = Date.now();
 
     super.emit(TimelineEvents.MouseDown, this.startPos);
 
