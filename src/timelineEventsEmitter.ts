@@ -4,7 +4,7 @@ interface Event {
 }
 
 export class TimelineEventsEmitter {
-  private subscriptions: Array<Event> = [];
+  protected _subscriptions: Array<Event> = [];
 
   // on event.
   on(topic: string, callback: Function): void {
@@ -12,7 +12,7 @@ export class TimelineEventsEmitter {
       return;
     }
 
-    this.subscriptions.push({
+    this._subscriptions.push({
       topic: topic,
       callback: callback,
     });
@@ -21,7 +21,7 @@ export class TimelineEventsEmitter {
    * Remove an event from the subscriptions list.
    */
   off(topic: string, callback: Function): void {
-    this.subscriptions = this.subscriptions.filter((event) => {
+    this._subscriptions = this._subscriptions.filter((event) => {
       return event && event.callback != callback && event.topic != topic;
     });
   }
@@ -30,13 +30,13 @@ export class TimelineEventsEmitter {
    * Unsubscribe all
    */
   offAll(): void {
-    this.subscriptions.length = 0;
+    this._subscriptions.length = 0;
   }
 
   // emit event.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   emit(topic: string, args: any): void {
-    this.subscriptions.forEach((event) => {
+    this._subscriptions.forEach((event) => {
       if (event && event.topic == topic && event.callback) {
         event.callback(args);
       }

@@ -24,5 +24,5 @@ module.exports = {
     // eslint-disable-next-line no-undef
     path: path.resolve(__dirname, 'lib'),
   },
-  plugins:[new UnminifiedWebpackPlugin()]
+  plugins: [new UnminifiedWebpackPlugin()],
 };

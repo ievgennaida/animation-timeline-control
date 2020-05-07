@@ -58,6 +58,19 @@ import {
 timeline.initialize({ id: 'timeline' });
 ```
 
+### Build 
+
+run once to install development references:
+```bash
+  npm install
+```
+
+to pack JavaScript as a bundle:
+
+```bash
+  npm run build
+```
+
 ### Draw the outline tree
 
 Scroll events can be synchronized with the outline at the left side of the control.

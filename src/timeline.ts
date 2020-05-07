@@ -189,6 +189,36 @@ export class Timeline extends TimelineEventsEmitter {
     window.addEventListener('mouseup', this.handleMouseUpEvent, false);
     window.addEventListener('touchend', this.handleMouseUpEvent, false);
   }
+
+  public dispose(): void {
+    // Unsubscribe all events
+    this.offAll();
+    this.container = null;
+    this.canvas = null;
+    this.scrollContainer = null;
+    this.scrollContent = null;
+    this.ctx = null;
+    this.cleanUpSelection();
+
+    this.container.removeEventListener('wheel', this.handleWheelEvent);
+
+    if (this.scrollContainer) {
+      this.scrollContainer.removeEventListener('scroll', this.handleScrollEvent);
+    }
+
+    window.removeEventListener('blur', this.handleBlurEvent);
+    window.removeEventListener('resize', this.handleWindowResizeEvent);
+    document.removeEventListener('keydown', this.handleDocumentKeydownEvent);
+    this.canvas.removeEventListener('touchstart', this.handleMouseDownEvent);
+    this.canvas.removeEventListener('mousedown', this.handleMouseDownEvent);
+    window.removeEventListener('mousemove', this.handleMouseMoveEvent);
+    window.removeEventListener('touchmove', this.handleMouseMoveEvent);
+    window.removeEventListener('mouseup', this.handleMouseUpEvent);
+    window.removeEventListener('touchend', this.handleMouseUpEvent);
+    // Stop times
+    this.stopAutoPan();
+    this.clearScrollFinishedTimer();
+  }
   private handleBlurEvent = (): void => {
     this.cleanUpSelection();
   };
@@ -206,12 +236,14 @@ export class Timeline extends TimelineEventsEmitter {
     }
   };
 
-  private handleScrollEvent = (args: MouseEvent): void => {
+  private clearScrollFinishedTimer(): void {
     if (this.scrollFinishedTimerRef) {
       clearTimeout(this.scrollFinishedTimerRef);
       this.scrollFinishedTimerRef = null;
     }
-
+  }
+  private handleScrollEvent = (args: MouseEvent): void => {
+    this.clearScrollFinishedTimer();
     // Set a timeout to run event 'scrolling end'.
     this.scrollFinishedTimerRef = setTimeout(() => {
       if (!this.isPanStarted) {
@@ -1540,18 +1572,30 @@ export class Timeline extends TimelineEventsEmitter {
     } as MousePoint;
   }
 
-  private rescale(newWidth?: number, newHeight?: number, scrollMode?: string): void {
+  /**
+   * Apply container div size to the container.
+   */
+  private rescaleCanvas(): boolean {
+    let changed = false;
     const width = this.scrollContainer.clientWidth * this.pixelRatio;
     const height = this.scrollContainer.clientHeight * this.pixelRatio;
     if (Math.floor(width) != Math.floor(this.ctx.canvas.width)) {
       this.ctx.canvas.width = width;
+      changed = true;
     }
 
     if (Math.floor(height) != Math.floor(this.ctx.canvas.height)) {
       this.ctx.canvas.height = height;
+      changed = true;
     }
 
     this.ctx.setTransform(this.pixelRatio, 0, 0, this.pixelRatio, 0, 0);
+
+    return changed;
+  }
+
+  private rescale(newWidth?: number, newHeight?: number, scrollMode?: string): void {
+    this.rescaleCanvas();
     const data = this.calculateRowsBounds();
     if (data && data.area) {
       const additionalOffset = this.options.stepPx;
@@ -1592,7 +1636,7 @@ export class Timeline extends TimelineEventsEmitter {
   }
 
   /**
-   * Find clickable elements under the current position.
+   * Find clickable elements under the mouse position.
    */
   private getDraggable(pos: MousePoint): TimelineDraggableData {
     // few extra pixels to select items:

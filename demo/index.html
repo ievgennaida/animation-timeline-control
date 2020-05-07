@@ -67,18 +67,7 @@
       {
         //keyframesShape: "rect",
         drawKeyframes: true,
-        // Custom keyframes renderer:
-        renderKeyframes: function (ctx, pos, bounds, keyframe, lane) {
-          if (!bounds) {
-            return;
-          }
 
-          ctx.fillStyle = 'gray';
-          let size = 15;
-          ctx.beginPath();
-          ctx.rect(pos.x, pos.y - size / 2, 5, size);
-          ctx.fill();
-        },
         selected: false,
         hidden: false,
         keyframes: [
@@ -143,7 +132,7 @@
       },
     ];
 
-    let timeline = new timelineModule.Timeline({id:'timeline'})
+    let timeline = new timelineModule.Timeline({ id: 'timeline' })
 
     timeline.setModel({ rows: rows });
 
