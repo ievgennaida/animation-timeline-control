@@ -60,16 +60,12 @@ timeline.initialize({ id: 'timeline' });
 
 ### Draw the outline tree
 
-Use and synchronize scroll events to draw outline list/tree at the left side of the animation panel.
+Scroll events can be synchronized with the outline at the left side of the control.
 
-- Each element of the list should have the same height as animation lane.
+- Each element of the list should have the same height as animation row.
 - Hide the vertical scroll of the outline container.
 
 ```JavaScript
-  timeline.on("scroll", function (args) {
-	outlineScrollContainer.scrollTop = args.scrollTop;
-    outlineContent.height = args.scrollHeight;
-  });
 
 ```
 
@@ -79,36 +75,9 @@ Use and synchronize scroll events to draw outline list/tree at the left side of 
 
 Despite of the main options each keyframe or lane has own properties that can override main configuration:
 
-| Event name   | description                                                                                                                                            |
-| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| timeChanged  | time changed: { val: val, source: "user" or "setTime" }                                                                                                |
-| selected     | keyframe selected: keyframe                                                                                                                            |
-| scroll       | On scroll. Can be used to synchronize outline list with the current timeline container { args: args, scrollLeft, scrollTop, scrollHeight, scrollWidth } |
-| dragStarted  | emitted on drag started: { keyframes: [] }                                                                                                              |
-| drag         | emitted when dragging: { keyframes: [] }                                                                                                                |
-| dragFinished | emitted when drag finished: { keyframes: [] }                                                                                                           |
 
-### Description
+### Styling
 
-Despite of the main options each keyframe or lane has own properties that can override main configuration:
-
-| Lane property | description                   |
-| ------------- | ----------------------------- |
-| draggable     | whether lane draggable or not |
-| keyframes     | an array of the keyframes     |
-| hidden        | used to hide lane             |
-| name          | label to be displayed         |
-
-| Keyframe property | description                       |
-| ----------------- | --------------------------------- |
-| draggable         | whether keyframe draggable or not |
-| hidden            | used to hide lane                 |
-| val               | keyframe position                 |
-
-See the full list in the typescript definitions.
-
-Module is keeping the passed options as the read-only references.
-You can pass additional metadata for the keyframes to identify them when events are emitted.
 
 ### Initialization
 

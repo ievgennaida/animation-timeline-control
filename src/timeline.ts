@@ -1012,7 +1012,7 @@ export class Timeline extends TimelineEventsEmitter {
           return;
         }
 
-        // Get min and max ms to draw keyframe lane:
+        // Get min and max ms to draw keyframe rows:
         if (row && row.keyframes) {
           row.keyframes.forEach((keyframe) => {
             const val = keyframe.val;
@@ -1129,27 +1129,27 @@ export class Timeline extends TimelineEventsEmitter {
    * @param rowY row screen coords y position
    */
   private getKeyframesStripeSize(row: TimelineRow, rowY: number, minValue: number, maxValue: number): DOMRect {
-    let keyframeLaneHeight: number | string = TimelineStyleUtils.rowStripeHeight(row, this.options.rowsStyle);
+    let stripeHeight: number | string = TimelineStyleUtils.rowStripeHeight(row, this.options.rowsStyle);
 
     const height = TimelineStyleUtils.getRowHeight(row, this.options.rowsStyle);
-    if ((!keyframeLaneHeight && keyframeLaneHeight !== 0) || isNaN(keyframeLaneHeight as number) || keyframeLaneHeight == 'auto') {
-      keyframeLaneHeight = Math.floor(height * 0.8);
+    if ((!stripeHeight && stripeHeight !== 0) || isNaN(stripeHeight as number) || stripeHeight == 'auto') {
+      stripeHeight = Math.floor(height * 0.8);
     }
 
-    if (keyframeLaneHeight > height) {
-      keyframeLaneHeight = height;
+    if (stripeHeight > height) {
+      stripeHeight = height;
     }
 
-    const margin = height - (keyframeLaneHeight as number);
+    const margin = height - (stripeHeight as number);
 
-    // draw keyframes lane.
+    // draw keyframes rows.
     const xMin = this.valToPx(minValue);
     const xMax = this.valToPx(maxValue);
 
     return {
       x: xMin,
       y: rowY + Math.floor(margin / 2),
-      height: keyframeLaneHeight,
+      height: stripeHeight,
       width: TimelineUtils.getDistance(xMin, xMax),
     } as DOMRect;
   }
