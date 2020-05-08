@@ -4,13 +4,19 @@ import { TimelineElementType } from '..';
 export interface TimelineDraggableData {
   changed: boolean;
   /**
-   * Drag click target
+   * Drag initial click target.
    */
   target: TimelineClickableElement;
+  /**
+   * Elements to be dragged.
+   */
   elements: Array<TimelineClickableElement>;
+  /**
+   * Dragging type.
+   */
   type: TimelineElementType;
   /**
-   * Current drag data.
+   * current drag position with the offset.
    */
   val: number;
 }

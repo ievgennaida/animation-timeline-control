@@ -141,12 +141,14 @@
     });
 
     let dragHandler = function (object, eventName) {
-      document.getElementById("currentKeyframes").innerHTML = `Keyframe value: ${object.keyframes[0].val}. Selected (${object.keyframes.length}). ${eventName}`;
+      if (object.elements) {
+        document.getElementById("currentKeyframes").innerHTML = `Keyframe value: ${object.elements[0].val}. Selected (${object.elements.length}). ${eventName}`;
+      }
     }
 
-    timeline.on("dragstarted", function (obj) { dragHandler(obj, 'dragstarted') });
-    timeline.on("drag", function (obj) { dragHandler(obj, 'drag') });
-    timeline.on("dragfinished", function (obj) { dragHandler(obj, 'dragfinished') });
+    timeline.onDragStarted(function (obj) { dragHandler(obj, 'dragstarted') });
+    timeline.onDrag(function (obj) { dragHandler(obj, 'drag') });
+    timeline.onDragFinished(function (obj) { dragHandler(obj, 'dragfinished') });
 
   </script>
 </body>

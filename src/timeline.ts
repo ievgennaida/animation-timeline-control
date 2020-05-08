@@ -19,6 +19,7 @@ import { TimelineScrollEvent } from './utils/events/timelineScrollEvent';
 import { TimelineSelectedEvent } from './utils/events/timelineSelectedEvent';
 import { TimelineDraggableData } from './utils/timelineDraggableData';
 import { TimelineClickEvent } from './utils/events/timelineClickEvent';
+import { TimelineDragEvent } from './utils/events/timelineDragEvent';
 
 interface MousePoint extends DOMPoint {
   radius: number;
@@ -365,7 +366,7 @@ export class Timeline extends TimelineEventsEmitter {
         if (!target.keyframe.selected && !this.controlKeyPressed(args) && !args.shiftKey) {
           this.performSelection(true, target.keyframe);
         }
-
+        // Allow to drag all selected keyframes on a screen
         this.drag.elements = this.getSelectedElements();
       } else if (target.type === TimelineElementType.Stripe) {
         const keyframes = this.drag.target.row.keyframes;
@@ -375,6 +376,8 @@ export class Timeline extends TimelineEventsEmitter {
                 return this.convertToElement(this.drag.target.row, keyframe) as TimelineClickableElement;
               })
             : [];
+      } else {
+        this.drag.elements = [this.drag.target];
       }
     }
 
@@ -1546,28 +1549,63 @@ export class Timeline extends TimelineEventsEmitter {
   }
 
   private emitKeyframesSelected(selectedKeyframes: Array<TimelineKeyframe>): void {
+    // TODO: refine, add changed
     this.emit(TimelineEvents.Selected, {
       keyframes: selectedKeyframes,
     } as TimelineSelectedEvent);
   }
-  private emitDragStartedEvent(): void {
-    this.emit(TimelineEvents.DragStarted, {
-      keyframes: this.drag.elements,
-    });
+  /**
+   * Subscribe on drag started event.
+   */
+  public onDragStarted(callback: (dragEvent: TimelineDragEvent) => void): void {
+    this.on(TimelineEvents.DragStarted, callback);
   }
-  private emitDragFinishedEvent(): void {
+  /**
+   * Subscribe on drag event.
+   */
+  public onDrag(callback: (dragEvent: TimelineDragEvent) => void): void {
+    this.on(TimelineEvents.Drag, callback);
+  }
+  /**
+   * Subscribe on drag finished event.
+   */
+  public onDragFinished(callback: (dragEvent: TimelineDragEvent) => void): void {
+    this.on(TimelineEvents.DragFinished, callback);
+  }
+  private emitDragStartedEvent(): TimelineDragEvent {
+    const args = this.getDragEventArgs();
+    this.emit(TimelineEvents.DragStarted, args);
+    return args;
+  }
+  private emitDragFinishedEvent(): TimelineDragEvent {
     if (this.drag && this.drag.changed) {
-      this.emit(TimelineEvents.DragFinished, {
-        keyframes: this.drag.elements,
-      });
+      const args = this.getDragEventArgs();
+      this.emit(TimelineEvents.DragFinished, args);
+      return args;
     }
   }
-  private emitDragEvent(): void {
+  private emitDragEvent(): TimelineDragEvent {
     if (this.drag) {
+      const args = this.getDragEventArgs();
       this.emit(TimelineEvents.Drag, {
         keyframes: this.drag.elements,
       });
+
+      return args;
     }
+
+    return null;
+  }
+  private getDragEventArgs(): TimelineDragEvent {
+    const draggableArguments = new TimelineDragEvent();
+    if (this.drag) {
+      draggableArguments.val = this.currentPos.val;
+      draggableArguments.pos = this.currentPos;
+      draggableArguments.elements = this.drag.elements;
+      draggableArguments.target = this.drag.target;
+    }
+
+    return draggableArguments;
   }
   public setScrollLeft(value: number): void {
     if (this.scrollContainer) {
