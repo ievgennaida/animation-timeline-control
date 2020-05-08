@@ -1729,7 +1729,7 @@ export class Timeline extends TimelineEventsEmitter {
    * @param Array
    * @param val current mouse value
    */
-  _findDraggable(elements: Array<TimelineClickableElement>, val: number): TimelineClickableElement {
+  _findDraggable(elements: Array<TimelineClickableElement>, val: number | null = null): TimelineClickableElement {
     // filter and sort: Timeline, individual keyframes, stripes (distance).
     const getPriority = (type: TimelineElementType): number => {
       if (type === TimelineElementType.Timeline) {
@@ -1743,15 +1743,19 @@ export class Timeline extends TimelineEventsEmitter {
     };
     const filteredElements = elements.filter((element) => {
       if (element.type === TimelineElementType.Keyframe) {
-        const draggable =
-          (this._options.keyframesDraggable === undefined ? true : !!this._options.keyframesDraggable) && (element.keyframe.draggable === undefined ? true : !!element.keyframe.draggable);
+        let draggable = true;
+        if (this._options) {
+          draggable = (this._options.keyframesDraggable === undefined ? true : !!this._options.keyframesDraggable) && (element.keyframe.draggable === undefined ? true : !!element.keyframe.draggable);
+        }
 
         if (!draggable) {
           return false;
         }
       } else if (element.type === TimelineElementType.Stripe) {
-        const draggable =
-          (this._options.stripesDraggable === undefined ? true : !!this._options.stripesDraggable) && (element.row.stripeDraggable === undefined ? true : !!element.row.stripeDraggable);
+        let draggable = true;
+        if (this._options) {
+          draggable = (this._options.stripesDraggable === undefined ? true : !!this._options.stripesDraggable) && (element.row.stripeDraggable === undefined ? true : !!element.row.stripeDraggable);
+        }
         if (!draggable) {
           return false;
         }
@@ -1765,6 +1769,9 @@ export class Timeline extends TimelineEventsEmitter {
       const prioA = getPriority(a.type);
       const prioB = getPriority(b.type);
       if (prioA == prioB) {
+        if (val === null) {
+          return 0;
+        }
         return TimelineUtils.getDistance(a.val, val) > TimelineUtils.getDistance(b.val, val) ? 1 : 0;
       }
 
