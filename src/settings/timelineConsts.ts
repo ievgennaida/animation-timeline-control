@@ -23,4 +23,8 @@ export class TimelineConsts {
    * Auto pan padding
    */
   autoPanByScrollPadding = 10;
+  /**
+   * Click threshold
+   */
+  clickThreshold = 3;
 }

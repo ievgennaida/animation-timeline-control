@@ -73,6 +73,7 @@ export class Timeline extends TimelineEventsEmitter {
   private clickTimeout? = 0;
   private lastClickTime = 0;
   private consts = new TimelineConsts();
+  private clickAllowed = false;
   /**
    * scroll finished timer reference.
    */
@@ -321,7 +322,7 @@ export class Timeline extends TimelineEventsEmitter {
       x: this.scrollContainer.scrollLeft,
       y: this.scrollContainer.scrollTop,
     } as DOMPoint;
-
+    this.clickAllowed = true;
     const elements = this.elementFromPoint(this.startPos, Math.max(2, this.startPos.radius));
     const target = this.findDraggable(elements, this.startPos.val);
     const event = new TimelineClickEvent();
@@ -494,12 +495,7 @@ export class Timeline extends TimelineEventsEmitter {
       const pos = this.trackMousePos(this.canvas, args);
 
       // Click detection.
-      if (
-        (this.selectionRect && this.selectionRect.height <= 2 && this.selectionRect.width <= 2) ||
-        !this.clickTimeoutIsOver() ||
-        (this.drag && this.startedDragWithCtrl) ||
-        (this.drag && this.startedDragWithShiftKey)
-      ) {
+      if (this.clickAllowed || !this.clickTimeoutIsOver() || (this.drag && this.startedDragWithCtrl) || (this.drag && this.startedDragWithShiftKey)) {
         this.performClick(pos, args, this.drag);
       } else if (!this.drag && this.selectionRect && this.selectionRectEnabled) {
         this.performSelection(true, this.selectionRect, args.shiftKey);
@@ -703,6 +699,10 @@ export class Timeline extends TimelineEventsEmitter {
       this.selectionRect.y = Math.min(y, pos.y);
       this.selectionRect.width = Math.max(x, pos.x) - this.selectionRect.x;
       this.selectionRect.height = Math.max(y, pos.y) - this.selectionRect.y;
+      // Once mouse was moved outside of the bounds it's not a click anymore
+      if (this.clickAllowed) {
+        this.clickAllowed = this.selectionRect.height <= this.consts.clickThreshold && this.selectionRect.width <= this.consts.clickThreshold;
+      }
     }
 
     return pos;
@@ -718,6 +718,7 @@ export class Timeline extends TimelineEventsEmitter {
     this.clickTimeout = null;
     this.scrollStartPos = null;
     this.isPanStarted = false;
+    this.clickAllowed = false;
     this.stopAutoPan();
   }
 
