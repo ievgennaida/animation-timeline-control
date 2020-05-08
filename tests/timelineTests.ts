@@ -1,4 +1,4 @@
-import { Timeline, TimelineElementType, TimelineClickableElement } from '../lib/animation-timeline.js';
+import { Timeline, TimelineElementType, TimelineClickableElement } from '../lib/animation-timeline';
 
 describe('Timeline ', function () {
   it('closest keyframe should be returned', function () {

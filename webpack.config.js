@@ -5,7 +5,7 @@ const UnminifiedWebpackPlugin = require('unminified-webpack-plugin');
 //  devtool: 'inline-source-map',
 module.exports = {
   entry: {
-    'animation-timeline': './lib/animation-timeline.ts',
+    'animation-timeline': './src/animation-timeline.ts',
   },
   module: {
     rules: [

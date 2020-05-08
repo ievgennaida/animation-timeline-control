@@ -27,8 +27,8 @@
   },
   "scripts": {
     "test": "echo \"Run tests/unittest.html explicitly to execute tests\" && exit 1",
-    "build": "webpack",
-    "webpack": "webpack",
+    "build": "webpack && tsc -emitDeclarationOnly",
+    "webpack": "npm run build",
     "build-tests": "tsc -p tsconfig.tests.json"
   },
   "repository": {

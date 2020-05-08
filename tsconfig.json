@@ -1,14 +1,16 @@
 {
   "compilerOptions": {
-    "outDir": "./lib/",
+    "outDir": "./lib",
+    "rootDir": "./src",
     "noImplicitAny": true,
     "module": "commonjs",
     "lib": ["es2015", "dom"],
     "target": "es5",
-    "allowJs": true,
+    "allowJs": false,
     "sourceMap": true,
     "strict": false,
     "declaration": true
   },
-  "exclude": ["node_modules", "lib", "dist", "tests", "*.json"]
+  "include": ["src"],
+  "exclude": ["node_modules", "lib", "dist", "tests", "*.json", "*.js", "webpack.config.js"]
 }
