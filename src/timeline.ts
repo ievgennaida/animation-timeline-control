@@ -795,10 +795,12 @@ export class Timeline extends TimelineEventsEmitter {
     let isChanged = false;
     let speedX = 0;
     let speedY = 0;
-    const isLeft = x <= 0;
-    const isRight = x >= this.canvas.clientWidth;
-    const isTop = y <= 0;
-    const isBottom = y >= this.canvas.clientHeight;
+    // Small offset to start auto pan earlier.
+    const bounds = this.consts.autoPanByScrollPadding;
+    const isLeft = x <= bounds;
+    const isRight = x >= this.canvas.clientWidth - bounds;
+    const isTop = y <= bounds;
+    const isBottom = y >= this.canvas.clientHeight - bounds;
     let newWidth = null;
     let newHeight = null;
     if (isLeft || isRight || isTop || isBottom) {
@@ -812,19 +814,19 @@ export class Timeline extends TimelineEventsEmitter {
       const scrollSpeedMultiplier = isNaN(this.consts.scrollByDragSpeed) ? 1 : this.consts.scrollByDragSpeed;
       if (isLeft) {
         // Get normalized speed.
-        speedX = -TimelineUtils.getDistance(x, 0) * scrollSpeedMultiplier;
+        speedX = -TimelineUtils.getDistance(x, bounds) * scrollSpeedMultiplier;
       } else if (isRight) {
         // Get normalized speed:
-        speedX = TimelineUtils.getDistance(x, this.canvas.clientWidth) * scrollSpeedMultiplier;
+        speedX = TimelineUtils.getDistance(x, this.canvas.clientWidth - bounds) * scrollSpeedMultiplier;
         newWidth = this.scrollContainer.scrollLeft + this.canvas.clientWidth + speedX;
       }
 
       if (isTop) {
         // Get normalized speed.
-        speedY = (-TimelineUtils.getDistance(x, 0) * scrollSpeedMultiplier) / 4;
+        speedY = (-TimelineUtils.getDistance(x, bounds) * scrollSpeedMultiplier) / 4;
       } else if (isBottom) {
         // Get normalized speed:
-        speedY = (TimelineUtils.getDistance(x, this.canvas.clientHeight) * scrollSpeedMultiplier) / 4;
+        speedY = (TimelineUtils.getDistance(x, this.canvas.clientHeight - bounds) * scrollSpeedMultiplier) / 4;
         newHeight = this.scrollContainer.scrollTop + this.canvas.clientHeight;
       }
     } else {

@@ -19,4 +19,8 @@ export class TimelineConsts {
    * Time in ms used to refresh scrollbars when pan is finished.
    */
   scrollFinishedTimeoutMs = 500;
+  /**
+   * Auto pan padding
+   */
+  autoPanByScrollPadding = 10;
 }
