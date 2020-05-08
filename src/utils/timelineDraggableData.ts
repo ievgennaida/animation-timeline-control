@@ -1,5 +1,5 @@
 import { TimelineClickableElement } from './timelineClickableElement';
-import { TimelineElementType } from '..';
+import { TimelineElementType } from '../enums/timelineElementType';
 
 export interface TimelineDraggableData {
   changed: boolean;

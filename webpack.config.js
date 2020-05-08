@@ -1,10 +1,12 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 const path = require('path');
-let UnminifiedWebpackPlugin = require('unminified-webpack-plugin');
+const UnminifiedWebpackPlugin = require('unminified-webpack-plugin');
 
 //  devtool: 'inline-source-map',
 module.exports = {
-  entry: './src/index.ts',
+  entry: {
+    'animation-timeline': './lib/animation-timeline.ts',
+  },
   module: {
     rules: [
       {
@@ -18,7 +20,7 @@ module.exports = {
     extensions: ['.tsx', '.ts'],
   },
   output: {
-    filename: 'animation-timeline.min.js',
+    filename: '[name].min.js',
     libraryTarget: 'umd',
     library: 'timelineModule',
     // eslint-disable-next-line no-undef

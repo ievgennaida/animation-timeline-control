@@ -58,19 +58,6 @@ import {
 timeline.initialize({ id: 'timeline' });
 ```
 
-### Build 
-
-run once to install development references:
-```bash
-  npm install
-```
-
-to pack JavaScript as a bundle:
-
-```bash
-  npm run build
-```
-
 ### Draw the outline tree
 
 Scroll events can be synchronized with the outline at the left side of the control.
@@ -109,6 +96,30 @@ Default options:
 ## < 2.0
 
 Vanilla js implementation. 
+
+## Development 
+### Build 
+
+run once to install development references:
+```bash
+  npm install
+```
+
+to pack JavaScript as a bundle:
+
+```bash
+  npm run build
+```
+
+### Build tests:
+
+To build TypeScript unittests command should be executed: 
+```bash
+  npm run build-tests
+```
+
+Tests execution can be started by opening tests/unittests.html. 
+External mocha libs are used so internet is required.
 
 ## License
 

@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "module": "CommonJS",
+    "outDir": "./tests",
+    "lib": ["es2015", "dom"],
+    "target": "es5",
+    "allowJs": false,
+    "sourceMap": true,
+    "strict": false,
+    "declaration": false
+  },
+  "include": [
+    "./tests/*"
+],
+  "exclude": ["node_modules", "lib", "tests/js", "src", "src/*", "dist", "*.json", "*.js"]
+}

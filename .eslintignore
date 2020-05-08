@@ -1,1 +1,9 @@
-*.js
+lib/*.js
+tests/js/*.js
+tests/js/src
+tests/src
+./tests/js/*.js
+./tests/js/src
+./tests/src
+./tests/tests/
+tests/tests/

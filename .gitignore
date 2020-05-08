@@ -1,2 +1,4 @@
 /node_modules/*
 .bak
+tests/js/src
+tests/src

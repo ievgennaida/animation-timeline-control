@@ -1,4 +1,4 @@
-import { TimelineRow } from '..';
+import { TimelineRow } from '../timelineRow';
 
 export interface RowsCalculationsResults {
   /**

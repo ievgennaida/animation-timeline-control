@@ -1,6 +1,6 @@
 {
   "name": "animation-timeline-js",
-  "version": "2.0.4",
+  "version": "2.0.5",
   "description": "animation timeline control based on the canvas.",
   "main": "lib/animation-timeline.min.js",
   "types": "src/index.ts",
@@ -11,6 +11,7 @@
     "@babel/plugin-proposal-class-properties": "^7.8.3",
     "@babel/preset-env": "^7.8.3",
     "@babel/preset-typescript": "^7.8.3",
+    "@types/mocha": "^7.0.2",
     "@typescript-eslint/eslint-plugin": "^2.31.0",
     "@typescript-eslint/parser": "^2.31.0",
     "babel-loader": "^8.1.0",
@@ -25,9 +26,10 @@
     "webpack-cli": "^3.3.11"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "echo \"Run tests/unittest.html explicitly to execute tests\" && exit 1",
     "build": "webpack",
-    "webpack": "webpack"
+    "webpack": "webpack",
+    "build-tests": "tsc -p tsconfig.tests.json"
   },
   "repository": {
     "type": "git",
