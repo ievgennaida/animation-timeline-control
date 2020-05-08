@@ -4,7 +4,9 @@
         "NWSE",
         "Unminified",
         "Unsubsribe",
+        "browserslist",
         "consts",
+        "corejs",
         "devtool",
         "doubleclick",
         "downlevel",
@@ -16,6 +18,7 @@
         "prio",
         "sourcemap",
         "timechanged",
-        "tslib"
+        "tslib",
+        "unittests"
     ]
 }
