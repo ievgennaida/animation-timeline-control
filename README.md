@@ -48,17 +48,16 @@ Features:
 
 ```TypeScript
 import {
-  default as timeline,
   TimelineOptions,
-  Timeline,
-  AnimationTimelineLane,
-  ScrollEventArgs
+  Timeline
 } from "animation-timeline-js";
 
-timeline.initialize({ id: 'timeline' });
+  const options = new TimelineOptions();
+  options.id = 'timeline';
+  new Timeline(options);
 ```
 
-### Draw the outline tree
+### Draw outline tree
 
 Scroll events can be synchronized with the outline at the left side of the control.
 
@@ -69,7 +68,7 @@ Scroll events can be synchronized with the outline at the left side of the contr
 
 ```
 
-## Data structure
+## Model
 
 ### Events
 
@@ -111,13 +110,13 @@ to pack JavaScript as a bundle:
   npm run build
 ```
 
-### Build tests:
-
+### Build Tests
 To build TypeScript unittests command should be executed: 
 ```bash
   npm run build-tests
 ```
 
+### Run Tests
 Tests execution can be started by opening tests/unittests.html. 
 External mocha libs are used so internet is required.
 
