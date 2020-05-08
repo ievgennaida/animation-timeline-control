@@ -1274,7 +1274,7 @@ export class Timeline extends TimelineEventsEmitter {
     }
 
     // get center of the lane:
-    const y = rowSize.y + rowSize.height / 2 - this._scrollContainer.scrollTop;
+    const y = rowSize.y + rowSize.height / 2;
 
     // TODO: keyframe size:
     let size = 1; //this._options.keyframeSizePx || keyframe.size;
