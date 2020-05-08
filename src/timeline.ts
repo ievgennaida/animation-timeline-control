@@ -72,6 +72,7 @@ export class Timeline extends TimelineEventsEmitter {
 
   private clickTimeout? = 0;
   private lastClickTime = 0;
+  private lastClickPoint: DOMPoint | null = null;
   private consts = new TimelineConsts();
   private clickAllowed = false;
   /**
@@ -310,14 +311,23 @@ export class Timeline extends TimelineEventsEmitter {
    * @param args
    */
   private handleMouseDownEvent = (args: MouseEvent): void => {
-    const isDoubleClick = Date.now() - this.lastClickTime < this.consts.doubleClickTimeoutMs;
+    let isDoubleClick = Date.now() - this.lastClickTime < this.consts.doubleClickTimeoutMs;
 
     // Prevent drag of the canvas if canvas is selected as text:
     TimelineUtils.clearBrowserSelection();
+
     this.startPos = this.trackMousePos(this.canvas, args);
+
     if (!this.startPos) {
       return;
     }
+
+    // Don't allow to perform double click if mouse was moved to far.
+    if (this.lastClickPoint && this.startPos && TimelineUtils.getDistance(this.lastClickPoint.x, this.lastClickPoint.y, this.startPos.x, this.startPos.y) > this.consts.clickThreshold) {
+      isDoubleClick = false;
+    }
+
+    this.lastClickPoint = this.startPos;
     this.scrollStartPos = {
       x: this.scrollContainer.scrollLeft,
       y: this.scrollContainer.scrollTop,

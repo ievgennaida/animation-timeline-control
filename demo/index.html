@@ -149,7 +149,7 @@
     timeline.onDragStarted(function (obj) { dragHandler(obj, 'dragstarted') });
     timeline.onDrag(function (obj) { dragHandler(obj, 'drag') });
     timeline.onDragFinished(function (obj) { dragHandler(obj, 'dragfinished') });
-
+    timeline.on('doubleclick',function (obj) { alert(obj.val); });
   </script>
 </body>
 
