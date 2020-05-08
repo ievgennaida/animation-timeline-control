@@ -129,7 +129,11 @@
             val: 100
           }
         ]
-      },
+      }, {
+        rowsStyle: {
+          height: 40
+        }
+      }, {}, {}, {}, {}, {}, {}, {}, {}
     ];
 
     let timeline = new timelineModule.Timeline({ id: 'timeline' })
@@ -142,14 +146,14 @@
 
     let dragHandler = function (object, eventName) {
       if (object.elements) {
-        document.getElementById("currentKeyframes").innerHTML = `Keyframe value: ${object.elements[0].val}. Selected (${object.elements.length}). ${eventName}`;
+        document.getElementById("currentKeyframes").innerHTML = 'Keyframe value: ' + object.elements[0].val + '. Selected (' + object.elements.length + ').' + eventName;
       }
     }
 
     timeline.onDragStarted(function (obj) { dragHandler(obj, 'dragstarted') });
     timeline.onDrag(function (obj) { dragHandler(obj, 'drag') });
     timeline.onDragFinished(function (obj) { dragHandler(obj, 'dragfinished') });
-    timeline.on('doubleclick',function (obj) { alert(obj.val); });
+    timeline.on('doubleclick', function (obj) { alert(obj.val); });
   </script>
 </body>
 
