@@ -1766,16 +1766,23 @@ export class Timeline extends TimelineEventsEmitter {
     });
 
     const sorted = filteredElements.sort((a, b): number => {
-      const prioA = getPriority(a.type);
-      const prioB = getPriority(b.type);
-      if (prioA == prioB) {
+      let prioA = getPriority(a.type);
+      let prioB = getPriority(b.type);
+      if (prioA === prioB) {
         if (val === null) {
           return 0;
         }
-        return TimelineUtils.getDistance(a.val, val) > TimelineUtils.getDistance(b.val, val) ? 1 : 0;
+
+        // Sort by distance
+        prioA = TimelineUtils.getDistance(a.val, val);
+        prioB = TimelineUtils.getDistance(b.val, val);
+        if (prioA === prioB) {
+          return 0;
+        }
+        return prioA < prioB ? 1 : -1;
       }
 
-      return prioA > prioB ? 1 : 0;
+      return prioA < prioB ? 1 : -1;
     });
     if (sorted.length > 0) {
       return sorted[sorted.length - 1];

@@ -1,6 +1,6 @@
 {
   "name": "animation-timeline-js",
-  "version": "2.0.5",
+  "version": "2.0.6",
   "description": "animation timeline control based on the canvas.",
   "main": "lib/animation-timeline.min.js",
   "types": "lib/animation-timeline.d.ts",
@@ -28,7 +28,7 @@
   "scripts": {
     "test": "echo \"Run tests/unittest.html explicitly to execute tests\" && exit 1",
     "build-typescript-definitions": "tsc -emitDeclarationOnly",
-    "build": "webpack && npm run build-typescript-definitions",
+    "build": "webpack && npm run build-typescript-definitions && npm run build-tests",
     "webpack": "npm run build",
     "build-tests": "tsc -p tsconfig.tests.json"
   },

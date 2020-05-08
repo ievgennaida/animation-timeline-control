@@ -14,10 +14,10 @@ export interface TimelineClickableElement {
   /**
    * Related keyframe model. In a case of stripe this value will be empty.
    */
-  keyframe: TimelineKeyframe;
+  keyframe?: TimelineKeyframe;
 
   /**
    * Related row model.
    */
-  row: TimelineRow;
+  row?: TimelineRow;
 }
