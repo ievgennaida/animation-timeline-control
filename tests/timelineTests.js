@@ -1,20 +1,20 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var animation_timeline_js_1 = require("../lib/animation-timeline.js");
+var animation_timeline_1 = require("../lib/animation-timeline");
 describe('Timeline ', function () {
     it('closest keyframe should be returned', function () {
-        var timeline = new animation_timeline_js_1.Timeline();
+        var timeline = new animation_timeline_1.Timeline();
         var elements = [
             {
-                type: animation_timeline_js_1.TimelineElementType.Keyframe,
+                type: animation_timeline_1.TimelineElementType.Keyframe,
                 val: 0,
             },
             {
-                type: animation_timeline_js_1.TimelineElementType.Keyframe,
+                type: animation_timeline_1.TimelineElementType.Keyframe,
                 val: 4,
             },
             {
-                type: animation_timeline_js_1.TimelineElementType.Keyframe,
+                type: animation_timeline_1.TimelineElementType.Keyframe,
                 val: 9,
             },
         ];

@@ -3,7 +3,7 @@
   "version": "2.0.5",
   "description": "animation timeline control based on the canvas.",
   "main": "lib/animation-timeline.min.js",
-  "types": "src/index.ts",
+  "types": "lib/animation-timeline.d.ts",
   "dependencies": {},
   "devDependencies": {
     "@babel/cli": "^7.8.3",
@@ -27,7 +27,8 @@
   },
   "scripts": {
     "test": "echo \"Run tests/unittest.html explicitly to execute tests\" && exit 1",
-    "build": "webpack && tsc -emitDeclarationOnly",
+    "build-typescript-definitions": "tsc -emitDeclarationOnly",
+    "build": "webpack && npm run build-typescript-definitions",
     "webpack": "npm run build",
     "build-tests": "tsc -p tsconfig.tests.json"
   },
