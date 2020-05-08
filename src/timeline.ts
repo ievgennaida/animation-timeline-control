@@ -33,73 +33,84 @@ export class Timeline extends TimelineEventsEmitter {
   /**
    * component container.
    */
-  protected _container: HTMLElement = null;
+  _container: HTMLElement = null;
   /**
    * Dynamically generated event.
    */
-  protected _canvas: HTMLCanvasElement = null;
+  _canvas: HTMLCanvasElement = null;
   /**
    * Dynamically generated scroll container.
    */
-  protected _scrollContainer: HTMLElement = null;
+  _scrollContainer: HTMLElement = null;
   /**
    * Dynamically generated virtual scroll content.
    */
-  protected _scrollContent: HTMLElement = null;
+  _scrollContent: HTMLElement = null;
   /**
    * Rendering context
    */
-  protected _ctx: CanvasRenderingContext2D = null;
+  _ctx: CanvasRenderingContext2D = null;
   /**
    * Components settings
    */
-  protected _options: TimelineOptions = null;
+  _options: TimelineOptions = null;
   /**
    * Drag start position.
    */
-  protected _startPos: MouseData = null;
+  _startPos: MouseData = null;
   /**
    * Drag scroll started position.
    */
-  protected _scrollStartPos: DOMPoint | null = { x: 0, y: 0 } as DOMPoint;
-  protected _currentPos: MouseData = null;
+  _scrollStartPos: DOMPoint | null = { x: 0, y: 0 } as DOMPoint;
+  _currentPos: MouseData = null;
 
-  protected _selectionRect: DOMRect = null;
-  protected _selectionRectEnabled = false;
-  protected _drag: TimelineDraggableData | null = null;
-  protected _startedDragWithCtrl = false;
-  protected _startedDragWithShiftKey = false;
+  _selectionRect: DOMRect = null;
+  _selectionRectEnabled = false;
+  _drag: TimelineDraggableData | null = null;
+  _startedDragWithCtrl = false;
+  _startedDragWithShiftKey = false;
 
-  protected _clickTimeout? = 0;
-  protected _lastClickTime = 0;
-  protected _lastClickPoint: DOMPoint | null = null;
-  protected _consts = new TimelineConsts();
-  protected _clickAllowed = false;
+  _clickTimeout? = 0;
+  _lastClickTime = 0;
+  _lastClickPoint: DOMPoint | null = null;
+  _consts = new TimelineConsts();
+  _clickAllowed = false;
   /**
    * scroll finished timer reference.
    */
-  protected _scrollFinishedTimerRef?: number = null;
-  protected _selectedKeyframes: Array<TimelineKeyframe> = [];
-  protected _val = 0;
+  _scrollFinishedTimerRef?: number = null;
+  _selectedKeyframes: Array<TimelineKeyframe> = [];
+  _val = 0;
   /**
    * TODO: should be tested on retina.
    */
-  protected _pixelRatio = 1;
-  protected _currentZoom = 0;
-  protected _intervalRef?: number = null;
-  protected _autoPanLastActionDate = 0;
-  protected _isPanStarted = false;
-  protected _interactionMode = TimelineInteractionMode.Selection;
-  protected _lastUsedArgs: MouseEvent | TouchEvent = null;
-  protected _model: TimelineModel;
+  _pixelRatio = 1;
+  _currentZoom = 0;
+  _intervalRef?: number = null;
+  _autoPanLastActionDate = 0;
+  _isPanStarted = false;
+  _interactionMode = TimelineInteractionMode.Selection;
+  _lastUsedArgs: MouseEvent | TouchEvent = null;
+  _model: TimelineModel;
+  /**
+   * Create Timeline instance
+   * @param options Timeline settings.
+   * @param model Timeline model.
+   */
+  constructor(options: TimelineOptions | null = null, model: TimelineModel | null = null) {
+    super();
+    // Allow to create instance without an error to perform tests.
+    if (options || model) {
+      this.initialize(options, model);
+    }
+  }
+
   /**
    * Initialize Timeline
    * @param options Timeline settings.
    * @param model Timeline model.
    */
-  constructor(options: TimelineOptions, model: TimelineModel | null = null) {
-    super();
-
+  public initialize(options: TimelineOptions | null, model: TimelineModel | null): void {
     this._model = model;
     if (!options || !options.id) {
       throw new Error(`Element cannot be empty. Should be string or DOM element.`);
@@ -179,7 +190,7 @@ export class Timeline extends TimelineEventsEmitter {
   /**
    * Subscribe current component on the related events.
    */
-  protected _subscribeOnEvents(): void {
+  _subscribeOnEvents(): void {
     this._container.addEventListener('wheel', this._handleWheelEvent);
 
     if (this._scrollContainer) {
@@ -226,15 +237,15 @@ export class Timeline extends TimelineEventsEmitter {
     this._stopAutoPan();
     this._clearScrollFinishedTimer();
   }
-  protected _handleBlurEvent = (): void => {
+  _handleBlurEvent = (): void => {
     this._cleanUpSelection();
   };
-  protected _handleWindowResizeEvent = (): void => {
+  _handleWindowResizeEvent = (): void => {
     // Rescale and redraw
     this.rescale();
     this.redraw();
   };
-  protected _handleDocumentKeydownEvent = (args: KeyboardEvent): boolean => {
+  _handleDocumentKeydownEvent = (args: KeyboardEvent): boolean => {
     // ctrl + a. Select all keyframes
     if (args.which === 65 && this._controlKeyPressed(args)) {
       this._performSelection(true);
@@ -243,13 +254,13 @@ export class Timeline extends TimelineEventsEmitter {
     }
   };
 
-  protected _clearScrollFinishedTimer(): void {
+  _clearScrollFinishedTimer(): void {
     if (this._scrollFinishedTimerRef) {
       clearTimeout(this._scrollFinishedTimerRef);
       this._scrollFinishedTimerRef = null;
     }
   }
-  protected _handleScrollEvent = (args: MouseEvent): void => {
+  _handleScrollEvent = (args: MouseEvent): void => {
     this._clearScrollFinishedTimer();
     // Set a timeout to run event 'scrolling end'.
     this._scrollFinishedTimerRef = setTimeout(() => {
@@ -272,10 +283,10 @@ export class Timeline extends TimelineEventsEmitter {
     scrollData.scrollWidth = this._scrollContainer.scrollWidth;
     super.emit(TimelineEvents.Scroll, scrollData);
   };
-  protected _controlKeyPressed(e: MouseEvent | KeyboardEvent): boolean {
+  _controlKeyPressed(e: MouseEvent | KeyboardEvent): boolean {
     return this._options.controlKeyIsMetaKey || this._options.controlKeyIsMetaKey ? e.metaKey : e.ctrlKey;
   }
-  protected _handleWheelEvent = (event: WheelEvent): void => {
+  _handleWheelEvent = (event: WheelEvent): void => {
     if (this._controlKeyPressed(event)) {
       event.preventDefault();
       if (this._options.zoomSpeed > 0 && this._options.zoomSpeed <= 1) {
@@ -315,7 +326,7 @@ export class Timeline extends TimelineEventsEmitter {
   /**
    * @param args
    */
-  protected _handleMouseDownEvent = (args: MouseEvent): void => {
+  _handleMouseDownEvent = (args: MouseEvent): void => {
     let isDoubleClick = Date.now() - this._lastClickTime < this._consts.doubleClickTimeoutMs;
 
     // Prevent drag of the canvas if canvas is selected as text:
@@ -400,7 +411,8 @@ export class Timeline extends TimelineEventsEmitter {
     this.redraw();
   };
 
-  protected _handleMouseMoveEvent = (args: MouseEvent | TouchEvent): void => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  _handleMouseMoveEvent = (args: MouseEvent | TouchEvent | any): void => {
     if (!args) {
       args = this._lastUsedArgs;
     } else {
@@ -409,7 +421,7 @@ export class Timeline extends TimelineEventsEmitter {
     if (!args) {
       return;
     }
-    const isTouch = args instanceof TouchEvent && args.changedTouches && args.changedTouches.length > 0;
+    const isTouch = args.changedTouches && args.changedTouches.length > 0;
     this._currentPos = this._trackMousePos(this._canvas, args);
     if (!this._isPanStarted && this._selectionRect && this._clickTimeoutIsOver()) {
       this._selectionRectEnabled = true;
@@ -504,7 +516,7 @@ export class Timeline extends TimelineEventsEmitter {
       args.preventDefault();
     }
   };
-  protected _handleMouseUpEvent = (args: MouseEvent): void => {
+  _handleMouseUpEvent = (args: MouseEvent): void => {
     if (this._startPos) {
       //window.releaseCapture();
       const pos = this._trackMousePos(this._canvas, args);
@@ -521,7 +533,7 @@ export class Timeline extends TimelineEventsEmitter {
     }
   };
 
-  protected _performClick(pos: MouseData, args: MouseEvent, drag: TimelineDraggableData): boolean {
+  _performClick(pos: MouseData, args: MouseEvent, drag: TimelineDraggableData): boolean {
     let isChanged = false;
     if (drag && drag.type === TimelineElementType.Keyframe) {
       let isSelected = true;
@@ -555,7 +567,7 @@ export class Timeline extends TimelineEventsEmitter {
    * @param keyframe
    * @param value
    */
-  protected _setKeyframePos(keyframe: TimelineKeyframe, value: number): boolean {
+  _setKeyframePos(keyframe: TimelineKeyframe, value: number): boolean {
     value = Math.floor(value);
     if (keyframe && keyframe.val != value) {
       keyframe.val = value;
@@ -568,7 +580,7 @@ export class Timeline extends TimelineEventsEmitter {
   /**
    * @param cursor to set.
    */
-  protected _setCursor(cursor: string): void {
+  _setCursor(cursor: string): void {
     if (this._canvas.style.cursor != cursor) {
       this._canvas.style.cursor = cursor;
     }
@@ -586,7 +598,7 @@ export class Timeline extends TimelineEventsEmitter {
     }
   }
 
-  protected _convertToElement(row: TimelineRow, keyframe: TimelineKeyframe): TimelineClickableElement {
+  _convertToElement(row: TimelineRow, keyframe: TimelineKeyframe): TimelineClickableElement {
     const data = {
       type: TimelineElementType.Keyframe,
       val: keyframe.val,
@@ -598,11 +610,11 @@ export class Timeline extends TimelineEventsEmitter {
 
   public getSelectedElements(): Array<TimelineClickableElement> {
     const selected: Array<TimelineClickableElement> = [];
-    this._forEachKeyframe((keyframe, index, rowModel): boolean => {
+    this._forEachKeyframe((keyframe, index, rowModel): void => {
       if (keyframe && keyframe.selected) {
         selected.push(this._convertToElement(rowModel.row, keyframe));
       }
-      return false;
+      return;
     });
 
     return selected;
@@ -615,7 +627,7 @@ export class Timeline extends TimelineEventsEmitter {
    * @param {boolean} ignoreOthers value indicating whether all other object should be reversed.
    * @return {boolean} isChanged
    */
-  protected _performSelection(isSelected = true, selector: DOMRect | TimelineKeyframe | null = null, ignoreOthers = false): boolean {
+  _performSelection(isSelected = true, selector: DOMRect | TimelineKeyframe | null = null, ignoreOthers = false): boolean {
     let deselectionMode = false;
     // TODO: simplify
     if (!selector) {
@@ -628,7 +640,7 @@ export class Timeline extends TimelineEventsEmitter {
 
     this._selectedKeyframes.length = 0;
     let isChanged = true;
-    this._forEachKeyframe((keyframe, keyframeIndex, rowSize): boolean => {
+    this._forEachKeyframe((keyframe, keyframeIndex, rowSize): void => {
       const keyframePos = this._getKeyframePosition(keyframe, rowSize);
 
       if (keyframePos) {
@@ -650,7 +662,7 @@ export class Timeline extends TimelineEventsEmitter {
         }
       }
 
-      return false;
+      return;
     });
 
     if (isChanged) {
@@ -663,7 +675,7 @@ export class Timeline extends TimelineEventsEmitter {
   /**
    * foreach visible keyframe.
    */
-  protected _forEachKeyframe(callback: (keyframe: TimelineKeyframe, keyframeIndex?: number, row?: RowSize, index?: number, newRow?: boolean) => boolean, calculateStripesBounds = false): void {
+  _forEachKeyframe(callback: (keyframe: TimelineKeyframe, keyframeIndex?: number, row?: RowSize, index?: number, newRow?: boolean) => void, calculateStripesBounds = false): void {
     if (!this._model) {
       return;
     }
@@ -685,12 +697,9 @@ export class Timeline extends TimelineEventsEmitter {
       let nextRow = true;
       row.keyframes
         .filter((p) => p && !p.hidden)
-        .find((keyframe: TimelineKeyframe, keyframeIndex) => {
+        .forEach((keyframe: TimelineKeyframe, keyframeIndex) => {
           if (callback && keyframe) {
-            const isBreak = callback(keyframe, keyframeIndex, rowSize, index, nextRow);
-            if (isBreak) {
-              return true;
-            }
+            callback(keyframe, keyframeIndex, rowSize, index, nextRow);
           }
 
           nextRow = false;
@@ -698,7 +707,7 @@ export class Timeline extends TimelineEventsEmitter {
     });
   }
 
-  protected _trackMousePos(canvas: HTMLCanvasElement, mouseArgs: MouseEvent | TouchEvent): MouseData {
+  _trackMousePos(canvas: HTMLCanvasElement, mouseArgs: MouseEvent | TouchEvent): MouseData {
     const pos = this._getMousePos(canvas, mouseArgs) as MouseData;
     pos.val = this.pxToVal(pos.x + this._scrollContainer.scrollLeft);
     pos.snapVal = this.snapVal(pos.val);
@@ -723,7 +732,7 @@ export class Timeline extends TimelineEventsEmitter {
     return pos;
   }
 
-  protected _cleanUpSelection(): void {
+  _cleanUpSelection(): void {
     this._emitDragFinishedEvent();
     this._startPos = null;
     this._drag = null;
@@ -740,7 +749,7 @@ export class Timeline extends TimelineEventsEmitter {
   /**
    * Check whether click timeout is over.
    */
-  protected _clickTimeoutIsOver(): boolean {
+  _clickTimeoutIsOver(): boolean {
     // Duration before the selection can be tracked.
     if (this._clickTimeout && Date.now() - this._clickTimeout > this._consts.clickDetectionMs) {
       return true;
@@ -752,7 +761,7 @@ export class Timeline extends TimelineEventsEmitter {
   /**
    * Automatically pan. Scroll canvas when selection is made and mouse outside of the bounds.
    */
-  protected _startAutoPan(): void {
+  _startAutoPan(): void {
     if (this._consts.autoPanSpeed) {
       if (!this._intervalRef) {
         // Repeat move calls to
@@ -766,7 +775,7 @@ export class Timeline extends TimelineEventsEmitter {
   /**
    * Stop current running auto pan
    */
-  protected _stopAutoPan(): void {
+  _stopAutoPan(): void {
     if (this._intervalRef) {
       clearInterval(this._intervalRef);
       this._intervalRef = null;
@@ -778,7 +787,7 @@ export class Timeline extends TimelineEventsEmitter {
   /**
    * Check whether auto pan should be slowed down a bit.
    */
-  protected _checkUpdateSpeedTooFast(): boolean {
+  _checkUpdateSpeedTooFast(): boolean {
     // Slow down updated a bit.
     if (this._autoPanLastActionDate && Date.now() - this._autoPanLastActionDate <= 10) {
       return true;
@@ -788,7 +797,7 @@ export class Timeline extends TimelineEventsEmitter {
     return false;
   }
 
-  protected _scrollByPan(start: MouseData, pos: MouseData, scrollStartPos: DOMPoint): void {
+  _scrollByPan(start: MouseData, pos: MouseData, scrollStartPos: DOMPoint): void {
     if (!start || !pos) {
       return;
     }
@@ -808,7 +817,7 @@ export class Timeline extends TimelineEventsEmitter {
     this._scrollContainer.scrollTop = Math.round(start.y - pos.y);
   }
 
-  protected _scrollBySelectionOutOfBounds(pos: DOMPoint): boolean {
+  _scrollBySelectionOutOfBounds(pos: DOMPoint): boolean {
     const x = pos.x;
     const y = pos.y;
     let isChanged = false;
@@ -913,7 +922,7 @@ export class Timeline extends TimelineEventsEmitter {
     return ms;
   }
 
-  protected _mousePosToVal(x: number, snapEnabled = false): number {
+  _mousePosToVal(x: number, snapEnabled = false): number {
     let convertedVal = this.pxToVal(this._scrollContainer.scrollLeft + Math.min(x, this._canvas.clientWidth));
     convertedVal = Math.round(convertedVal);
     if (snapEnabled) {
@@ -929,7 +938,7 @@ export class Timeline extends TimelineEventsEmitter {
    * @param ms milliseconds to convert.
    * @param isSeconds whether seconds are passed.
    */
-  protected _formatLineGaugeText(ms: number, isSeconds = false): string {
+  _formatLineGaugeText(ms: number, isSeconds = false): string {
     // 1- Convert to seconds:
     let seconds = ms / 1000;
     if (isSeconds) {
@@ -973,7 +982,7 @@ export class Timeline extends TimelineEventsEmitter {
     return str;
   }
 
-  protected _renderTicks(): void {
+  _renderTicks(): void {
     this._ctx.save();
 
     const areaWidth = this._scrollContainer.scrollWidth - this._options.leftMarginPx;
@@ -1054,7 +1063,7 @@ export class Timeline extends TimelineEventsEmitter {
   /**
    * calculate screen positions of the model elements.
    */
-  protected _calculateRowsBounds(includeStipesBounds = true): RowsCalculationsResults {
+  _calculateRowsBounds(includeStipesBounds = true): RowsCalculationsResults {
     const toReturn = {
       rows: [],
       area: {
@@ -1148,7 +1157,7 @@ export class Timeline extends TimelineEventsEmitter {
     return toReturn;
   }
 
-  protected _renderRows(): void {
+  _renderRows(): void {
     const data = this._calculateRowsBounds();
     if (data && data.rows) {
       this._ctx.save();
@@ -1187,7 +1196,7 @@ export class Timeline extends TimelineEventsEmitter {
    * Method is used for the optimization.
    * Only visible part should be rendered.
    */
-  protected _cutBounds(rect: DOMRect): CutBoundsRect {
+  _cutBounds(rect: DOMRect): CutBoundsRect {
     if (!rect) {
       return null;
     }
@@ -1227,7 +1236,7 @@ export class Timeline extends TimelineEventsEmitter {
    * @param row
    * @param rowY row screen coords y position
    */
-  protected _getKeyframesStripeSize(row: TimelineRow, rowY: number, minValue: number, maxValue: number): DOMRect {
+  _getKeyframesStripeSize(row: TimelineRow, rowY: number, minValue: number, maxValue: number): DOMRect {
     let stripeHeight: number | string = TimelineStyleUtils.rowStripeHeight(row, this._options.rowsStyle);
 
     const height = TimelineStyleUtils.getRowHeight(row, this._options.rowsStyle);
@@ -1253,7 +1262,7 @@ export class Timeline extends TimelineEventsEmitter {
     } as DOMRect;
   }
 
-  protected _getKeyframePosition(keyframe: TimelineKeyframe, rowSize: RowSize): DOMRect | null {
+  _getKeyframePosition(keyframe: TimelineKeyframe, rowSize: RowSize): DOMRect | null {
     if (!keyframe) {
       console.log('keyframe should be defined.');
       return null;
@@ -1288,7 +1297,7 @@ export class Timeline extends TimelineEventsEmitter {
     return null;
   }
 
-  protected _renderKeyframes(): void {
+  _renderKeyframes(): void {
     this._forEachKeyframe((keyframe, keyframeIndex, rowSize): boolean => {
       const row = rowSize.row;
       const pos = this._getKeyframePosition(keyframe, rowSize);
@@ -1372,11 +1381,11 @@ export class Timeline extends TimelineEventsEmitter {
 
         this._ctx.restore();
       }
-      return false;
+      return;
     });
   }
 
-  protected _renderSelectionRect(): void {
+  _renderSelectionRect(): void {
     if (this._drag) {
       return;
     }
@@ -1397,7 +1406,7 @@ export class Timeline extends TimelineEventsEmitter {
     this._ctx.restore();
   }
 
-  protected _renderBackground(): void {
+  _renderBackground(): void {
     if (this._options.fillColor) {
       this._ctx.save();
       this._ctx.beginPath();
@@ -1411,7 +1420,7 @@ export class Timeline extends TimelineEventsEmitter {
     }
   }
 
-  protected _renderTimeline(): void {
+  _renderTimeline(): void {
     this._ctx.save();
     const thickness = this._options.timelineThicknessPx;
     this._ctx.lineWidth = thickness * this._pixelRatio;
@@ -1442,7 +1451,7 @@ export class Timeline extends TimelineEventsEmitter {
     this._ctx.restore();
   }
 
-  protected _renderHeaderBackground(): void {
+  _renderHeaderBackground(): void {
     if (!isNaN(this._options.headerHeight) && this._options.headerHeight > 0) {
       this._ctx.save();
       // draw ticks background
@@ -1480,7 +1489,7 @@ export class Timeline extends TimelineEventsEmitter {
   /**
    * Redraw parts of the component in the specific order.
    */
-  protected _redrawInternal = (): void => {
+  _redrawInternal = (): void => {
     // Rescale when animation is played out of the bounds.
     if (this.valToPx(this._val, true) > this._scrollContainer.scrollWidth) {
       this.rescale();
@@ -1506,7 +1515,12 @@ export class Timeline extends TimelineEventsEmitter {
   public getRowByY(posY: number): TimelineRow {
     const model = this._calculateRowsBounds();
     if (model && model.rows) {
-      return model.rows.find((rowData) => rowData.y >= posY && posY <= rowData.y + rowData.height);
+      for (let i = 0; i < model.rows.length; i++) {
+        const row = model.rows[i];
+        if (row && row.y >= posY && posY <= row.y + row.height) {
+          return row;
+        }
+      }
     }
 
     return null;
@@ -1514,7 +1528,7 @@ export class Timeline extends TimelineEventsEmitter {
   /**
    * Find sharp pixel position
    */
-  protected _getSharp(pos: number, thickness = 1): number {
+  _getSharp(pos: number, thickness = 1): number {
     if (thickness % 2 == 0) {
       return pos;
     }
@@ -1529,7 +1543,7 @@ export class Timeline extends TimelineEventsEmitter {
     return this._val;
   }
 
-  protected _setTimeInternal(val: number, source: string): boolean {
+  _setTimeInternal(val: number, source: string): boolean {
     val = Math.round(val);
     if (val < 0) {
       val = 0;
@@ -1608,19 +1622,17 @@ export class Timeline extends TimelineEventsEmitter {
     this.redraw();
   }
 
-  protected _getMousePos(canvas: HTMLCanvasElement, e: TouchEvent | MouseEvent): MousePoint {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  _getMousePos(canvas: HTMLCanvasElement, e: TouchEvent | MouseEvent | any): MousePoint {
     let radius = 1;
     let clientX = 0;
     let clientY = 0;
-    if (e instanceof TouchEvent) {
-      const wheelEvent = e as TouchEvent;
-      if (wheelEvent.changedTouches && wheelEvent.changedTouches.length > 0) {
-        // TODO: implement better touch support
-        const touch = e.changedTouches[0];
-        clientX = touch.clientX;
-        clientY = touch.clientY;
-        radius = Math.max(radius, touch.radiusX, touch.radiusY);
-      }
+    if (e.changedTouches && e.changedTouches.length > 0) {
+      // TODO: implement better touch support
+      const touch = e.changedTouches[0];
+      clientX = touch.clientX;
+      clientY = touch.clientY;
+      radius = Math.max(radius, touch.radiusX, touch.radiusY);
     } else {
       clientX = e.clientX;
       clientY = e.clientY;
@@ -1643,7 +1655,7 @@ export class Timeline extends TimelineEventsEmitter {
   /**
    * Apply container div size to the container on changes detected.
    */
-  protected _updateCanvasScale(): boolean {
+  _updateCanvasScale(): boolean {
     let changed = false;
     const width = this._scrollContainer.clientWidth * this._pixelRatio;
     const height = this._scrollContainer.clientHeight * this._pixelRatio;
@@ -1670,7 +1682,7 @@ export class Timeline extends TimelineEventsEmitter {
     this._rescaleInternal();
   }
 
-  protected _rescaleInternal(newWidth: number | null = null, newHeight: number | null = null, scrollMode = 'default'): void {
+  _rescaleInternal(newWidth: number | null = null, newHeight: number | null = null, scrollMode = 'default'): void {
     this._updateCanvasScale();
     const data = this._calculateRowsBounds();
     if (data && data.area) {
@@ -1717,7 +1729,7 @@ export class Timeline extends TimelineEventsEmitter {
    * @param Array
    * @param val current mouse value
    */
-  protected _findDraggable(elements: Array<TimelineClickableElement>, val: number): TimelineClickableElement {
+  _findDraggable(elements: Array<TimelineClickableElement>, val: number): TimelineClickableElement {
     // filter and sort: Timeline, individual keyframes, stripes (distance).
     const getPriority = (type: TimelineElementType): number => {
       if (type === TimelineElementType.Timeline) {
@@ -1787,7 +1799,7 @@ export class Timeline extends TimelineEventsEmitter {
     }
 
     if (pos.y >= this._options.headerHeight && this._options.keyframesDraggable) {
-      this._forEachKeyframe((keyframe, keyframeIndex, rowModel, rowIndex, isNextRow): boolean => {
+      this._forEachKeyframe((keyframe, keyframeIndex, rowModel, rowIndex, isNextRow): void => {
         // Check keyframes stripe overlap
         if (isNextRow && rowModel.stripeRect) {
           const rowOverlapped = TimelineUtils.isOverlap(pos.x, pos.y, rowModel);
@@ -1827,7 +1839,7 @@ export class Timeline extends TimelineEventsEmitter {
             } as TimelineClickableElement);
           }
         }
-        return false;
+        return;
       }, true);
     }
     return toReturn;
@@ -1836,7 +1848,7 @@ export class Timeline extends TimelineEventsEmitter {
   /**
    * Merge options with the defaults.
    */
-  protected _mergeOptions(toSet: TimelineOptions): TimelineOptions {
+  _mergeOptions(toSet: TimelineOptions): TimelineOptions {
     toSet = toSet || ({} as TimelineOptions);
     // Apply incoming options to default. (override default)
     const options = new TimelineOptions();
@@ -1887,19 +1899,19 @@ export class Timeline extends TimelineEventsEmitter {
     this.on(TimelineEvents.Scroll, callback);
   }
 
-  protected _emitDragStartedEvent(): TimelineDragEvent {
+  _emitDragStartedEvent(): TimelineDragEvent {
     const args = this._getDragEventArgs();
     this.emit(TimelineEvents.DragStarted, args);
     return args;
   }
-  protected _emitDragFinishedEvent(): TimelineDragEvent {
+  _emitDragFinishedEvent(): TimelineDragEvent {
     if (this._drag && this._drag.changed) {
       const args = this._getDragEventArgs();
       this.emit(TimelineEvents.DragFinished, args);
       return args;
     }
   }
-  protected _emitDragEvent(): TimelineDragEvent {
+  _emitDragEvent(): TimelineDragEvent {
     if (this._drag) {
       const args = this._getDragEventArgs();
       this.emit(TimelineEvents.Drag, {
@@ -1911,13 +1923,13 @@ export class Timeline extends TimelineEventsEmitter {
 
     return null;
   }
-  protected _emitKeyframesSelected(selectedKeyframes: Array<TimelineKeyframe>): void {
+  _emitKeyframesSelected(selectedKeyframes: Array<TimelineKeyframe>): void {
     // TODO: refine, add changed
     this.emit(TimelineEvents.Selected, {
       keyframes: selectedKeyframes,
     } as TimelineSelectedEvent);
   }
-  protected _getDragEventArgs(): TimelineDragEvent {
+  _getDragEventArgs(): TimelineDragEvent {
     const draggableArguments = new TimelineDragEvent();
     if (this._drag) {
       draggableArguments.val = this._currentPos.val;

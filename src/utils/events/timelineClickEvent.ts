@@ -5,7 +5,7 @@ export class TimelineClickEvent {
   /**
    * Clicked screen position.
    */
-  pos: DOMPoint = new DOMPoint();
+  pos: DOMPoint;
   /**
    * Click time value.
    */
