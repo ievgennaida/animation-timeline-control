@@ -93,17 +93,19 @@ export class Timeline extends TimelineEventsEmitter {
   private lastUsedArgs: MouseEvent | TouchEvent = null;
   private model: TimelineModel;
   /**
-   *
-   * @param options
-   * @param model
+   * Initialize Timeline
+   * @param options Timeline settings.
+   * @param model Timeline model.
    */
-  constructor(options: TimelineOptions, model: TimelineModel) {
+  constructor(options: TimelineOptions, model: TimelineModel | null = null) {
     super();
-    const id = options.id;
+
     this.model = model;
-    if (!id) {
+    if (!options || !options.id) {
       throw new Error(`Element cannot be empty. Should be string or DOM element.`);
     }
+
+    const id = options.id;
     this.options = this.mergeOptions(options);
     this.currentZoom = this.options.zoom;
     if (id instanceof HTMLElement) {
@@ -294,7 +296,7 @@ export class Timeline extends TimelineEventsEmitter {
           newScrollLeft = 0;
         }
 
-        this.rescale(newScrollLeft + this.canvas.clientWidth, null, 'zoom');
+        this.rescaleInternal(newScrollLeft + this.canvas.clientWidth, null, 'zoom');
         if (this.scrollContainer.scrollLeft != newScrollLeft) {
           this.scrollContainer.scrollLeft = newScrollLeft;
           // Scroll event will redraw the screen.
@@ -792,7 +794,7 @@ export class Timeline extends TimelineEventsEmitter {
     const newLeft = scrollStartPos.x + offsetX;
 
     if (offsetX > 0) {
-      this.rescale(newLeft + this.canvas.clientWidth);
+      this.rescaleInternal(newLeft + this.canvas.clientWidth);
     }
 
     if (offsetX > 0 && newLeft + this.canvas.clientWidth >= this.scrollContainer.scrollWidth - 5) {
@@ -848,7 +850,7 @@ export class Timeline extends TimelineEventsEmitter {
     }
 
     if (newWidth || newHeight) {
-      this.rescale(newWidth, newHeight, 'scrollBySelection');
+      this.rescaleInternal(newWidth, newHeight, 'scrollBySelection');
     }
 
     if (Math.abs(speedX) > 0) {
@@ -1701,9 +1703,9 @@ export class Timeline extends TimelineEventsEmitter {
   }
 
   /**
-   * Apply container div size to the container.
+   * Apply container div size to the container on changes detected.
    */
-  private rescaleCanvas(): boolean {
+  private updateCanvasScale(): boolean {
     let changed = false;
     const width = this.scrollContainer.clientWidth * this.pixelRatio;
     const height = this.scrollContainer.clientHeight * this.pixelRatio;
@@ -1717,13 +1719,21 @@ export class Timeline extends TimelineEventsEmitter {
       changed = true;
     }
 
-    this.ctx.setTransform(this.pixelRatio, 0, 0, this.pixelRatio, 0, 0);
-
+    if (changed) {
+      this.ctx.setTransform(this.pixelRatio, 0, 0, this.pixelRatio, 0, 0);
+    }
     return changed;
   }
 
-  private rescale(newWidth?: number, newHeight?: number, scrollMode?: string): void {
-    this.rescaleCanvas();
+  /**
+   * Rescale and update size of the container.
+   */
+  public rescale(): void {
+    this.rescaleInternal();
+  }
+
+  private rescaleInternal(newWidth: number | null = null, newHeight: number | null = null, scrollMode = 'default'): void {
+    this.updateCanvasScale();
     const data = this.calculateRowsBounds();
     if (data && data.area) {
       const additionalOffset = this.options.stepPx;
