@@ -118,4 +118,52 @@ describe('TimelineStyleUtils', function () {
       assert.equal(TimelineStyleUtils.stripeDraggable(rowStyle, globalStyle), false);
     });
   });
+  describe('Row size', function () {
+    it('Height is taken from row', function () {
+      const globalStyle = {
+        rowsStyle: {
+          height: 100,
+          keyframesStyle: {},
+        } as TimelineRowStyle,
+      } as TimelineOptions;
+
+      const rowsStyle = { height: 50 } as TimelineRowStyle;
+      assert.equal(TimelineStyleUtils.getRowHeight(rowsStyle, globalStyle), rowsStyle.height);
+    });
+    it('Height is taken from global settings', function () {
+      const globalStyle = {
+        rowsStyle: {
+          height: 100,
+          keyframesStyle: {},
+        } as TimelineRowStyle,
+      } as TimelineOptions;
+
+      const rowsStyle = {} as TimelineRowStyle;
+      assert.equal(TimelineStyleUtils.getRowHeight(rowsStyle, globalStyle), globalStyle.rowsStyle.height);
+    });
+    it('Margin bottom is taken from global settings', function () {
+      const globalStyle = {
+        rowsStyle: {
+          height: 100,
+          marginBottom: 30,
+          keyframesStyle: {},
+        } as TimelineRowStyle,
+      } as TimelineOptions;
+
+      const rowsStyle = {} as TimelineRowStyle;
+      assert.equal(TimelineStyleUtils.getRowMarginBottom(rowsStyle, globalStyle), globalStyle.rowsStyle.marginBottom);
+    });
+    it('Margin bottom is taken from row settings', function () {
+      const globalStyle = {
+        rowsStyle: {
+          height: 100,
+          marginBottom: 30,
+          keyframesStyle: {},
+        } as TimelineRowStyle,
+      } as TimelineOptions;
+
+      const rowsStyle = { marginBottom: 43 } as TimelineRowStyle;
+      assert.equal(TimelineStyleUtils.getRowMarginBottom(rowsStyle, globalStyle), rowsStyle.marginBottom);
+    });
+  });
 });

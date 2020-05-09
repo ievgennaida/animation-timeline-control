@@ -101,5 +101,49 @@ describe('TimelineStyleUtils', function () {
             asserts_1.assert.equal(animation_timeline_1.TimelineStyleUtils.stripeDraggable(rowStyle, globalStyle), false);
         });
     });
+    describe('Height', function () {
+        it('Height is taken from row', function () {
+            var globalStyle = {
+                rowsStyle: {
+                    height: 100,
+                    keyframesStyle: {},
+                },
+            };
+            var rowsStyle = { height: 50 };
+            asserts_1.assert.equal(animation_timeline_1.TimelineStyleUtils.getRowHeight(rowsStyle, globalStyle), rowsStyle.height);
+        });
+        it('Height is taken from global settings', function () {
+            var globalStyle = {
+                rowsStyle: {
+                    height: 100,
+                    keyframesStyle: {},
+                },
+            };
+            var rowsStyle = {};
+            asserts_1.assert.equal(animation_timeline_1.TimelineStyleUtils.getRowHeight(rowsStyle, globalStyle), globalStyle.rowsStyle.height);
+        });
+        it('Margin bottom is taken from global settings', function () {
+            var globalStyle = {
+                rowsStyle: {
+                    height: 100,
+                    marginBottom: 30,
+                    keyframesStyle: {},
+                },
+            };
+            var rowsStyle = {};
+            asserts_1.assert.equal(animation_timeline_1.TimelineStyleUtils.getRowMarginBottom(rowsStyle, globalStyle), globalStyle.rowsStyle.marginBottom);
+        });
+        it('Margin bottom is taken from row settings', function () {
+            var globalStyle = {
+                rowsStyle: {
+                    height: 100,
+                    marginBottom: 30,
+                    keyframesStyle: {},
+                },
+            };
+            var rowsStyle = { marginBottom: 43 };
+            asserts_1.assert.equal(animation_timeline_1.TimelineStyleUtils.getRowMarginBottom(rowsStyle, globalStyle), rowsStyle.marginBottom);
+        });
+    });
 });
 //# sourceMappingURL=styleTests.js.map
