@@ -62,16 +62,12 @@ import {
   new Timeline(options);
 ```
 
-### Draw outline tree
+### Outline list
 
-Scroll events can be synchronized with the outline at the left side of the control.
+Outline list\tree can implemented as a separate HTML component and synchronized with the timeline.
+See the [live demo](https://ievgennaida.github.io/animation-timeline-control/)
 
-- Each element of the list should have the same height as animation row.
-- Hide the vertical scroll of the outline container.
-
-```JavaScript
-
-```
+![gif preview](demo/zoom-scale.gif)
 
 ## Model
 
