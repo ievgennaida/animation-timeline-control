@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Timeline, TimelineElementType, TimelineClickableElement } from '../lib/animation-timeline';
+import { Timeline, TimelineElementType, TimelineClickableElement } from './../lib/animation-timeline';
 
 function assertEquals(value: any, expected: any, message: string | null = null): void {
   if (expected !== value) {

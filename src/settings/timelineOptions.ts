@@ -1,115 +1,92 @@
-import { TimelineKeyframeShape } from '../enums/timelineKeyframeShape';
-import { TimelineRowStyle } from './styles/TimelineRowStyle';
-import { TimelineKeyframeStyle } from './styles/timelineKeyframeStyle';
-import { TimelineCapShape } from '../enums/timelineCapShape';
+import { TimelineRowStyle } from './styles/timelineRowStyle';
+import { TimelineStyle } from './styles/timelineStyle';
 
-export class TimelineOptions {
+export interface TimelineOptions {
   /**
    * Id or HTMLElement of the timeline container.
    */
-  id: string | HTMLElement;
+  id?: string | HTMLElement;
   /**
    * Snap the mouse to the values on a timeline.
    * Value can be from 1 to 60
    */
-  snapsPerSeconds = 5;
+  snapsPerSeconds?: number;
   /**
    * Check whether snapping is enabled.
    */
-  snapEnabled = true;
+  snapEnabled?: boolean;
   /**
    *  Snap all selected keyframes as a bundle during the drag.
    */
-  snapAllKeyframesOnMove = false;
-  timelineThicknessPx = 2;
-  timelineMarginTopPx = 15;
-  timelineCapWidthPx = 4;
-  timelineCapHeightPx = 10;
-  /**
-   * Draw timeline rectangular cap.
-   */
-  timelineCap = TimelineCapShape.Rect;
-  timelineColor = 'DarkOrange';
+  snapAllKeyframesOnMove?: boolean;
   /**
    * approximate step for the timeline in pixels for 1 second
    */
-  stepPx = 120;
-  stepSmallPx = 30;
-  smallSteps = 50;
+  stepPx?: number;
+  stepSmallPx?: number;
+  smallSteps?: number;
   /**
    * additional left margin in pixels to start the line gauge from.
    */
-  leftMarginPx = 25;
-  headerFillColor = '#101011';
-  fillColor = '#101011';
-
-  labelsColor = '#D5D5D5';
+  leftMarginPx?: number;
+  /**
+   * Component header background color.
+   */
+  headerFillColor?: string;
+  /**
+   * Component background color.
+   */
+  fillColor?: string;
+  labelsColor?: string;
   /**
    * Header gauge tick color.
    */
-  tickColor = '#D5D5D5';
+  tickColor?: string;
   /**
    * Selection rectangle color.
    */
-  selectionColor = 'White';
+  selectionColor?: string;
 
   /**
    * Default rows style.
    * Can be overridden by setting style individually for each row.
    */
-  rowsStyle: TimelineRowStyle = {
-    /**
-     * Row height in pixels.
-     */
-    height: 24,
-    marginBottom: 2,
-    fillColor: '#252526',
-    /**
-     * Keyframes stripe color
-     */
-    stripeFillColor: '#094771',
-    stripeHeight: 'auto',
-    keyframesStyle: {
-      /**
-       * keyframe fill color.
-       */
-      fillColor: 'red',
-      shape: TimelineKeyframeShape.Rhomb,
-      /**
-       * Selected keyframe fill color.
-       */
-      selectedFillColor: 'DarkOrange',
-      strokeColor: 'Black',
-      strokeThickness: 0.2,
-      draggable: true,
-    } as TimelineKeyframeStyle,
-  } as TimelineRowStyle;
+  rowsStyle?: TimelineRowStyle;
+  /**
+   * Timeline indicator style.
+   */
+  timelineStyle?: TimelineStyle;
   /**
    * Header height in pixels
    */
-  headerHeight = 30;
-  ticksFont = '11px sans-serif';
-  zoom = 1000;
-  // Zoom speed. Use percent of the screen to set zoom speed.
-  zoomSpeed = 0.1;
+  headerHeight?: number;
+  /**
+   * Header ticks font
+   */
+  font?: string;
+  zoom?: number;
+  /**
+   * Zoom speed. Use percent of the screen to set zoom speed.
+   */
+  zoomSpeed?: number;
   // Max zoom
-  zoomMin = 80;
+  zoomMin?: number;
   // Min zoom
-  zoomMax = 8000;
+  zoomMax?: number;
   /**
    * Set this to true in a MAC OS environment: The Meta key will be used instead of the Ctrl key.
    */
-  controlKeyIsMetaKey = false;
+  controlKeyIsMetaKey?: boolean;
   /**
    * Access the scroll container via this class for e.g. scroll bar styling.
    */
-  scrollContainerClass = 'scroll-container';
+  scrollContainerClass?: string;
   /**
    * keyframes stripe is draggable.
    */
-  stripesDraggable = true;
+  stripesDraggable?: boolean;
   /**
    * keyframes stripe is draggable.
    */
-  keyframesDraggable = true;
+  keyframesDraggable?: boolean;
 }

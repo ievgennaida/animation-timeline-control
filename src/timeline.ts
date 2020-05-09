@@ -1,14 +1,14 @@
 import { TimelineEventsEmitter } from './timelineEventsEmitter';
 import { TimelineUtils } from './utils/timelineUtils';
 import { TimelineOptions } from './settings/timelineOptions';
-import { defaultTimelineConsts, TimelineConsts } from './settings/timelineConsts';
+import { TimelineConsts } from './settings/timelineConsts';
 import { TimelineKeyframe } from './timelineKeyframe';
 import { TimelineModel } from './timelineModel';
 import { TimelineClickableElement } from './utils/timelineClickableElement';
 import { TimelineRow } from './timelineRow';
 import { TimelineCursorType } from './enums/timelineCursorType';
 import { TimelineKeyframeShape } from './enums/timelineKeyframeShape';
-import { TimelineStyleUtils } from './settings/timelineStyleUtils';
+import { TimelineStyleUtils } from './utils/timelineStyleUtils';
 import { TimelineElementType } from './enums/timelineElementType';
 import { TimelineEvents } from './enums/timelineEvents';
 import { CutBoundsRect } from './utils/cutBoundsRect';
@@ -20,6 +20,7 @@ import { TimelineSelectedEvent } from './utils/events/timelineSelectedEvent';
 import { TimelineDraggableData } from './utils/timelineDraggableData';
 import { TimelineClickEvent } from './utils/events/timelineClickEvent';
 import { TimelineDragEvent } from './utils/events/timelineDragEvent';
+import { defaultTimelineConsts } from './settings/defaults';
 
 interface MousePoint extends DOMPoint {
   radius: number;
@@ -33,38 +34,38 @@ export class Timeline extends TimelineEventsEmitter {
   /**
    * component container.
    */
-  _container: HTMLElement = null;
+  _container: HTMLElement | null = null;
   /**
    * Dynamically generated event.
    */
-  _canvas: HTMLCanvasElement = null;
+  _canvas: HTMLCanvasElement | null = null;
   /**
    * Dynamically generated scroll container.
    */
-  _scrollContainer: HTMLElement = null;
+  _scrollContainer: HTMLElement | null = null;
   /**
    * Dynamically generated virtual scroll content.
    */
-  _scrollContent: HTMLElement = null;
+  _scrollContent: HTMLElement | null = null;
   /**
    * Rendering context
    */
-  _ctx: CanvasRenderingContext2D = null;
+  _ctx: CanvasRenderingContext2D | null = null;
   /**
    * Components settings
    */
-  _options: TimelineOptions = null;
+  _options: TimelineOptions | null = null;
   /**
    * Drag start position.
    */
-  _startPos: MouseData = null;
+  _startPos: MouseData | null = null;
   /**
    * Drag scroll started position.
    */
   _scrollStartPos: DOMPoint | null = { x: 0, y: 0 } as DOMPoint;
-  _currentPos: MouseData = null;
+  _currentPos: MouseData | null = null;
 
-  _selectionRect: DOMRect = null;
+  _selectionRect: DOMRect | null = null;
   _selectionRectEnabled = false;
   _drag: TimelineDraggableData | null = null;
   _startedDragWithCtrl = false;
@@ -86,12 +87,12 @@ export class Timeline extends TimelineEventsEmitter {
    */
   _pixelRatio = 1;
   _currentZoom = 0;
-  _intervalRef?: number = null;
+  _intervalRef?: number | null = null;
   _autoPanLastActionDate = 0;
   _isPanStarted = false;
   _interactionMode = TimelineInteractionMode.Selection;
-  _lastUsedArgs: MouseEvent | TouchEvent = null;
-  _model: TimelineModel;
+  _lastUsedArgs: MouseEvent | TouchEvent | null = null;
+  _model: TimelineModel | null = null;
   /**
    * Create Timeline instance
    * @param options Timeline settings.
@@ -276,12 +277,14 @@ export class Timeline extends TimelineEventsEmitter {
     }, this._consts.scrollFinishedTimeoutMs);
 
     this.redraw();
-    const scrollData = (args || {}) as TimelineScrollEvent;
-    scrollData.scrollLeft = this._scrollContainer.scrollLeft;
-    scrollData.scrollTop = this._scrollContainer.scrollTop;
-    scrollData.scrollHeight = this._scrollContainer.scrollHeight;
-    scrollData.scrollWidth = this._scrollContainer.scrollWidth;
-    super.emit(TimelineEvents.Scroll, scrollData);
+    const scrollEvent = {
+      args: args,
+      scrollLeft: this._scrollContainer.scrollLeft,
+      scrollTop: this._scrollContainer.scrollTop,
+      scrollHeight: this._scrollContainer.scrollHeight,
+      scrollWidth: this._scrollContainer.scrollWidth,
+    } as TimelineScrollEvent;
+    super.emit(TimelineEvents.Scroll, scrollEvent);
   };
   _controlKeyPressed(e: MouseEvent | KeyboardEvent): boolean {
     return this._options.controlKeyIsMetaKey || this._options.controlKeyIsMetaKey ? e.metaKey : e.ctrlKey;
@@ -1032,8 +1035,8 @@ export class Timeline extends TimelineEventsEmitter {
       this._ctx.stroke();
 
       this._ctx.fillStyle = this._options.labelsColor;
-      if (this._options.ticksFont) {
-        this._ctx.font = this._options.ticksFont;
+      if (this._options.font) {
+        this._ctx.font = this._options.font;
       }
 
       const text = this._formatLineGaugeText(i);
@@ -1094,8 +1097,8 @@ export class Timeline extends TimelineEventsEmitter {
         }
 
         // draw with scroll virtualization:
-        const rowHeight = TimelineStyleUtils.getRowHeight(row, this._options.rowsStyle);
-        const marginBottom = TimelineStyleUtils.getRowMarginBottom(row, this._options.rowsStyle);
+        const rowHeight = TimelineStyleUtils.getRowHeight(row, this._options);
+        const marginBottom = TimelineStyleUtils.getRowMarginBottom(row, this._options);
 
         rowAbsoluteHeight += rowHeight + marginBottom;
         const currentRowY = rowAbsoluteHeight - this._scrollContainer.scrollTop;
@@ -1168,7 +1171,7 @@ export class Timeline extends TimelineEventsEmitter {
           return;
         }
 
-        this._ctx.fillStyle = TimelineStyleUtils.getRowStyle<string>(rowData.row, this._options.rowsStyle, 'fillColor', '#252526');
+        this._ctx.fillStyle = TimelineStyleUtils.getRowStyle<string>(rowData.row, this._options, 'fillColor', '#252526');
         //this._ctx.fillRect(data.areaRect.x, data.areaRect.y, data.areaRect.w, data.areaRect.h);
         // Note: bounds used instead of the clip while clip is slow!
         const bounds = this._cutBounds(rowData);
@@ -1176,7 +1179,7 @@ export class Timeline extends TimelineEventsEmitter {
           this._ctx.fillRect(bounds.x, bounds.y, bounds.width, bounds.height);
         }
 
-        const keyframeLaneColor = TimelineStyleUtils.stripeFillColor(rowData.row, this._options.rowsStyle);
+        const keyframeLaneColor = TimelineStyleUtils.stripeFillColor(rowData.row, this._options);
 
         if ((rowData.row.keyframes && rowData.row.keyframes.length <= 1) || !keyframeLaneColor) {
           return;
@@ -1239,9 +1242,9 @@ export class Timeline extends TimelineEventsEmitter {
    * @param rowY row screen coords y position
    */
   _getKeyframesStripeSize(row: TimelineRow, rowY: number, minValue: number, maxValue: number): DOMRect {
-    let stripeHeight: number | string = TimelineStyleUtils.rowStripeHeight(row, this._options.rowsStyle);
+    let stripeHeight: number | string = TimelineStyleUtils.rowStripeHeight(row, this._options);
 
-    const height = TimelineStyleUtils.getRowHeight(row, this._options.rowsStyle);
+    const height = TimelineStyleUtils.getRowHeight(row, this._options);
     if ((!stripeHeight && stripeHeight !== 0) || isNaN(stripeHeight as number) || stripeHeight == 'auto') {
       stripeHeight = Math.floor(height * 0.8);
     }
@@ -1327,7 +1330,7 @@ export class Timeline extends TimelineEventsEmitter {
           this._ctx.clip();
         }
 
-        const shape = TimelineStyleUtils.getKeyframeStyle<TimelineKeyframeShape>(keyframe, row, this._options.rowsStyle, 'shape', TimelineKeyframeShape.Rhomb);
+        const shape = TimelineStyleUtils.getKeyframeStyle<TimelineKeyframeShape>(keyframe, row, this._options, 'shape', TimelineKeyframeShape.Rhomb);
         if (shape === TimelineKeyframeShape.None) {
           return;
         }
@@ -1335,12 +1338,12 @@ export class Timeline extends TimelineEventsEmitter {
         const keyframeColor = TimelineStyleUtils.getKeyframeStyle<string>(
           keyframe,
           row,
-          this._options.rowsStyle,
+          this._options,
           keyframe.selected ? 'fillColor' : 'selectedFillColor',
           keyframe.selected ? 'red' : 'DarkOrange',
         );
-        const border = TimelineStyleUtils.getKeyframeStyle<number>(keyframe, row, this._options.rowsStyle, 'strokeThickness', 0.2);
-        const strokeColor = border > 0 ? TimelineStyleUtils.getKeyframeStyle<string>(keyframe, row, this._options.rowsStyle, 'strokeColor', 'Black') : '';
+        const border = TimelineStyleUtils.getKeyframeStyle<number>(keyframe, row, this._options, 'strokeThickness', 0.2);
+        const strokeColor = border > 0 ? TimelineStyleUtils.getKeyframeStyle<string>(keyframe, row, this._options, 'strokeColor', 'Black') : '';
 
         if (shape == TimelineKeyframeShape.Rhomb) {
           this._ctx.beginPath();
@@ -1423,28 +1426,32 @@ export class Timeline extends TimelineEventsEmitter {
   }
 
   _renderTimeline(): void {
+    if (!this._options || !this._options.timelineStyle) {
+      return;
+    }
+    const style = this._options.timelineStyle;
     this._ctx.save();
-    const thickness = this._options.timelineThicknessPx;
+    const thickness = style.width || 1;
     this._ctx.lineWidth = thickness * this._pixelRatio;
     const timeLinePos = this._getSharp(Math.round(this.valToPx(this._val)), thickness);
-    this._ctx.strokeStyle = this._options.timelineColor;
-    this._ctx.fillStyle = this._ctx.strokeStyle;
-    const y = this._options.timelineMarginTopPx;
+    this._ctx.strokeStyle = style.strokeColor;
+    this._ctx.fillStyle = style.fillColor;
+    const y = style.marginTop;
     this._ctx.beginPath();
     TimelineUtils.drawLine(this._ctx, timeLinePos, y, timeLinePos, this._canvas.clientHeight);
     this._ctx.stroke();
 
-    if (this._options.timelineCapWidthPx && this._options.timelineCapHeightPx) {
-      const rectSize = this._options.timelineCapWidthPx;
-      const capHeight = this._options.timelineCapHeightPx;
-      if (this._options.timelineCap === TimelineCapShape.Triangle) {
+    if (style.capHeight && style.capWidth) {
+      const rectSize = style.capWidth;
+      const capHeight = style.capHeight;
+      if (style.capType === TimelineCapShape.Triangle) {
         this._ctx.beginPath();
         this._ctx.moveTo(timeLinePos - rectSize / 2, y);
         this._ctx.lineTo(timeLinePos + rectSize / 2, y);
         this._ctx.lineTo(timeLinePos, capHeight);
         this._ctx.closePath();
         this._ctx.stroke();
-      } else if (this._options.timelineCap === TimelineCapShape.Rect) {
+      } else if (style.capType === TimelineCapShape.Rect) {
         this._ctx.fillRect(timeLinePos - rectSize / 2, y, rectSize, capHeight);
         this._ctx.fill();
       }
@@ -1492,6 +1499,9 @@ export class Timeline extends TimelineEventsEmitter {
    * Redraw parts of the component in the specific order.
    */
   _redrawInternal = (): void => {
+    if (!this._ctx) {
+      return;
+    }
     // Rescale when animation is played out of the bounds.
     if (this.valToPx(this._val, true) > this._scrollContainer.scrollWidth) {
       this.rescale();
@@ -1658,6 +1668,10 @@ export class Timeline extends TimelineEventsEmitter {
    * Apply container div size to the container on changes detected.
    */
   _updateCanvasScale(): boolean {
+    if (!this._scrollContainer || !this._ctx) {
+      console.log('control should be initialized first');
+      return;
+    }
     let changed = false;
     const width = this._scrollContainer.clientWidth * this._pixelRatio;
     const height = this._scrollContainer.clientHeight * this._pixelRatio;
@@ -1806,7 +1820,12 @@ export class Timeline extends TimelineEventsEmitter {
 
     // Check whether we can drag timeline.
     const timeLinePos = this.valToPx(this._val);
-    const width = Math.max((this._options.timelineThicknessPx || 1) * this._pixelRatio, this._options.timelineCapWidthPx * this._pixelRatio || 1) + clickRadius;
+    let width = 0;
+    if (this._options && this._options.timelineStyle) {
+      const timelineStyle = this._options.timelineStyle;
+      width = Math.max((timelineStyle.width || 1) * this._pixelRatio, (timelineStyle.capWidth || 0) * this._pixelRatio || 1) + clickRadius;
+    }
+
     if (pos.y <= this._options.headerHeight || (pos.x >= timeLinePos - width / 2 && pos.x <= timeLinePos + width / 2)) {
       toReturn.push({
         val: this._val,
@@ -1867,7 +1886,7 @@ export class Timeline extends TimelineEventsEmitter {
   _mergeOptions(toSet: TimelineOptions): TimelineOptions {
     toSet = toSet || ({} as TimelineOptions);
     // Apply incoming options to default. (override default)
-    const options = new TimelineOptions();
+    const options = {} as TimelineOptions;
     // Merge options with the default.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const mergeOptionsDeep = (to: any, from: any): void => {

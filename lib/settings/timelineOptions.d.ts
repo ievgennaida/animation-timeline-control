@@ -1,81 +1,88 @@
-import { TimelineRowStyle } from './styles/TimelineRowStyle';
-import { TimelineCapShape } from '../enums/timelineCapShape';
-export declare class TimelineOptions {
+import { TimelineRowStyle } from './styles/timelineRowStyle';
+import { TimelineStyle } from './styles/timelineStyle';
+export interface TimelineOptions {
     /**
      * Id or HTMLElement of the timeline container.
      */
-    id: string | HTMLElement;
+    id?: string | HTMLElement;
     /**
      * Snap the mouse to the values on a timeline.
      * Value can be from 1 to 60
      */
-    snapsPerSeconds: number;
+    snapsPerSeconds?: number;
     /**
      * Check whether snapping is enabled.
      */
-    snapEnabled: boolean;
+    snapEnabled?: boolean;
     /**
      *  Snap all selected keyframes as a bundle during the drag.
      */
-    snapAllKeyframesOnMove: boolean;
-    timelineThicknessPx: number;
-    timelineMarginTopPx: number;
-    timelineCapWidthPx: number;
-    timelineCapHeightPx: number;
-    /**
-     * Draw timeline rectangular cap.
-     */
-    timelineCap: TimelineCapShape;
-    timelineColor: string;
+    snapAllKeyframesOnMove?: boolean;
     /**
      * approximate step for the timeline in pixels for 1 second
      */
-    stepPx: number;
-    stepSmallPx: number;
-    smallSteps: number;
+    stepPx?: number;
+    stepSmallPx?: number;
+    smallSteps?: number;
     /**
      * additional left margin in pixels to start the line gauge from.
      */
-    leftMarginPx: number;
-    headerFillColor: string;
-    fillColor: string;
-    labelsColor: string;
+    leftMarginPx?: number;
+    /**
+     * Component header background color.
+     */
+    headerFillColor?: string;
+    /**
+     * Component background color.
+     */
+    fillColor?: string;
+    labelsColor?: string;
     /**
      * Header gauge tick color.
      */
-    tickColor: string;
+    tickColor?: string;
     /**
      * Selection rectangle color.
      */
-    selectionColor: string;
+    selectionColor?: string;
     /**
      * Default rows style.
      * Can be overridden by setting style individually for each row.
      */
-    rowsStyle: TimelineRowStyle;
+    rowsStyle?: TimelineRowStyle;
+    /**
+     * Timeline indicator style.
+     */
+    timelineStyle?: TimelineStyle;
     /**
      * Header height in pixels
      */
-    headerHeight: number;
-    ticksFont: string;
-    zoom: number;
-    zoomSpeed: number;
-    zoomMin: number;
-    zoomMax: number;
+    headerHeight?: number;
+    /**
+     * Header ticks font
+     */
+    font?: string;
+    zoom?: number;
+    /**
+     * Zoom speed. Use percent of the screen to set zoom speed.
+     */
+    zoomSpeed?: number;
+    zoomMin?: number;
+    zoomMax?: number;
     /**
      * Set this to true in a MAC OS environment: The Meta key will be used instead of the Ctrl key.
      */
-    controlKeyIsMetaKey: boolean;
+    controlKeyIsMetaKey?: boolean;
     /**
      * Access the scroll container via this class for e.g. scroll bar styling.
      */
-    scrollContainerClass: string;
+    scrollContainerClass?: string;
     /**
      * keyframes stripe is draggable.
      */
-    stripesDraggable: boolean;
+    stripesDraggable?: boolean;
     /**
      * keyframes stripe is draggable.
      */
-    keyframesDraggable: boolean;
+    keyframesDraggable?: boolean;
 }

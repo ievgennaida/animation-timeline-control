@@ -1,24 +1,36 @@
 {
-    "cSpell.words": [
-        "NESW",
-        "NWSE",
-        "Unminified",
-        "Unsubsribe",
-        "browserslist",
-        "consts",
-        "corejs",
-        "devtool",
-        "doubleclick",
-        "downlevel",
-        "dragfinished",
-        "dragstarted",
-        "esnext",
-        "khtml",
-        "pixelated",
-        "prio",
-        "sourcemap",
-        "timechanged",
-        "tslib",
-        "unittests"
-    ]
+  "cSpell.words": [
+    "NESW",
+    "NWSE",
+    "Unminified",
+    "Unsubsribe",
+    "browserslist",
+    "consts",
+    "corejs",
+    "devtool",
+    "doubleclick",
+    "downlevel",
+    "dragfinished",
+    "dragstarted",
+    "esnext",
+    "khtml",
+    "pixelated",
+    "prio",
+    "sourcemap",
+    "timechanged",
+    "tslib",
+    "unittests"
+  ],
+  "files.exclude": {
+    "**/.git": true, // this is a default value
+    "**/.DS_Store": true, // this is a default value
+
+    "**/node_modules": true, // this excludes all folders
+    // named "node_modules" from
+    // the explore tree
+
+    // alternative version
+    "node_modules": true,
+    "lib": true
+  }
 }

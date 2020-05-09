@@ -1,4 +1,5 @@
-export interface TimelineScrollEvent extends MouseEvent {
+export interface TimelineScrollEvent {
+    args: MouseEvent;
     scrollLeft: number;
     scrollTop: number;
     scrollHeight: number;

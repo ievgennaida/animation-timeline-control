@@ -28,4 +28,3 @@ export interface TimelineConsts {
      */
     clickThreshold: number;
 }
-export declare const defaultTimelineConsts: TimelineConsts;

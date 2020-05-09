@@ -21,37 +21,37 @@ export declare class Timeline extends TimelineEventsEmitter {
     /**
      * component container.
      */
-    _container: HTMLElement;
+    _container: HTMLElement | null;
     /**
      * Dynamically generated event.
      */
-    _canvas: HTMLCanvasElement;
+    _canvas: HTMLCanvasElement | null;
     /**
      * Dynamically generated scroll container.
      */
-    _scrollContainer: HTMLElement;
+    _scrollContainer: HTMLElement | null;
     /**
      * Dynamically generated virtual scroll content.
      */
-    _scrollContent: HTMLElement;
+    _scrollContent: HTMLElement | null;
     /**
      * Rendering context
      */
-    _ctx: CanvasRenderingContext2D;
+    _ctx: CanvasRenderingContext2D | null;
     /**
      * Components settings
      */
-    _options: TimelineOptions;
+    _options: TimelineOptions | null;
     /**
      * Drag start position.
      */
-    _startPos: MouseData;
+    _startPos: MouseData | null;
     /**
      * Drag scroll started position.
      */
     _scrollStartPos: DOMPoint | null;
-    _currentPos: MouseData;
-    _selectionRect: DOMRect;
+    _currentPos: MouseData | null;
+    _selectionRect: DOMRect | null;
     _selectionRectEnabled: boolean;
     _drag: TimelineDraggableData | null;
     _startedDragWithCtrl: boolean;
@@ -72,12 +72,12 @@ export declare class Timeline extends TimelineEventsEmitter {
      */
     _pixelRatio: number;
     _currentZoom: number;
-    _intervalRef?: number;
+    _intervalRef?: number | null;
     _autoPanLastActionDate: number;
     _isPanStarted: boolean;
     _interactionMode: TimelineInteractionMode;
-    _lastUsedArgs: MouseEvent | TouchEvent;
-    _model: TimelineModel;
+    _lastUsedArgs: MouseEvent | TouchEvent | null;
+    _model: TimelineModel | null;
     /**
      * Create Timeline instance
      * @param options Timeline settings.

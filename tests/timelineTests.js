@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 /* eslint-disable @typescript-eslint/no-explicit-any */
-var animation_timeline_1 = require("../lib/animation-timeline");
+var animation_timeline_1 = require("./../lib/animation-timeline");
 function assertEquals(value, expected, message) {
     if (message === void 0) { message = null; }
     if (expected !== value) {

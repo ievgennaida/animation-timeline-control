@@ -1,4 +1,4 @@
 import { TimelineRow } from './timelineRow';
-export declare class TimelineModel {
+export interface TimelineModel {
     rows: Array<TimelineRow>;
 }

@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { TimelineRow } from '../timelineRow';
 import { TimelineKeyframe } from '../timelineKeyframe';
-import { TimelineRowStyle } from './styles/timelineRowStyle';
+import { TimelineOptions } from '../settings/timelineOptions';
+import { TimelineRowStyle } from '../settings/styles/timelineRowStyle';
 
 export class TimelineStyleUtils {
   /**
@@ -11,7 +12,7 @@ export class TimelineStyleUtils {
    * @param propertyName property to get.
    * @param defaultValue default value to return
    */
-  static getKeyframeStyle<T>(keyframe: TimelineKeyframe, row: TimelineRow, rowsStyle: TimelineRowStyle, propertyName: string, defaultValue?: T): T {
+  static getKeyframeStyle<T>(keyframe: TimelineKeyframe | null, row: TimelineRow | null, options: TimelineOptions | null, propertyName: string, defaultValue?: T): T {
     if (keyframe && keyframe) {
       const style: any = keyframe;
       if (style[propertyName] !== undefined) {
@@ -25,8 +26,9 @@ export class TimelineStyleUtils {
         return style[propertyName] as T;
       }
     }
-    if (rowsStyle && rowsStyle.keyframesStyle) {
-      const style: any = rowsStyle.keyframesStyle;
+    const globalRowStyle = options ? options.rowsStyle : null;
+    if (globalRowStyle && globalRowStyle.keyframesStyle) {
+      const style: any = globalRowStyle.keyframesStyle;
       if (style[propertyName] !== undefined) {
         return style[propertyName] as T;
       }
@@ -37,16 +39,15 @@ export class TimelineStyleUtils {
 
   /**
    * Get row style from default settings or overrides by a row settings.
-   * @param row
-   * @param property
    */
-  static getRowStyle<T>(rowStyle: TimelineRow, globalRowStyle: TimelineRowStyle, propertyName: string, defaultValue?: T): T | undefined {
+  static getRowStyle<T>(rowStyle: TimelineRow, options: TimelineOptions | null, propertyName: string, defaultValue?: T): T | undefined {
     if (rowStyle) {
       const style: any = rowStyle;
       if (style[propertyName] !== undefined) {
         return style[propertyName] as T;
       }
     }
+    const globalRowStyle = options ? options.rowsStyle : null;
     if (globalRowStyle) {
       const style: any = globalRowStyle;
       if (style[propertyName] !== undefined) {
@@ -59,19 +60,17 @@ export class TimelineStyleUtils {
 
   /**
    * Get current row height from styling
-   * @param row
-   * @param includeMargin include margin to the bounds
    */
-  static getRowHeight(rowStyle: TimelineRowStyle, globalRowStyle: TimelineRowStyle): number {
-    return TimelineStyleUtils.getRowStyle<number>(rowStyle, globalRowStyle, 'height', 24);
+  static getRowHeight(rowStyle: TimelineRowStyle, options: TimelineOptions): number {
+    return TimelineStyleUtils.getRowStyle<number>(rowStyle, options, 'height', 24);
   }
-  static rowStripeHeight(rowStyle: TimelineRowStyle, globalRowStyle: TimelineRowStyle): number | string {
-    return TimelineStyleUtils.getRowStyle<number | string>(rowStyle, globalRowStyle, 'stripeHeight', 'auto');
+  static rowStripeHeight(rowStyle: TimelineRowStyle, options: TimelineOptions): number | string {
+    return TimelineStyleUtils.getRowStyle<number | string>(rowStyle, options, 'stripeHeight', 'auto');
   }
-  static stripeFillColor(rowStyle: TimelineRowStyle, globalRowStyle: TimelineRowStyle): string {
-    return TimelineStyleUtils.getRowStyle<string>(rowStyle, globalRowStyle, 'stripeFillColor');
+  static stripeFillColor(rowStyle: TimelineRowStyle, options: TimelineOptions): string {
+    return TimelineStyleUtils.getRowStyle<string>(rowStyle, options, 'stripeFillColor');
   }
-  static getRowMarginBottom(rowStyle: TimelineRowStyle, globalRowStyle: TimelineRowStyle): number {
-    return TimelineStyleUtils.getRowStyle<number>(rowStyle, globalRowStyle, 'marginBottom', 0);
+  static getRowMarginBottom(rowStyle: TimelineRowStyle, options: TimelineOptions): number {
+    return TimelineStyleUtils.getRowStyle<number>(rowStyle, options, 'marginBottom', 0);
   }
 }

@@ -1,8 +1,7 @@
 import { TimelineKeyframe } from './timelineKeyframe';
-import { TimelineRowStyle } from './settings/styles/TimelineRowStyle';
+import { TimelineRowStyle } from './settings/styles/timelineRowStyle';
 
 export interface TimelineRow extends TimelineRowStyle {
-  name?: string;
   keyframes?: Array<TimelineKeyframe>;
   /**
    * keyframes stripe is draggable.
