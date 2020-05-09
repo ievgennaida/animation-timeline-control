@@ -20,7 +20,7 @@ import { TimelineSelectedEvent } from './utils/events/timelineSelectedEvent';
 import { TimelineDraggableData } from './utils/timelineDraggableData';
 import { TimelineClickEvent } from './utils/events/timelineClickEvent';
 import { TimelineDragEvent } from './utils/events/timelineDragEvent';
-import { defaultTimelineConsts } from './settings/defaults';
+import { defaultTimelineConsts, defaultTimelineOptions } from './settings/defaults';
 
 interface MousePoint extends DOMPoint {
   radius: number;
@@ -888,7 +888,7 @@ export class Timeline extends TimelineEventsEmitter {
    */
   public pxToVal(coords: number, absolute = false): number {
     if (!absolute) {
-      coords -= this._options.leftMarginPx;
+      coords -= this._options.leftMargin;
     }
     const ms = (coords / this._options.stepPx) * this._options.zoom;
     return ms;
@@ -988,9 +988,12 @@ export class Timeline extends TimelineEventsEmitter {
   }
 
   _renderTicks(): void {
+    if (!this._ctx || !this._options) {
+      return;
+    }
     this._ctx.save();
 
-    const areaWidth = this._scrollContainer.scrollWidth - this._options.leftMarginPx;
+    const areaWidth = this._scrollContainer.scrollWidth - (this._options.leftMargin || 0);
     let from = this.pxToVal(0);
     let to = this.pxToVal(areaWidth);
     const dist = TimelineUtils.getDistance(from, to);
@@ -1014,7 +1017,7 @@ export class Timeline extends TimelineEventsEmitter {
       smallStep = realSmallStep;
     }
     // filter to draw only visible
-    const visibleFrom = this.pxToVal(this._scrollContainer.scrollLeft + this._options.leftMarginPx);
+    const visibleFrom = this.pxToVal(this._scrollContainer.scrollLeft + this._options.leftMargin || 0);
     const visibleTo = this.pxToVal(this._scrollContainer.scrollLeft + this._scrollContainer.clientWidth);
     // Find beautiful start point:
     from = Math.floor(visibleFrom / step) * step;
@@ -1714,7 +1717,7 @@ export class Timeline extends TimelineEventsEmitter {
           timelinePos = Math.floor(timelineGlobalPos + this._canvas.clientWidth / 1.5);
         }
       }
-      const keyframeW = data.area.width + this._options.leftMarginPx + additionalOffset;
+      const keyframeW = data.area.width + this._options.leftMargin + additionalOffset;
 
       newWidth = Math.max(
         newWidth,
@@ -1880,7 +1883,8 @@ export class Timeline extends TimelineEventsEmitter {
   _mergeOptions(toSet: TimelineOptions): TimelineOptions {
     toSet = toSet || ({} as TimelineOptions);
     // Apply incoming options to default. (override default)
-    const options = {} as TimelineOptions;
+    // Deep clone default options:
+    const options = JSON.parse(JSON.stringify(defaultTimelineOptions));
     // Merge options with the default.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const mergeOptionsDeep = (to: any, from: any): void => {

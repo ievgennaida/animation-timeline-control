@@ -1,103 +1,26 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Timeline, TimelineElementType, TimelineClickableElement } from '../lib/animation-timeline';
+import { Timeline, TimelineElementType, TimelineClickableElement, TimelineOptions, defaultTimelineOptions } from '../lib/animation-timeline';
 import { assert } from './asserts';
+describe('_mergeOptions', function () {
+  it('Top level options are merged', function () {
+    const defOptions = defaultTimelineOptions as TimelineOptions;
+    const options = { id: 'new id', snapsPerSeconds: 10, snapEnabled: true } as TimelineOptions;
+    const merged = new Timeline()._mergeOptions(options);
+    assert.equal(merged.id, options.id);
+    assert.equal(merged.snapEnabled, options.snapEnabled);
+    assert.equal(merged.snapsPerSeconds, options.snapsPerSeconds);
+    assert.equal(merged.labelsColor, defOptions.labelsColor);
+    assert.equal(merged.leftMargin, defOptions.leftMargin);
+    assert.equal(merged.selectionColor, defOptions.selectionColor);
 
-describe('_findDraggable', function () {
-  it('Keyframe should be selected', function () {
-    const timeline = new Timeline();
-    const elements = [
-      {
-        type: TimelineElementType.Stripe,
-        val: 5,
-      } as TimelineClickableElement,
-      {
-        type: TimelineElementType.Keyframe,
-        val: 5,
-      } as TimelineClickableElement,
-    ];
-    const element = timeline._findDraggable(elements, 5);
-    if (!element) {
-      throw new Error('element cannot be empty');
-    }
-    assert.equal(element.type, TimelineElementType.Keyframe, TimelineElementType.Keyframe + ' should be selected');
+    assert.equal(defOptions.selectionColor === undefined, 'initial options should not be affected');
   });
-  it('Timeline should be selected', function () {
-    const timeline = new Timeline();
-    const elements = [
-      {
-        type: TimelineElementType.Timeline,
-        val: 5,
-      } as TimelineClickableElement,
-      {
-        type: TimelineElementType.Stripe,
-        val: 5,
-      } as TimelineClickableElement,
-    ];
-    const element = timeline._findDraggable(elements, 5);
-    if (!element) {
-      throw new Error('element cannot be empty');
-    }
-    assert.equal(element.type, TimelineElementType.Timeline, TimelineElementType.Timeline + ' should be selected');
-  });
-  it('Timeline should taken first', function () {
-    const timeline = new Timeline();
-    const elements = [
-      {
-        type: TimelineElementType.Timeline,
-        val: 5,
-      } as TimelineClickableElement,
-      {
-        type: TimelineElementType.Keyframe,
-        val: 4,
-      },
-      {
-        type: TimelineElementType.Keyframe,
-        val: 5,
-      } as TimelineClickableElement,
-      {
-        type: TimelineElementType.Stripe,
-        val: 5,
-      } as TimelineClickableElement,
-    ];
-    const element = timeline._findDraggable(elements, 5);
-    if (!element) {
-      throw new Error('element cannot be empty');
-    }
-    assert.equal(element.type, TimelineElementType.Timeline, TimelineElementType.Timeline + ' should be selected');
-    // Keyframe with value 5 should be selected
-    assert.equal(element.val, 5);
-  });
-  it('Stripe should be selected', function () {
-    const timeline = new Timeline();
-    const elements = [
-      {
-        type: TimelineElementType.Stripe,
-        val: 5,
-      } as TimelineClickableElement,
-    ];
-    const element = timeline._findDraggable(elements, 5);
-    if (!element) {
-      throw new Error('element cannot be empty');
-    }
-    assert.equal(element.type, TimelineElementType.Stripe, TimelineElementType.Stripe + ' should be selected');
-  });
-  it('closest keyframe should be returned', function () {
-    const timeline = new Timeline();
-    const elements = [
-      {
-        type: TimelineElementType.Keyframe,
-        val: 0,
-      } as TimelineClickableElement,
-      {
-        type: TimelineElementType.Keyframe,
-        val: 4,
-      } as TimelineClickableElement,
-      {
-        type: TimelineElementType.Keyframe,
-        val: 9,
-      } as TimelineClickableElement,
-    ];
-    const element = timeline._findDraggable(elements, 5);
-    assert.equal(element.val, elements[2].val);
+
+  it('Default styles are merged', function () {
+    const options = { id: 'new id', snapsPerSeconds: 10, snapEnabled: true } as TimelineOptions;
+    const merged = new Timeline()._mergeOptions(options);
+    assert.equal(merged.id, options.id);
+    assert.equal(!!merged.rowsStyle, true, 'Row style cannot be null');
+    assert.equal(!!merged.rowsStyle.keyframesStyle, true, 'Keyframes style cannot be null');
   });
 });

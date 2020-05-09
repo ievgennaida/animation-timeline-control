@@ -75,7 +75,7 @@ export const defaultTimelineOptions = {
   /**
    * additional left margin in pixels to start the line gauge from.
    */
-  leftMarginPx: 25,
+  leftMargin: 25,
   headerFillColor: '#101011',
   fillColor: '#101011',
 

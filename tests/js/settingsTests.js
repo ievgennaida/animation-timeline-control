@@ -3,103 +3,26 @@ Object.defineProperty(exports, "__esModule", { value: true });
 /* eslint-disable @typescript-eslint/no-explicit-any */
 var animation_timeline_1 = require("../lib/animation-timeline");
 var asserts_1 = require("./asserts");
-describe('_findDraggable', function () {
-    it('Keyframe should be selected', function () {
-        var timeline = new animation_timeline_1.Timeline();
-        var elements = [
-            {
-                type: animation_timeline_1.TimelineElementType.Stripe,
-                val: 5,
-            },
-            {
-                type: animation_timeline_1.TimelineElementType.Keyframe,
-                val: 5,
-            },
-        ];
-        var element = timeline._findDraggable(elements, 5);
-        if (!element) {
-            throw new Error('element cannot be empty');
-        }
-        asserts_1.assert.equal(element.type, animation_timeline_1.TimelineElementType.Keyframe, animation_timeline_1.TimelineElementType.Keyframe + ' should be selected');
+describe('_mergeOptions', function () {
+    it('Top level options are merged', function () {
+        var defOptions = animation_timeline_1.defaultTimelineOptions;
+        var options = { id: 'new id', snapsPerSeconds: 10, snapEnabled: true };
+        var merged = new animation_timeline_1.Timeline()._mergeOptions(options);
+        asserts_1.assert.equal(merged.id, options.id);
+        asserts_1.assert.equal(merged.snapEnabled, options.snapEnabled);
+        asserts_1.assert.equal(merged.snapsPerSeconds, options.snapsPerSeconds);
+        asserts_1.assert.equal(merged.labelsColor, defOptions.labelsColor);
+        asserts_1.assert.equal(merged.leftMargin, defOptions.leftMargin);
+        asserts_1.assert.equal(merged.selectionColor, defOptions.selectionColor);
+        asserts_1.assert.equal(defOptions.selectionColor === undefined, 'initial options should not be affected');
     });
-    it('Timeline should be selected', function () {
-        var timeline = new animation_timeline_1.Timeline();
-        var elements = [
-            {
-                type: animation_timeline_1.TimelineElementType.Timeline,
-                val: 5,
-            },
-            {
-                type: animation_timeline_1.TimelineElementType.Stripe,
-                val: 5,
-            },
-        ];
-        var element = timeline._findDraggable(elements, 5);
-        if (!element) {
-            throw new Error('element cannot be empty');
-        }
-        asserts_1.assert.equal(element.type, animation_timeline_1.TimelineElementType.Timeline, animation_timeline_1.TimelineElementType.Timeline + ' should be selected');
-    });
-    it('Timeline should taken first', function () {
-        var timeline = new animation_timeline_1.Timeline();
-        var elements = [
-            {
-                type: animation_timeline_1.TimelineElementType.Timeline,
-                val: 5,
-            },
-            {
-                type: animation_timeline_1.TimelineElementType.Keyframe,
-                val: 4,
-            },
-            {
-                type: animation_timeline_1.TimelineElementType.Keyframe,
-                val: 5,
-            },
-            {
-                type: animation_timeline_1.TimelineElementType.Stripe,
-                val: 5,
-            },
-        ];
-        var element = timeline._findDraggable(elements, 5);
-        if (!element) {
-            throw new Error('element cannot be empty');
-        }
-        asserts_1.assert.equal(element.type, animation_timeline_1.TimelineElementType.Timeline, animation_timeline_1.TimelineElementType.Timeline + ' should be selected');
-        // Keyframe with value 5 should be selected
-        asserts_1.assert.equal(element.val, 5);
-    });
-    it('Stripe should be selected', function () {
-        var timeline = new animation_timeline_1.Timeline();
-        var elements = [
-            {
-                type: animation_timeline_1.TimelineElementType.Stripe,
-                val: 5,
-            },
-        ];
-        var element = timeline._findDraggable(elements, 5);
-        if (!element) {
-            throw new Error('element cannot be empty');
-        }
-        asserts_1.assert.equal(element.type, animation_timeline_1.TimelineElementType.Stripe, animation_timeline_1.TimelineElementType.Stripe + ' should be selected');
-    });
-    it('closest keyframe should be returned', function () {
-        var timeline = new animation_timeline_1.Timeline();
-        var elements = [
-            {
-                type: animation_timeline_1.TimelineElementType.Keyframe,
-                val: 0,
-            },
-            {
-                type: animation_timeline_1.TimelineElementType.Keyframe,
-                val: 4,
-            },
-            {
-                type: animation_timeline_1.TimelineElementType.Keyframe,
-                val: 9,
-            },
-        ];
-        var element = timeline._findDraggable(elements, 5);
-        asserts_1.assert.equal(element.val, elements[2].val);
+    it('Default styles are merged', function () {
+        var defOptions = animation_timeline_1.defaultTimelineOptions;
+        var options = { id: 'new id', snapsPerSeconds: 10, snapEnabled: true };
+        var merged = new animation_timeline_1.Timeline()._mergeOptions(options);
+        asserts_1.assert.equal(merged.id, options.id);
+        asserts_1.assert.equal(!!merged.rowsStyle, true, 'Row style cannot be null');
+        asserts_1.assert.equal(!!merged.rowsStyle.keyframesStyle, true, 'Keyframes style cannot be null');
     });
 });
 //# sourceMappingURL=settingsTests.js.map

@@ -28,7 +28,7 @@ export interface TimelineOptions {
   /**
    * additional left margin in pixels to start the line gauge from.
    */
-  leftMarginPx?: number;
+  leftMargin?: number;
   /**
    * Component header background color.
    */
