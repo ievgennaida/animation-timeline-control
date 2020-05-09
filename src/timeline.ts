@@ -841,7 +841,7 @@ export class Timeline extends TimelineEventsEmitter {
     } else {
       this._scrollContainer.scrollLeft = newLeft;
     }
-    this._scrollContainer.scrollTop = Math.round(start.y - pos.y);
+    this._scrollContainer.scrollTop = Math.round(scrollStartPos.y + start.y - pos.y);
   }
 
   _scrollBySelectionOutOfBounds(pos: DOMPoint): boolean {
