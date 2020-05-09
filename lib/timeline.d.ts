@@ -280,7 +280,7 @@ export declare class Timeline extends TimelineEventsEmitter {
     /**
      * Merge options with the defaults.
      */
-    _mergeOptions(toSet: TimelineOptions): TimelineOptions;
+    _mergeOptions(from: TimelineOptions): TimelineOptions;
     /**
      * Subscribe on time changed.
      */

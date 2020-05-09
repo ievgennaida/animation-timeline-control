@@ -1597,7 +1597,7 @@ export class Timeline extends TimelineEventsEmitter {
       timelineEvent.prevVal = prevVal;
       timelineEvent.source = source;
       this._val = val;
-      this.emit(TimelineEvents.Selected, timelineEvent);
+      this.emit(TimelineEvents.TimeChanged, timelineEvent);
       if (timelineEvent.isPrevented()) {
         this._val = prevVal;
         return false;
@@ -1912,11 +1912,11 @@ export class Timeline extends TimelineEventsEmitter {
   /**
    * Merge options with the defaults.
    */
-  _mergeOptions(toSet: TimelineOptions): TimelineOptions {
-    toSet = toSet || ({} as TimelineOptions);
+  _mergeOptions(from: TimelineOptions): TimelineOptions {
+    from = from || ({} as TimelineOptions);
     // Apply incoming options to default. (override default)
     // Deep clone default options:
-    const options = JSON.parse(JSON.stringify(defaultTimelineOptions));
+    const to = JSON.parse(JSON.stringify(defaultTimelineOptions));
     // Merge options with the default.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const mergeOptionsDeep = (to: any, from: any): void => {
@@ -1926,23 +1926,29 @@ export class Timeline extends TimelineEventsEmitter {
       // eslint-disable-next-line prefer-const
       for (let key in to) {
         if (Object.prototype.hasOwnProperty.call(from, key)) {
-          if (to[key] == undefined) {
-            to[key] = from[key];
-          } else if (typeof to[key] === 'object') {
-            mergeOptionsDeep(to[key], from[key]);
+          if (from[key] !== undefined) {
+            if (typeof from[key] === 'object') {
+              if (!to[key]) {
+                to[key] = from[key];
+              } else {
+                mergeOptionsDeep(to[key], from[key]);
+              }
+            } else {
+              to[key] = from[key];
+            }
           }
         }
       }
     };
 
-    mergeOptionsDeep(options, toSet);
-    return options;
+    mergeOptionsDeep(to, from);
+    return to;
   }
   /**
    * Subscribe on time changed.
    */
   public onTimeChanged(callback: (eventArgs: TimelineTimeChangedEvent) => void): void {
-    this.on(TimelineEvents.DragStarted, callback);
+    this.on(TimelineEvents.TimeChanged, callback);
   }
   /**
    * Subscribe on drag started event.

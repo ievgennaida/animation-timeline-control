@@ -31,6 +31,7 @@ describe('_mergeOptions', function () {
     const options = {
       id: 'new id',
       snapsPerSeconds: 10,
+      headerHeight: 44,
       snapEnabled: true,
       rowsStyle: {
         height: 100,
@@ -41,11 +42,23 @@ describe('_mergeOptions', function () {
       } as TimelineRowStyle,
     } as TimelineOptions;
     const merged = timeline._mergeOptions(options);
-    assert.equal(merged.id, options.id);
-    assert.equal(merged.rowsStyle.height, options.rowsStyle.height);
-    assert.equal(merged.rowsStyle.keyframesStyle.hidden, options.rowsStyle.hidden);
-    assert.equal(merged.rowsStyle.keyframesStyle.draggable, options.rowsStyle.keyframesStyle.draggable);
+    assert.equal(merged.id, 'new id');
+    assert.equal(merged.headerHeight, 44);
+    assert.equal(merged.rowsStyle.height, 100);
+    assert.equal(merged.rowsStyle.keyframesStyle.hidden, true);
+    assert.equal(merged.rowsStyle.keyframesStyle.draggable, false);
     const defOptions = defaultTimelineOptions as TimelineOptions;
     assert.equal(merged.rowsStyle.keyframesStyle.shape, defOptions.rowsStyle.keyframesStyle.shape);
+  });
+  it('Original options are not affected', function () {
+    const timeline = new Timeline();
+    const options = {
+      id: 'new id',
+      snapsPerSeconds: 10,
+    } as TimelineOptions;
+    const merged = timeline._mergeOptions(options);
+    assert.equal(merged.id, 'new id');
+    assert.equal(merged.snapsPerSeconds, 10);
+    assert.equal(options.headerHeight === undefined, true);
   });
 });
