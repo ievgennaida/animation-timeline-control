@@ -1248,7 +1248,7 @@ export class Timeline extends TimelineEventsEmitter {
 
     const height = TimelineStyleUtils.getRowHeight(row, this._options);
     if ((!stripeHeight && stripeHeight !== 0) || isNaN(stripeHeight as number) || stripeHeight == 'auto') {
-      stripeHeight = Math.floor(height * 0.8);
+      stripeHeight = Math.floor(height * 0.7);
     }
 
     if (stripeHeight > height) {
@@ -1821,8 +1821,8 @@ export class Timeline extends TimelineEventsEmitter {
       const timelineStyle = this._options.timelineStyle;
       width = Math.max((timelineStyle.width || 1) * this._pixelRatio, (timelineStyle.capWidth || 0) * this._pixelRatio || 1) + clickRadius;
     }
-
-    if (pos.y <= this._options.headerHeight || (pos.x >= timeLinePos - width / 2 && pos.x <= timeLinePos + width / 2)) {
+    // Allow to select timeline only by half of a header to allow select by a selector top most keyframes row.
+    if (pos.y <= this._options.headerHeight * 0.5 || (pos.x >= timeLinePos - width / 2 && pos.x <= timeLinePos + width / 2)) {
       toReturn.push({
         val: this._val,
         type: TimelineElementType.Timeline,
