@@ -1102,9 +1102,8 @@ export class Timeline extends TimelineEventsEmitter {
         // draw with scroll virtualization:
         const rowHeight = TimelineStyleUtils.getRowHeight(row, this._options);
         const marginBottom = TimelineStyleUtils.getRowMarginBottom(row, this._options);
-
-        rowAbsoluteHeight += rowHeight + marginBottom;
         const currentRowY = rowAbsoluteHeight - this._scrollContainer.scrollTop;
+        rowAbsoluteHeight += rowHeight + marginBottom;
         if (index == 0) {
           toReturn.area.y = currentRowY;
         }

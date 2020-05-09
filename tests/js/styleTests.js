@@ -101,7 +101,7 @@ describe('TimelineStyleUtils', function () {
             asserts_1.assert.equal(animation_timeline_1.TimelineStyleUtils.stripeDraggable(rowStyle, globalStyle), false);
         });
     });
-    describe('Height', function () {
+    describe('Row size', function () {
         it('Height is taken from row', function () {
             var globalStyle = {
                 rowsStyle: {
