@@ -67,7 +67,7 @@ import {
 Outline list\tree can implemented as a separate HTML component and synchronized with the timeline.
 See the [live demo](https://ievgennaida.github.io/animation-timeline-control/)
 
-![gif preview](demo/zoom-scale.gif)
+![gif preview](demo/outline-list.gif)
 
 ## Model
 
