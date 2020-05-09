@@ -1,4 +1,4 @@
-export declare class TimelineConsts {
+export interface TimelineConsts {
     /**
      * Auto pan speed.
      */
@@ -28,3 +28,4 @@ export declare class TimelineConsts {
      */
     clickThreshold: number;
 }
+export declare const defaultTimelineConsts: TimelineConsts;

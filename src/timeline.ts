@@ -1,7 +1,7 @@
 import { TimelineEventsEmitter } from './timelineEventsEmitter';
 import { TimelineUtils } from './utils/timelineUtils';
 import { TimelineOptions } from './settings/timelineOptions';
-import { TimelineConsts } from './settings/timelineConsts';
+import { defaultTimelineConsts, TimelineConsts } from './settings/timelineConsts';
 import { TimelineKeyframe } from './timelineKeyframe';
 import { TimelineModel } from './timelineModel';
 import { TimelineClickableElement } from './utils/timelineClickableElement';
@@ -73,7 +73,7 @@ export class Timeline extends TimelineEventsEmitter {
   _clickTimeout? = 0;
   _lastClickTime = 0;
   _lastClickPoint: DOMPoint | null = null;
-  _consts = new TimelineConsts();
+  _consts: TimelineConsts = defaultTimelineConsts;
   _clickAllowed = false;
   /**
    * scroll finished timer reference.
@@ -292,7 +292,9 @@ export class Timeline extends TimelineEventsEmitter {
       if (this._options.zoomSpeed > 0 && this._options.zoomSpeed <= 1) {
         const mousePos = this._getMousePos(this._canvas, event);
         let x = mousePos.x;
-        if (x <= 0) x = 0;
+        if (x <= 0) {
+          x = 0;
+        }
         const val = this.pxToVal(this._scrollContainer.scrollLeft + x, false);
         const diff = this._canvas.clientWidth / x;
 
@@ -312,8 +314,8 @@ export class Timeline extends TimelineEventsEmitter {
 
         this._rescaleInternal(newScrollLeft + this._canvas.clientWidth, null, 'zoom');
         if (this._scrollContainer.scrollLeft != newScrollLeft) {
-          this._scrollContainer.scrollLeft = newScrollLeft;
           // Scroll event will redraw the screen.
+          this._scrollContainer.scrollLeft = newScrollLeft;
         }
 
         this.redraw();
