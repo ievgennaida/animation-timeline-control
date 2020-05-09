@@ -20,6 +20,11 @@ Features:
 
 ![gif preview](demo/zoom-scale.gif)
 
+## Live Demo
+
+⋅⋅* [demo](https://ievgennaida.github.io/animation-timeline-control/)
+⋅⋅* [execute unittests online](https://ievgennaida.github.io/animation-timeline-control/tests/unittest)
+
 ## Configuration
 
 ## Usage
