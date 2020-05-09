@@ -418,6 +418,9 @@ export class Timeline extends TimelineEventsEmitter {
     this.redraw();
   };
 
+  isLeftButtonClicked(args: MouseEvent | TouchEvent | any): boolean {
+    return !!args && args.buttons == 1;
+  }
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   _handleMouseMoveEvent = (args: MouseEvent | TouchEvent | any): void => {
     if (!args) {
@@ -432,11 +435,14 @@ export class Timeline extends TimelineEventsEmitter {
     this._currentPos = this._trackMousePos(this._canvas, args);
     if (!this._isPanStarted && this._selectionRect && this._clickTimeoutIsOver()) {
       this._selectionRectEnabled = true;
+    } else {
+      this._selectionRectEnabled = false;
     }
 
     args = args as MouseEvent;
+    const isLeftClicked = this.isLeftButtonClicked(args);
     if (this._startPos) {
-      if (args.buttons == 1 || isTouch) {
+      if (isLeftClicked || isTouch) {
         let isChanged = false;
         if (this._drag && !this._startedDragWithCtrl) {
           const convertedVal = this._mousePosToVal(this._currentPos.x, true);
@@ -486,6 +492,7 @@ export class Timeline extends TimelineEventsEmitter {
 
         if (this._interactionMode === TimelineInteractionMode.Pan && !this._drag) {
           this._isPanStarted = true;
+          this._setCursor(TimelineCursorType.Grabbing);
           // Track scroll by drag.
           this._scrollByPan(this._startPos, this._currentPos, this._scrollStartPos);
         } else {
@@ -499,10 +506,18 @@ export class Timeline extends TimelineEventsEmitter {
         this.redraw();
       }
     } else if (!isTouch) {
-      // TODO: mouse over event
       const elements = this.elementFromPoint(this._currentPos, Math.max(2, this._currentPos.radius));
       const target = this._findDraggable(elements, this._currentPos.val);
-      this._setCursor(TimelineCursorType.Default);
+      if (this._isPanStarted || this._interactionMode === TimelineInteractionMode.Pan) {
+        if (isLeftClicked) {
+          this._setCursor(TimelineCursorType.Grabbing);
+        } else {
+          this._setCursor(TimelineCursorType.Grab);
+        }
+      } else {
+        this._setCursor(TimelineCursorType.Default);
+      }
+
       if (target) {
         let cursor: TimelineCursorType | null = null;
         if (target.type === TimelineElementType.Stripe) {

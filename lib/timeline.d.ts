@@ -110,6 +110,7 @@ export declare class Timeline extends TimelineEventsEmitter {
      * @param args
      */
     _handleMouseDownEvent: (args: MouseEvent) => void;
+    isLeftButtonClicked(args: MouseEvent | TouchEvent | any): boolean;
     _handleMouseMoveEvent: (args: any) => void;
     _handleMouseUpEvent: (args: MouseEvent) => void;
     _performClick(pos: MouseData, args: MouseEvent, drag: TimelineDraggableData): boolean;
