@@ -10,6 +10,8 @@ import { RowSize, RowsCalculationsResults } from './utils/rowsCalculationsResult
 import { TimelineInteractionMode } from './enums/timelineInteractionMode';
 import { TimelineDraggableData } from './utils/timelineDraggableData';
 import { TimelineDragEvent } from './utils/events/timelineDragEvent';
+import { TimelineEventSource } from './enums/timelineEventSource';
+import { TimelineTimeChangedEvent } from './utils/events/timelineTimeChangedEvent';
 interface MousePoint extends DOMPoint {
     radius: number;
 }
@@ -124,6 +126,10 @@ export declare class Timeline extends TimelineEventsEmitter {
      * @param isPan
      */
     setInteractionMode(mode: TimelineInteractionMode): void;
+    /**
+     * Get current interaction mode.
+     */
+    getInteractionMode(): TimelineInteractionMode;
     _convertToElement(row: TimelineRow, keyframe: TimelineKeyframe): TimelineClickableElement;
     getSelectedElements(): Array<TimelineClickableElement>;
     /**
@@ -223,7 +229,12 @@ export declare class Timeline extends TimelineEventsEmitter {
      * Get current time:
      */
     getTime(): number;
-    _setTimeInternal(val: number, source: string): boolean;
+    /**
+     * Set current time internal
+     * @param val value.
+     * @param source event source.
+     */
+    _setTimeInternal(val: number, source?: TimelineEventSource): boolean;
     setTime(val: number): boolean;
     select(value?: boolean): void;
     getOptions(): TimelineOptions;
@@ -267,6 +278,10 @@ export declare class Timeline extends TimelineEventsEmitter {
      * Merge options with the defaults.
      */
     _mergeOptions(toSet: TimelineOptions): TimelineOptions;
+    /**
+     * Subscribe on time changed.
+     */
+    onTimeChangedEvent(callback: (eventArgs: TimelineTimeChangedEvent) => void): void;
     /**
      * Subscribe on drag started event.
      */

@@ -1,5 +1,6 @@
 import { TimelineClickableElement } from '../timelineClickableElement';
-export declare class TimelineClickEvent {
+import { TimelineBaseEvent } from './timelineBaseEvent';
+export declare class TimelineClickEvent extends TimelineBaseEvent {
     args: MouseEvent;
     /**
      * Clicked screen position.
@@ -17,10 +18,4 @@ export declare class TimelineClickEvent {
      * Target element
      */
     target: TimelineClickableElement;
-    private _prevented;
-    /**
-     * Prevent default click logic.
-     */
-    preventDefault(): void;
-    isPrevented(): boolean;
 }

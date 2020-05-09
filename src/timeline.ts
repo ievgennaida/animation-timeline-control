@@ -21,6 +21,8 @@ import { TimelineDraggableData } from './utils/timelineDraggableData';
 import { TimelineClickEvent } from './utils/events/timelineClickEvent';
 import { TimelineDragEvent } from './utils/events/timelineDragEvent';
 import { defaultTimelineConsts, defaultTimelineOptions } from './settings/defaults';
+import { TimelineEventSource } from './enums/timelineEventSource';
+import { TimelineTimeChangedEvent } from './utils/events/timelineTimeChangedEvent';
 
 interface MousePoint extends DOMPoint {
   radius: number;
@@ -440,7 +442,7 @@ export class Timeline extends TimelineEventsEmitter {
           const convertedVal = this._mousePosToVal(this._currentPos.x, true);
           //redraw();
           if (this._drag.type === TimelineElementType.Timeline) {
-            isChanged = this._setTimeInternal(convertedVal, 'user') || isChanged;
+            isChanged = this._setTimeInternal(convertedVal, TimelineEventSource.User) || isChanged;
           } else if ((this._drag.type == TimelineElementType.Keyframe || this._drag.type == TimelineElementType.Stripe) && this._drag.elements) {
             let offset = Math.floor(convertedVal - this._drag.val);
             if (Math.abs(offset) > 0) {
@@ -500,7 +502,7 @@ export class Timeline extends TimelineEventsEmitter {
       // TODO: mouse over event
       const elements = this.elementFromPoint(this._currentPos, Math.max(2, this._currentPos.radius));
       const target = this._findDraggable(elements, this._currentPos.val);
-      this._setCursor('default');
+      this._setCursor(TimelineCursorType.Default);
       if (target) {
         let cursor: TimelineCursorType | null = null;
         if (target.type === TimelineElementType.Stripe) {
@@ -554,7 +556,7 @@ export class Timeline extends TimelineEventsEmitter {
         // change timeline pos:
         const convertedVal = this._mousePosToVal(pos.x, true);
         // Set current timeline position if it's not a drag or selection rect small or fast click.
-        isChanged = this._setTimeInternal(convertedVal, 'user') || isChanged;
+        isChanged = this._setTimeInternal(convertedVal, TimelineEventSource.User) || isChanged;
       }
     } else {
       // deselect keyframes if any:
@@ -562,7 +564,7 @@ export class Timeline extends TimelineEventsEmitter {
 
       // change timeline pos:
       // Set current timeline position if it's not a drag or selection rect small or fast click.
-      isChanged = this._setTimeInternal(this._mousePosToVal(pos.x, true), 'user') || isChanged;
+      isChanged = this._setTimeInternal(this._mousePosToVal(pos.x, true), TimelineEventSource.User) || isChanged;
     }
 
     return isChanged;
@@ -1562,22 +1564,33 @@ export class Timeline extends TimelineEventsEmitter {
     return this._val;
   }
 
-  _setTimeInternal(val: number, source: string): boolean {
+  /**
+   * Set current time internal
+   * @param val value.
+   * @param source event source.
+   */
+  _setTimeInternal(val: number, source: TimelineEventSource = TimelineEventSource.Programmatically): boolean {
     val = Math.round(val);
     if (val < 0) {
       val = 0;
     }
 
     if (this._val != val) {
+      const timelineEvent = new TimelineTimeChangedEvent();
+      timelineEvent.val = val;
+      const prevVal = this._val;
+      timelineEvent.prevVal = prevVal;
+      timelineEvent.source = source;
       this._val = val;
-      this.emit('timeChanged', {
-        val: val,
-        source: source,
-      });
+      this.emit(TimelineEvents.Selected, timelineEvent);
+      if (timelineEvent.isPrevented()) {
+        this._val = prevVal;
+        return false;
+      }
       return true;
     }
 
-    return true;
+    return false;
   }
 
   public setTime(val: number): boolean {
@@ -1586,7 +1599,7 @@ export class Timeline extends TimelineEventsEmitter {
       return false;
     }
 
-    return this._setTimeInternal(val, 'setTime');
+    return this._setTimeInternal(val, TimelineEventSource.SetTimeMethod);
   }
 
   public select(value = true): void {
@@ -1910,7 +1923,12 @@ export class Timeline extends TimelineEventsEmitter {
     mergeOptionsDeep(options, toSet);
     return options;
   }
-
+  /**
+   * Subscribe on time changed.
+   */
+  public onTimeChangedEvent(callback: (eventArgs: TimelineTimeChangedEvent) => void): void {
+    this.on(TimelineEvents.DragStarted, callback);
+  }
   /**
    * Subscribe on drag started event.
    */
