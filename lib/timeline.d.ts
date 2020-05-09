@@ -8,7 +8,9 @@ import { TimelineRow } from './timelineRow';
 import { CutBoundsRect } from './utils/cutBoundsRect';
 import { RowSize, RowsCalculationsResults } from './utils/rowsCalculationsResults';
 import { TimelineInteractionMode } from './enums/timelineInteractionMode';
+import { TimelineScrollEvent } from './utils/events/timelineScrollEvent';
 import { TimelineDraggableData } from './utils/timelineDraggableData';
+import { TimelineClickEvent } from './utils/events/timelineClickEvent';
 import { TimelineDragEvent } from './utils/events/timelineDragEvent';
 import { TimelineEventSource } from './enums/timelineEventSource';
 import { TimelineTimeChangedEvent } from './utils/events/timelineTimeChangedEvent';
@@ -285,19 +287,27 @@ export declare class Timeline extends TimelineEventsEmitter {
     /**
      * Subscribe on drag started event.
      */
-    onDragStarted(callback: (dragEvent: TimelineDragEvent) => void): void;
+    onDragStarted(callback: (eventArgs: TimelineDragEvent) => void): void;
     /**
      * Subscribe on drag event.
      */
-    onDrag(callback: (dragEvent: TimelineDragEvent) => void): void;
+    onDrag(callback: (eventArgs: TimelineDragEvent) => void): void;
     /**
      * Subscribe on drag finished event.
      */
-    onDragFinished(callback: (dragEvent: TimelineDragEvent) => void): void;
+    onDragFinished(callback: (eventArgs: TimelineDragEvent) => void): void;
+    /**
+     * Subscribe on double click.
+     */
+    onDoubleClick(callback: (eventArgs: TimelineClickEvent) => void): void;
+    /**
+     * Subscribe on drag finished event.
+     */
+    onMouseDown(callback: (eventArgs: TimelineClickEvent) => void): void;
     /**
      * Subscribe on scroll event
      */
-    onScroll(callback: Function): void;
+    onScroll(callback: (eventArgs: TimelineScrollEvent) => void): void;
     _emitDragStartedEvent(): TimelineDragEvent;
     _emitDragFinishedEvent(): TimelineDragEvent;
     _emitDragEvent(): TimelineDragEvent;

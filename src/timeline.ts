@@ -1932,25 +1932,39 @@ export class Timeline extends TimelineEventsEmitter {
   /**
    * Subscribe on drag started event.
    */
-  public onDragStarted(callback: (dragEvent: TimelineDragEvent) => void): void {
+  public onDragStarted(callback: (eventArgs: TimelineDragEvent) => void): void {
     this.on(TimelineEvents.DragStarted, callback);
   }
   /**
    * Subscribe on drag event.
    */
-  public onDrag(callback: (dragEvent: TimelineDragEvent) => void): void {
+  public onDrag(callback: (eventArgs: TimelineDragEvent) => void): void {
     this.on(TimelineEvents.Drag, callback);
   }
   /**
    * Subscribe on drag finished event.
    */
-  public onDragFinished(callback: (dragEvent: TimelineDragEvent) => void): void {
+  public onDragFinished(callback: (eventArgs: TimelineDragEvent) => void): void {
     this.on(TimelineEvents.DragFinished, callback);
   }
   /**
+   * Subscribe on double click.
+   */
+  public onDoubleClick(callback: (eventArgs: TimelineClickEvent) => void): void {
+    this.on(TimelineEvents.DoubleClick, callback);
+  }
+
+  /**
+   * Subscribe on drag finished event.
+   */
+  public onMouseDown(callback: (eventArgs: TimelineClickEvent) => void): void {
+    this.on(TimelineEvents.MouseDown, callback);
+  }
+
+  /**
    * Subscribe on scroll event
    */
-  public onScroll(callback: Function): void {
+  public onScroll(callback: (eventArgs: TimelineScrollEvent) => void): void {
     this.on(TimelineEvents.Scroll, callback);
   }
 
