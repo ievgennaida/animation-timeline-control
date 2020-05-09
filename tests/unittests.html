@@ -17,15 +17,28 @@
     <script src="https://unpkg.com/chai/chai.js"></script>
     <script src="https://unpkg.com/mocha/mocha.js"></script>
     <script src="../lib/animation-timeline.js"></script>
-    <script>var exports = {}; var require = function () {
-            return timelineModule;
-        };
+    <script>if (!window.exports) {
+            window.exports = {};
+        }
+    </script>
+    <script src="./js/asserts.js"></script>
+    <script>if (!window.require) {
+            window.require = function (moduleName) {
+                if (moduleName.indexOf('assert') > 0) {
+                    return exports;
+                } else {
+                    return timelineModule;
+                }
+            }
+        }
     </script>
     <script class="mocha-init">
         mocha.setup('bdd');
         mocha.checkLeaks();
     </script>
-    <script src="./timelineTests.js"></script>
+    <script src="./js/styleTests.js"></script>
+    <script src="./js/timelineTests.js"></script>
+    <script src="./js/settingsTests.js"></script>
     <script class="mocha-exec">
         mocha.run();
     </script>

@@ -1,4 +1,7 @@
 import { TimelineCapShape } from '../../enums/timelineCapShape';
+/**
+ * Timeline indicator style
+ */
 export interface TimelineStyle {
     width?: number;
     marginTop?: number;

@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Timeline, TimelineElementType, TimelineClickableElement } from './../lib/animation-timeline';
+import { Timeline, TimelineElementType, TimelineClickableElement } from '../lib/animation-timeline';
 import { assert } from './asserts';
+
 describe('_findDraggable', function () {
   it('Keyframe should be selected', function () {
     const timeline = new Timeline();

@@ -9,6 +9,10 @@ export interface TimelineRowStyle {
     selectedColor?: string;
     marginBottom?: number;
     /**
+     * keyframes stripe is draggable.
+     */
+    stripeDraggable?: boolean;
+    /**
      * Keyframes bounds stripe height.
      * 'auto' to automatically calculate.
      * number in pixels.

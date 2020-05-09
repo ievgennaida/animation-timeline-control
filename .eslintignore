@@ -8,3 +8,5 @@ tests/src
 ./tests/src
 ./tests/tests/
 tests/tests/
+tests/*.js
+tests/*.js.map

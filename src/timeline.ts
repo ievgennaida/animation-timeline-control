@@ -1758,21 +1758,15 @@ export class Timeline extends TimelineEventsEmitter {
       return -1;
     };
     const filteredElements = elements.filter((element) => {
+      if (!element) {
+        return false;
+      }
       if (element.type === TimelineElementType.Keyframe) {
-        let draggable = true;
-        if (this._options) {
-          draggable = (this._options.keyframesDraggable === undefined ? true : !!this._options.keyframesDraggable) && (element.keyframe.draggable === undefined ? true : !!element.keyframe.draggable);
-        }
-
-        if (!draggable) {
+        if (!TimelineStyleUtils.keyframeDraggable(element.keyframe, element.row, this._options)) {
           return false;
         }
       } else if (element.type === TimelineElementType.Stripe) {
-        let draggable = true;
-        if (this._options) {
-          draggable = (this._options.stripesDraggable === undefined ? true : !!this._options.stripesDraggable) && (element.row.stripeDraggable === undefined ? true : !!element.row.stripeDraggable);
-        }
-        if (!draggable) {
+        if (!TimelineStyleUtils.stripeDraggable(element.row, this._options)) {
           return false;
         }
       } else if (element.type === TimelineElementType.Row) {
