@@ -25,7 +25,7 @@ export { TimelineSelectedEvent } from './utils/events/timelineSelectedEvent';
 export { TimelineScrollEvent } from './utils/events/timelineScrollEvent';
 export { TimelineClickEvent } from './utils/events/timelineClickEvent';
 export { TimelineDragEvent } from './utils/events/timelineDragEvent';
-
+export { TimelineTimeChangedEvent } from './utils/events/timelineTimeChangedEvent';
 export { TimelineEvents } from './enums/timelineEvents';
 
 export { TimelineKeyframeShape } from './enums/timelineKeyframeShape';
@@ -33,6 +33,7 @@ export { TimelineInteractionMode } from './enums/timelineInteractionMode';
 export { TimelineElementType } from './enums/timelineElementType';
 export { TimelineCursorType } from './enums/timelineCursorType';
 export { TimelineCapShape } from './enums/timelineCapShape';
+export { TimelineEventSource } from './enums/timelineEventSource';
 
 // private defaults are exposed:
 export { defaultTimelineOptions } from './settings/defaults';
