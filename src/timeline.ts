@@ -602,7 +602,12 @@ export class Timeline extends TimelineEventsEmitter {
       this._cleanUpSelection();
     }
   }
-
+  /**
+   * Get current interaction mode.
+   */
+  public getInteractionMode(): TimelineInteractionMode {
+    return this._interactionMode;
+  }
   _convertToElement(row: TimelineRow, keyframe: TimelineKeyframe): TimelineClickableElement {
     const data = {
       type: TimelineElementType.Keyframe,
