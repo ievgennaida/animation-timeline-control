@@ -283,7 +283,7 @@ export declare class Timeline extends TimelineEventsEmitter {
     /**
      * Subscribe on time changed.
      */
-    onTimeChangedEvent(callback: (eventArgs: TimelineTimeChangedEvent) => void): void;
+    onTimeChanged(callback: (eventArgs: TimelineTimeChangedEvent) => void): void;
     /**
      * Subscribe on drag started event.
      */

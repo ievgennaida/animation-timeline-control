@@ -1926,7 +1926,7 @@ export class Timeline extends TimelineEventsEmitter {
   /**
    * Subscribe on time changed.
    */
-  public onTimeChangedEvent(callback: (eventArgs: TimelineTimeChangedEvent) => void): void {
+  public onTimeChanged(callback: (eventArgs: TimelineTimeChangedEvent) => void): void {
     this.on(TimelineEvents.DragStarted, callback);
   }
   /**
