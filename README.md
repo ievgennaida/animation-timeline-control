@@ -24,7 +24,7 @@ Features:
 
 * [Live demo](https://ievgennaida.github.io/animation-timeline-control/)
 * [Run unittests](https://ievgennaida.github.io/animation-timeline-control/tests/unittests)
-
+ 
 ## Configuration
 
 ## Usage
