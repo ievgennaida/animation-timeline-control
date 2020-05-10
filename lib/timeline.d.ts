@@ -209,7 +209,7 @@ export declare class Timeline extends TimelineEventsEmitter {
     _renderTicks(): void;
     _setMinMax(to: TimelineCalculated, from: TimelineCalculated): TimelineCalculated;
     /**
-     * determine screen positions of the model elements.
+     * calculate virtual mode. Determine screen positions for the elements.
      */
     _calculateModel(): TimelineModelCalcResults;
     _renderRows(): void;

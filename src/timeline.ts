@@ -319,7 +319,6 @@ export class Timeline extends TimelineEventsEmitter {
    */
   _handleMouseDownEvent = (args: MouseEvent): void => {
     let isDoubleClick = Date.now() - this._lastClickTime < this._consts.doubleClickTimeoutMs;
-
     // Prevent drag of the canvas if canvas is selected as text:
     TimelineUtils.clearBrowserSelection();
 
@@ -361,6 +360,7 @@ export class Timeline extends TimelineEventsEmitter {
     this._clickTimeout = Date.now();
     this._lastClickTime = Date.now();
     if (event.isPrevented()) {
+      // Mouse up will be also prevented
       this._cleanUpSelection();
       return;
     }
@@ -831,12 +831,12 @@ export class Timeline extends TimelineEventsEmitter {
       return;
     }
 
-    const model = this._calculateModel();
-    if (!model) {
+    const calculatedModel = this._calculateModel();
+    if (!calculatedModel) {
       return;
     }
 
-    model.rows.forEach((calcRow) => {
+    calculatedModel.rows.forEach((calcRow) => {
       if (!calcRow) {
         return;
       }
@@ -1039,11 +1039,14 @@ export class Timeline extends TimelineEventsEmitter {
    */
   public valToPx(ms: number, absolute = false): number {
     // Respect current scroll container offset. (virtualization)
-    if (!absolute) {
+    if (!absolute && this._scrollContainer) {
       const x = this._scrollContainer.scrollLeft;
       ms -= this.pxToVal(x);
     }
 
+    if (!this._options) {
+      return ms;
+    }
     return (ms * this._options.stepPx) / this._options.zoom;
   }
 
@@ -1174,7 +1177,7 @@ export class Timeline extends TimelineEventsEmitter {
       this._ctx.setLineDash([4]);
       this._ctx.lineWidth = 1;
       this._ctx.strokeStyle = this._options.tickColor;
-      TimelineUtils.drawLine(this._ctx, sharpPos, (this._options.headerHeight || 0) / 2, sharpPos, this._canvas.clientHeight);
+      TimelineUtils.drawLine(this._ctx, sharpPos, TimelineStyleUtils.headerHeight(this._options) / 2, sharpPos, this._canvas.clientHeight);
       this._ctx.stroke();
 
       this._ctx.fillStyle = this._options.labelsColor;
@@ -1200,7 +1203,7 @@ export class Timeline extends TimelineEventsEmitter {
         this._ctx.beginPath();
         this._ctx.lineWidth = this._pixelRatio;
         this._ctx.strokeStyle = this._options.tickColor;
-        TimelineUtils.drawLine(this._ctx, nextSharpPos, (this._options.headerHeight || 0) / 1.3, nextSharpPos, this._options.headerHeight);
+        TimelineUtils.drawLine(this._ctx, nextSharpPos, TimelineStyleUtils.headerHeight(this._options) / 1.3, nextSharpPos, TimelineStyleUtils.headerHeight(this._options));
         this._ctx.stroke();
       }
     }
@@ -1228,7 +1231,7 @@ export class Timeline extends TimelineEventsEmitter {
   }
 
   /**
-   * determine screen positions of the model elements.
+   * calculate virtual mode. Determine screen positions for the elements.
    */
   _calculateModel(): TimelineModelCalcResults {
     const toReturn = {
@@ -1251,7 +1254,7 @@ export class Timeline extends TimelineEventsEmitter {
     if (!rows || !Array.isArray(rows) || rows.length <= 0) {
       return toReturn;
     }
-    let rowAbsoluteHeight = this._options.headerHeight;
+    let rowAbsoluteHeight = TimelineStyleUtils.headerHeight(this._options);
     rows.forEach((row, index) => {
       if (!row || row.hidden) {
         return;
@@ -1260,7 +1263,7 @@ export class Timeline extends TimelineEventsEmitter {
       // draw with scroll virtualization:
       const rowHeight = TimelineStyleUtils.getRowHeight(row, this._options);
       const marginBottom = TimelineStyleUtils.getRowMarginBottom(row, this._options);
-      const currentRowY = rowAbsoluteHeight - this._scrollContainer.scrollTop;
+      const currentRowY = rowAbsoluteHeight - (this._scrollContainer ? this._scrollContainer.scrollTop : 0);
       rowAbsoluteHeight += rowHeight + marginBottom;
       if (index == 0) {
         toReturn.size.y = currentRowY;
@@ -1268,9 +1271,8 @@ export class Timeline extends TimelineEventsEmitter {
 
       toReturn.size.height = Math.max(rowAbsoluteHeight + rowHeight, toReturn.size.height);
 
-      const rowSize = { x: 0, y: currentRowY, width: this._canvas.clientWidth, height: rowHeight } as DOMRect;
       const calcRow = {
-        size: rowSize,
+        size: { x: 0, y: currentRowY, width: this._canvas ? this._canvas.clientWidth : 0, height: rowHeight } as DOMRect,
         marginBottom: marginBottom,
         model: row,
         minValue: null,
@@ -1278,7 +1280,6 @@ export class Timeline extends TimelineEventsEmitter {
         groups: [] as Array<TimelineCalculatedGroup>,
         keyframes: [] as Array<TimelineCalculatedKeyframe>,
       } as TimelineCalculatedRow;
-
       toReturn.rows.push(calcRow);
       if (!row.keyframes || !row.keyframes.forEach || row.keyframes.length <= 0) {
         return;
@@ -1333,7 +1334,7 @@ export class Timeline extends TimelineEventsEmitter {
         // Extend row min max bounds by a group bounds:
         this._setMinMax(calcRow, group);
         // get group screen coords
-        const groupRect = this._getKeyframesGroupSize(row, rowSize.y, group.minValue, group.maxValue);
+        const groupRect = this._getKeyframesGroupSize(row, calcRow.size.y, group.minValue, group.maxValue);
         group.size = groupRect;
       });
 
@@ -1392,7 +1393,7 @@ export class Timeline extends TimelineEventsEmitter {
     // default bounds: minX, maxX, minY, maxY
     const minX = 0,
       maxX = this._canvas.clientWidth,
-      minY = this._options.headerHeight || 0,
+      minY = TimelineStyleUtils.headerHeight(this._options),
       maxY = this._canvas.clientWidth;
 
     if (
@@ -1514,7 +1515,7 @@ export class Timeline extends TimelineEventsEmitter {
         // Other keyframes should be hidden by bounds check.
         if (bounds && bounds.overlapY) {
           this._ctx.beginPath();
-          this._ctx.rect(0, this._options.headerHeight || 0, this._canvas.clientWidth, this._canvas.clientWidth);
+          this._ctx.rect(0, TimelineStyleUtils.headerHeight(this._options), this._canvas.clientWidth, this._canvas.clientWidth);
           this._ctx.clip();
         }
 
@@ -1643,7 +1644,10 @@ export class Timeline extends TimelineEventsEmitter {
   }
 
   _renderHeaderBackground(): void {
-    if (!isNaN(this._options.headerHeight) && this._options.headerHeight > 0) {
+    if (!this._ctx || !this._options) {
+      return;
+    }
+    if (TimelineStyleUtils.headerHeight(this._options)) {
       this._ctx.save();
       // draw ticks background
       this._ctx.lineWidth = this._pixelRatio;
@@ -1652,9 +1656,9 @@ export class Timeline extends TimelineEventsEmitter {
         this._ctx.lineWidth = this._pixelRatio;
         // draw header background
         this._ctx.fillStyle = this._options.headerFillColor;
-        this._ctx.fillRect(0, 0, this._canvas.clientWidth, this._options.headerHeight);
+        this._ctx.fillRect(0, 0, this._canvas.clientWidth, TimelineStyleUtils.headerHeight(this._options));
       } else {
-        this._ctx.clearRect(0, 0, this._canvas.clientWidth, this._options.headerHeight);
+        this._ctx.clearRect(0, 0, this._canvas.clientWidth, TimelineStyleUtils.headerHeight(this._options));
       }
       this._ctx.restore();
     }
@@ -2000,6 +2004,7 @@ export class Timeline extends TimelineEventsEmitter {
       return toReturn;
     }
 
+    const headerHeight = TimelineStyleUtils.headerHeight(this._options);
     // Check whether we can drag timeline.
     const timeLinePos = this.valToPx(this._val);
     let width = 0;
@@ -2008,14 +2013,14 @@ export class Timeline extends TimelineEventsEmitter {
       width = Math.max((timelineStyle.width || 1) * this._pixelRatio, (timelineStyle.capWidth || 0) * this._pixelRatio || 1) + clickRadius;
     }
     // Allow to select timeline only by half of a header to allow select by a selector top most keyframes row.
-    if (pos.y <= this._options.headerHeight * 0.5 || (pos.x >= timeLinePos - width / 2 && pos.x <= timeLinePos + width / 2)) {
+    if (pos.y <= headerHeight * 0.5 || (pos.x >= timeLinePos - width / 2 && pos.x <= timeLinePos + width / 2)) {
       toReturn.push({
         val: this._val,
         type: TimelineElementType.Timeline,
       } as TimelineElement);
     }
 
-    if (pos.y >= this._options.headerHeight && this._options.keyframesDraggable) {
+    if (pos.y >= headerHeight && this._options.keyframesDraggable) {
       this._forEachKeyframe((calcKeyframe, index, isNextRow): void => {
         // Check keyframes group overlap
         if (isNextRow) {

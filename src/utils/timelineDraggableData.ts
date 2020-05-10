@@ -1,4 +1,4 @@
-import { TimelineElement } from './TimelineElement';
+import { TimelineElement } from './timelineElement';
 import { TimelineElementType } from '../enums/timelineElementType';
 
 export interface TimelineDraggableData {

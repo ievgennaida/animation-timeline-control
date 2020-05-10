@@ -136,7 +136,9 @@ export class TimelineStyleUtils {
   static getRowFillColor(rowStyle: TimelineRowStyle, options: TimelineOptions): string {
     return TimelineStyleUtils.getRowStyle<string>(rowStyle, options, 'fillColor', '#252526');
   }
-
+  static headerHeight(options: TimelineOptions | null): number {
+    return options ? options.headerHeight : 0 || 30;
+  }
   static keyframeDraggable(keyframe: TimelineKeyframeStyle | null, rowStyle: TimelineRowStyle | null, options: TimelineOptions | null, defaultValue = true): boolean {
     return TimelineStyleUtils.getKeyframeStyle<boolean>(keyframe, rowStyle, options, 'draggable', defaultValue, true);
   }

@@ -30,6 +30,7 @@ export declare class TimelineStyleUtils {
     static groupFillColor(rowStyle: TimelineRowStyle, options: TimelineOptions): string | null;
     static getRowMarginBottom(rowStyle: TimelineRowStyle, options: TimelineOptions): number;
     static getRowFillColor(rowStyle: TimelineRowStyle, options: TimelineOptions): string;
+    static headerHeight(options: TimelineOptions | null): number;
     static keyframeDraggable(keyframe: TimelineKeyframeStyle | null, rowStyle: TimelineRowStyle | null, options: TimelineOptions | null, defaultValue?: boolean): boolean;
     static groupDraggable(rowStyle: TimelineRowStyle, options: TimelineOptions, defaultValue?: boolean): boolean;
 }
