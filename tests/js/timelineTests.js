@@ -8,7 +8,7 @@ describe('_findDraggable', function () {
         var timeline = new animation_timeline_1.Timeline();
         var elements = [
             {
-                type: animation_timeline_1.TimelineElementType.Stripe,
+                type: animation_timeline_1.TimelineElementType.Group,
                 val: 5,
             },
             {
@@ -30,7 +30,7 @@ describe('_findDraggable', function () {
                 val: 5,
             },
             {
-                type: animation_timeline_1.TimelineElementType.Stripe,
+                type: animation_timeline_1.TimelineElementType.Group,
                 val: 5,
             },
         ];
@@ -56,7 +56,7 @@ describe('_findDraggable', function () {
                 val: 5,
             },
             {
-                type: animation_timeline_1.TimelineElementType.Stripe,
+                type: animation_timeline_1.TimelineElementType.Group,
                 val: 5,
             },
         ];
@@ -68,11 +68,11 @@ describe('_findDraggable', function () {
         // Keyframe with value 5 should be selected
         asserts_1.assert.equal(element.val, 5);
     });
-    it('Stripe should be selected', function () {
+    it('Group should be selected', function () {
         var timeline = new animation_timeline_1.Timeline();
         var elements = [
             {
-                type: animation_timeline_1.TimelineElementType.Stripe,
+                type: animation_timeline_1.TimelineElementType.Group,
                 val: 5,
             },
         ];
@@ -80,7 +80,7 @@ describe('_findDraggable', function () {
         if (!element) {
             throw new Error('element cannot be empty');
         }
-        asserts_1.assert.equal(element.type, animation_timeline_1.TimelineElementType.Stripe, animation_timeline_1.TimelineElementType.Stripe + ' should be selected');
+        asserts_1.assert.equal(element.type, animation_timeline_1.TimelineElementType.Group, animation_timeline_1.TimelineElementType.Group + ' should be selected');
     });
     it('closest keyframe should be returned', function () {
         var timeline = new animation_timeline_1.Timeline();

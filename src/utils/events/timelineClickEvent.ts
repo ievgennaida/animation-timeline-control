@@ -1,4 +1,4 @@
-import { TimelineClickableElement } from '../timelineClickableElement';
+import { TimelineElement } from '../TimelineElement';
 import { TimelineBaseEvent } from './timelineBaseEvent';
 
 export class TimelineClickEvent extends TimelineBaseEvent {
@@ -15,9 +15,9 @@ export class TimelineClickEvent extends TimelineBaseEvent {
   /**
    * Elements under the click
    */
-  elements: Array<TimelineClickableElement>;
+  elements: Array<TimelineElement>;
   /**
    * Target element
    */
-  target: TimelineClickableElement;
+  target: TimelineElement;
 }

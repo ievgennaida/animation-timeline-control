@@ -1,18 +1,18 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Timeline, TimelineElementType, TimelineClickableElement } from './../lib/animation-timeline';
+import { Timeline, TimelineElementType, TimelineElement } from './../lib/animation-timeline';
 import { assert } from './asserts';
 describe('_findDraggable', function () {
   it('Keyframe should be selected', function () {
     const timeline = new Timeline();
     const elements = [
       {
-        type: TimelineElementType.Stripe,
+        type: TimelineElementType.Group,
         val: 5,
-      } as TimelineClickableElement,
+      } as TimelineElement,
       {
         type: TimelineElementType.Keyframe,
         val: 5,
-      } as TimelineClickableElement,
+      } as TimelineElement,
     ];
     const element = timeline._findDraggable(elements, 5);
     if (!element) {
@@ -26,11 +26,11 @@ describe('_findDraggable', function () {
       {
         type: TimelineElementType.Timeline,
         val: 5,
-      } as TimelineClickableElement,
+      } as TimelineElement,
       {
-        type: TimelineElementType.Stripe,
+        type: TimelineElementType.Group,
         val: 5,
-      } as TimelineClickableElement,
+      } as TimelineElement,
     ];
     const element = timeline._findDraggable(elements, 5);
     if (!element) {
@@ -44,7 +44,7 @@ describe('_findDraggable', function () {
       {
         type: TimelineElementType.Timeline,
         val: 5,
-      } as TimelineClickableElement,
+      } as TimelineElement,
       {
         type: TimelineElementType.Keyframe,
         val: 4,
@@ -52,11 +52,11 @@ describe('_findDraggable', function () {
       {
         type: TimelineElementType.Keyframe,
         val: 5,
-      } as TimelineClickableElement,
+      } as TimelineElement,
       {
-        type: TimelineElementType.Stripe,
+        type: TimelineElementType.Group,
         val: 5,
-      } as TimelineClickableElement,
+      } as TimelineElement,
     ];
     const element = timeline._findDraggable(elements, 5);
     if (!element) {
@@ -66,19 +66,19 @@ describe('_findDraggable', function () {
     // Keyframe with value 5 should be selected
     assert.equal(element.val, 5);
   });
-  it('Stripe should be selected', function () {
+  it('Group should be selected', function () {
     const timeline = new Timeline();
     const elements = [
       {
-        type: TimelineElementType.Stripe,
+        type: TimelineElementType.Group,
         val: 5,
-      } as TimelineClickableElement,
+      } as TimelineElement,
     ];
     const element = timeline._findDraggable(elements, 5);
     if (!element) {
       throw new Error('element cannot be empty');
     }
-    assert.equal(element.type, TimelineElementType.Stripe, TimelineElementType.Stripe + ' should be selected');
+    assert.equal(element.type, TimelineElementType.Group, TimelineElementType.Group + ' should be selected');
   });
   it('closest keyframe should be returned', function () {
     const timeline = new Timeline();
@@ -86,15 +86,15 @@ describe('_findDraggable', function () {
       {
         type: TimelineElementType.Keyframe,
         val: 0,
-      } as TimelineClickableElement,
+      } as TimelineElement,
       {
         type: TimelineElementType.Keyframe,
         val: 4,
-      } as TimelineClickableElement,
+      } as TimelineElement,
       {
         type: TimelineElementType.Keyframe,
         val: 9,
-      } as TimelineClickableElement,
+      } as TimelineElement,
     ];
     const element = timeline._findDraggable(elements, 5);
     assert.equal(element.val, elements[2].val);

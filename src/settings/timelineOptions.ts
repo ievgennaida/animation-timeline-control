@@ -82,11 +82,11 @@ export interface TimelineOptions {
    */
   scrollContainerClass?: string;
   /**
-   * keyframes stripe is draggable.
+   * keyframes group is draggable.
    */
-  stripesDraggable?: boolean;
+  groupsDraggable?: boolean;
   /**
-   * keyframes stripe is draggable.
+   * keyframes group is draggable.
    */
   keyframesDraggable?: boolean;
 }

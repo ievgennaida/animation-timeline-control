@@ -3,12 +3,13 @@ import { TimelineOptions } from './settings/timelineOptions';
 import { TimelineConsts } from './settings/timelineConsts';
 import { TimelineKeyframe } from './timelineKeyframe';
 import { TimelineModel } from './timelineModel';
-import { TimelineClickableElement } from './utils/timelineClickableElement';
+import { TimelineElement } from './utils/timelineElement';
 import { TimelineRow } from './timelineRow';
 import { CutBoundsRect } from './utils/cutBoundsRect';
 import { RowSize, RowsCalculationsResults } from './utils/rowsCalculationsResults';
 import { TimelineInteractionMode } from './enums/timelineInteractionMode';
 import { TimelineScrollEvent } from './utils/events/timelineScrollEvent';
+import { TimelineSelectedEvent } from './utils/events/timelineSelectedEvent';
 import { TimelineDraggableData } from './utils/timelineDraggableData';
 import { TimelineClickEvent } from './utils/events/timelineClickEvent';
 import { TimelineDragEvent } from './utils/events/timelineDragEvent';
@@ -69,11 +70,7 @@ export declare class Timeline extends TimelineEventsEmitter {
      * scroll finished timer reference.
      */
     _scrollFinishedTimerRef?: number;
-    _selectedKeyframes: Array<TimelineKeyframe>;
     _val: number;
-    /**
-     * TODO: should be tested on retina.
-     */
     _pixelRatio: number;
     _currentZoom: number;
     _intervalRef?: number | null;
@@ -101,7 +98,7 @@ export declare class Timeline extends TimelineEventsEmitter {
     dispose(): void;
     _handleBlurEvent: () => void;
     _handleWindowResizeEvent: () => void;
-    _handleDocumentKeydownEvent: (args: KeyboardEvent) => boolean;
+    selectAllKeyframes(): void;
     _clearScrollFinishedTimer(): void;
     _handleScrollEvent: (args: MouseEvent) => void;
     _controlKeyPressed(e: MouseEvent | KeyboardEvent): boolean;
@@ -133,8 +130,8 @@ export declare class Timeline extends TimelineEventsEmitter {
      * Get current interaction mode.
      */
     getInteractionMode(): TimelineInteractionMode;
-    _convertToElement(row: TimelineRow, keyframe: TimelineKeyframe): TimelineClickableElement;
-    getSelectedElements(): Array<TimelineClickableElement>;
+    _convertToElement(row: TimelineRow, keyframe: TimelineKeyframe): TimelineElement;
+    getSelectedElements(): Array<TimelineElement>;
     /**
      * Do the selection.
      * @param {boolean} isSelected
@@ -146,7 +143,7 @@ export declare class Timeline extends TimelineEventsEmitter {
     /**
      * foreach visible keyframe.
      */
-    _forEachKeyframe(callback: (keyframe: TimelineKeyframe, keyframeIndex?: number, row?: RowSize, index?: number, newRow?: boolean) => void, calculateStripesBounds?: boolean): void;
+    _forEachKeyframe(callback: (keyframe: TimelineKeyframe, keyframeIndex?: number, row?: RowSize, index?: number, newRow?: boolean) => void, calculateGroupsBounds?: boolean): void;
     _trackMousePos(canvas: HTMLCanvasElement, mouseArgs: MouseEvent | TouchEvent): MouseData;
     _cleanUpSelection(): void;
     /**
@@ -199,11 +196,11 @@ export declare class Timeline extends TimelineEventsEmitter {
      */
     _cutBounds(rect: DOMRect): CutBoundsRect;
     /**
-     * get keyframe stripe screen rect coordinates.
+     * get keyframe group screen rect coordinates.
      * @param row
      * @param rowY row screen coords y position
      */
-    _getKeyframesStripeSize(row: TimelineRow, rowY: number, minValue: number, maxValue: number): DOMRect;
+    _getKeyframesGroupSize(row: TimelineRow, rowY: number, minValue: number, maxValue: number): DOMRect;
     _getKeyframePosition(keyframe: TimelineKeyframe, rowSize: RowSize): DOMRect | null;
     _renderKeyframes(): void;
     _renderSelectionRect(): void;
@@ -272,11 +269,11 @@ export declare class Timeline extends TimelineEventsEmitter {
      * @param Array
      * @param val current mouse value
      */
-    _findDraggable(elements: Array<TimelineClickableElement>, val?: number | null): TimelineClickableElement;
+    _findDraggable(elements: Array<TimelineElement>, val?: number | null): TimelineElement;
     /**
      * get all clickable elements by a screen point.
      */
-    elementFromPoint(pos: DOMPoint, clickRadius?: number): Array<TimelineClickableElement>;
+    elementFromPoint(pos: DOMPoint, clickRadius?: number): Array<TimelineElement>;
     /**
      * Merge options with the defaults.
      */
@@ -305,14 +302,16 @@ export declare class Timeline extends TimelineEventsEmitter {
      * Subscribe on drag finished event.
      */
     onMouseDown(callback: (eventArgs: TimelineClickEvent) => void): void;
+    onSelected(callback: (eventArgs: TimelineSelectedEvent) => void): void;
     /**
      * Subscribe on scroll event
      */
     onScroll(callback: (eventArgs: TimelineScrollEvent) => void): void;
+    _emitScrollEvent(args: MouseEvent | null): TimelineScrollEvent;
     _emitDragStartedEvent(): TimelineDragEvent;
     _emitDragFinishedEvent(): TimelineDragEvent;
     _emitDragEvent(): TimelineDragEvent;
-    _emitKeyframesSelected(selectedKeyframes: Array<TimelineKeyframe>): void;
+    _emitKeyframesSelected(selectedKeyframes: Array<TimelineKeyframe>): TimelineSelectedEvent;
     _getDragEventArgs(): TimelineDragEvent;
 }
 export {};

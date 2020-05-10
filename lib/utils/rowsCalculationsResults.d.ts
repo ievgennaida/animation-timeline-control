@@ -17,5 +17,5 @@ export interface RowSize extends DOMRect {
     minValue: number;
     maxValue: number;
     marginBottom: number;
-    stripeRect: DOMRect;
+    groupRect: DOMRect;
 }

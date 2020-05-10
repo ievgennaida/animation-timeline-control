@@ -1,4 +1,5 @@
 import { TimelineKeyframe } from '../../timelineKeyframe';
-export interface TimelineSelectedEvent {
+import { TimelineBaseEvent } from './timelineBaseEvent';
+export declare class TimelineSelectedEvent extends TimelineBaseEvent {
     keyframes: Array<TimelineKeyframe>;
 }

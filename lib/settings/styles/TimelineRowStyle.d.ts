@@ -3,25 +3,21 @@ export interface TimelineRowStyle {
     /**
      * Size of the row in pixels, can be set to 'auto'
      */
-    height: string | number;
+    height?: string | number;
     hidden?: boolean;
     color?: string;
     selectedColor?: string;
     marginBottom?: number;
     /**
-     * keyframes stripe is draggable.
-     */
-    stripeDraggable?: boolean;
-    /**
-     * Keyframes bounds stripe height.
+     * Keyframes bounds group height.
      * 'auto' to automatically calculate.
      * number in pixels.
      */
-    stripeHeight?: number | string;
+    groupHeight?: number | string;
     /**
-     * Keyframes bounds stripe color. Default is used when undefined.
+     * Keyframes bounds group color. Default is used when undefined.
      */
-    stripeFillColor?: string;
+    groupFillColor?: string;
     /**
      * Style of all keyframes in a current row.
      */

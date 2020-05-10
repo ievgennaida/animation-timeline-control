@@ -1,14 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import {
-  TimelineStyleUtils,
-  TimelineKeyframeShape,
-  TimelineOptions,
-  TimelineRowStyle,
-  Timeline,
-  TimelineKeyframeStyle,
-  TimelineElementType,
-  TimelineClickableElement,
-} from './../lib/animation-timeline';
+import { TimelineStyleUtils, TimelineKeyframeShape, TimelineOptions, TimelineRowStyle, TimelineKeyframeStyle } from './../lib/animation-timeline';
 import { assert } from './asserts';
 
 describe('TimelineStyleUtils', function () {
@@ -81,7 +72,7 @@ describe('TimelineStyleUtils', function () {
       assert.equal(TimelineStyleUtils.keyframeDraggable(keyframeStyle, rowStyle, globalStyle), false);
     });
 
-    it('Stripe is draggable by default', function () {
+    it('Group is draggable by default', function () {
       const globalStyle = {
         rowsStyle: {
           keyframesStyle: {
@@ -90,10 +81,10 @@ describe('TimelineStyleUtils', function () {
         } as TimelineRowStyle,
       } as TimelineOptions;
       const rowStyle = { keyframesStyle: { draggable: true, shape: TimelineKeyframeShape.Rect } } as TimelineRowStyle;
-      assert.equal(TimelineStyleUtils.stripeDraggable(rowStyle, globalStyle), true);
+      assert.equal(TimelineStyleUtils.groupDraggable(rowStyle, globalStyle), true);
     });
 
-    it('Stripe is not draggable by row settings', function () {
+    it('Group is not draggable by row settings', function () {
       const globalStyle = {
         rowsStyle: {
           keyframesStyle: {
@@ -101,21 +92,21 @@ describe('TimelineStyleUtils', function () {
           },
         } as TimelineRowStyle,
       } as TimelineOptions;
-      const rowStyle = { stripeDraggable: false, keyframesStyle: { draggable: true, shape: TimelineKeyframeShape.Rect } } as TimelineRowStyle;
-      assert.equal(TimelineStyleUtils.stripeDraggable(rowStyle, globalStyle), false);
+      const rowStyle = { groupDraggable: false, keyframesStyle: { draggable: true, shape: TimelineKeyframeShape.Rect } } as TimelineRowStyle;
+      assert.equal(TimelineStyleUtils.groupDraggable(rowStyle, globalStyle), false);
     });
 
-    it('Stripe is not draggable by global settings', function () {
+    it('Group is not draggable by global settings', function () {
       const globalStyle = {
         rowsStyle: {
-          stripeDraggable: false,
+          groupDraggable: false,
           keyframesStyle: {
             draggable: true,
           },
         } as TimelineRowStyle,
       } as TimelineOptions;
-      const rowStyle = { stripeDraggable: false, keyframesStyle: { draggable: true, shape: TimelineKeyframeShape.Rect } } as TimelineRowStyle;
-      assert.equal(TimelineStyleUtils.stripeDraggable(rowStyle, globalStyle), false);
+      const rowStyle = { groupDraggable: false, keyframesStyle: { draggable: true, shape: TimelineKeyframeShape.Rect } } as TimelineRowStyle;
+      assert.equal(TimelineStyleUtils.groupDraggable(rowStyle, globalStyle), false);
     });
   });
   describe('Row size', function () {

@@ -10,7 +10,7 @@ export { TimelineRowStyle } from './settings/styles/timelineRowStyle';
 export { TimelineStyle } from './settings/styles/timelineStyle';
 export { TimelineStyleUtils } from './utils/timelineStyleUtils';
 export { TimelineUtils } from './utils/timelineUtils';
-export { TimelineClickableElement } from './utils/timelineClickableElement';
+export { TimelineElement } from './utils/timelineElement';
 export { Selectable } from './utils/selectable';
 export { RowsCalculationsResults } from './utils/rowsCalculationsResults';
 export { RowSize } from './utils/rowsCalculationsResults';

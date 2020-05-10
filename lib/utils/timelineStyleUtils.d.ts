@@ -20,9 +20,9 @@ export declare class TimelineStyleUtils {
      * Get current row height from styling
      */
     static getRowHeight(rowStyle: TimelineRowStyle, options: TimelineOptions): number;
-    static rowStripeHeight(rowStyle: TimelineRowStyle, options: TimelineOptions): number | string;
-    static stripeFillColor(rowStyle: TimelineRowStyle, options: TimelineOptions): string;
+    static rowGroupHeight(rowStyle: TimelineRowStyle, options: TimelineOptions): number | string;
+    static groupFillColor(rowStyle: TimelineRowStyle, options: TimelineOptions): string;
     static getRowMarginBottom(rowStyle: TimelineRowStyle, options: TimelineOptions): number;
     static keyframeDraggable(keyframe: TimelineKeyframeStyle | null, rowStyle: TimelineRowStyle | null, options: TimelineOptions | null, defaultValue?: boolean): boolean;
-    static stripeDraggable(rowStyle: TimelineRowStyle, options: TimelineOptions, defaultValue?: boolean): boolean;
+    static groupDraggable(rowStyle: TimelineRowStyle, options: TimelineOptions, defaultValue?: boolean): boolean;
 }

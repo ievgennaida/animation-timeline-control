@@ -1,4 +1,4 @@
-import { TimelineClickableElement } from '../timelineClickableElement';
+import { TimelineElement } from '../TimelineElement';
 import { TimelineBaseEvent } from './timelineBaseEvent';
 export declare class TimelineClickEvent extends TimelineBaseEvent {
     args: MouseEvent;
@@ -13,9 +13,9 @@ export declare class TimelineClickEvent extends TimelineBaseEvent {
     /**
      * Elements under the click
      */
-    elements: Array<TimelineClickableElement>;
+    elements: Array<TimelineElement>;
     /**
      * Target element
      */
-    target: TimelineClickableElement;
+    target: TimelineElement;
 }

@@ -4,7 +4,7 @@ import { TimelineRow } from '../timelineRow';
 /**
  * Timeline clickable element.
  */
-export interface TimelineClickableElement {
+export interface TimelineElement {
   type: TimelineElementType;
   /**
    * Timeline value,
@@ -12,7 +12,7 @@ export interface TimelineClickableElement {
   val: number;
 
   /**
-   * Related keyframe model. In a case of stripe this value will be empty.
+   * Related keyframe model. In a case of a group this value will be empty.
    */
   keyframe?: TimelineKeyframe;
 

@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Timeline, TimelineElementType, TimelineRowStyle, TimelineClickableElement, TimelineOptions, defaultTimelineOptions, TimelineKeyframeStyle } from '../lib/animation-timeline';
+import { Timeline, TimelineRowStyle, TimelineOptions, defaultTimelineOptions, TimelineKeyframeStyle } from '../lib/animation-timeline';
 import { assert } from './asserts';
 describe('_mergeOptions', function () {
   it('Top level options are merged', function () {

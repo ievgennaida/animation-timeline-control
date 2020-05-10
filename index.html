@@ -55,7 +55,11 @@
       color: #adadad;
       background: transparent;
       border: none;
+    }
 
+    .button:focus {
+      outline: 0;
+      border: none;
     }
 
     .button:hover {
@@ -277,19 +281,28 @@
     timeline.initialize({ id: 'timeline', headerHeight: 45 })
     timeline.setModel({ rows: rows });
 
-    timeline.onTimeChanged(function (event) {
-      document.getElementById("currentTime").innerHTML = event.val + "ms source:" + event.source;
+    // Select all elements on key down
+    document.addEventListener('keydown', function (args) {
+      if (args.which === 65 && timeline._controlKeyPressed(args)) {
+        timeline.selectAll();
+        alert('selected');
+      }
     });
-
-    let dragHandler = function (object, eventName) {
+    var dragHandler = function (object, eventName) {
       if (object.elements) {
         document.getElementById("output").innerHTML += 'Keyframe value: ' + object.elements[0].val + '. Selected (' + object.elements.length + ').' + eventName + '<br/>';
       }
     }
 
+
+    timeline.onTimeChanged(function (event) {
+      document.getElementById("currentTime").innerHTML = event.val + "ms source:" + event.source;
+    });
+    timeline.onSelected(function (obj) { console.log('selected'); });
     timeline.onDragStarted(function (obj) { dragHandler(obj, 'dragstarted') });
     timeline.onDrag(function (obj) { dragHandler(obj, 'drag') });
     timeline.onDragFinished(function (obj) { dragHandler(obj, 'dragfinished') });
+    timeline.onMouseDown(function (obj) { console.log('mouse down') });
     timeline.onDoubleClick(function (obj) { alert(obj.val); });
     timeline.onScroll(function (obj) {
       var options = timeline.getOptions();
@@ -300,7 +313,6 @@
         }
       }
     });
-
 
     /* generate outline left nodes */
     var options = timeline.getOptions();

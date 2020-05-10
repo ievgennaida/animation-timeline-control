@@ -4,7 +4,7 @@ import { TimelineOptions } from './settings/timelineOptions';
 import { TimelineConsts } from './settings/timelineConsts';
 import { TimelineKeyframe } from './timelineKeyframe';
 import { TimelineModel } from './timelineModel';
-import { TimelineClickableElement } from './utils/timelineClickableElement';
+import { TimelineElement } from './utils/timelineElement';
 import { TimelineRow } from './timelineRow';
 import { TimelineCursorType } from './enums/timelineCursorType';
 import { TimelineKeyframeShape } from './enums/timelineKeyframeShape';
@@ -82,11 +82,7 @@ export class Timeline extends TimelineEventsEmitter {
    * scroll finished timer reference.
    */
   _scrollFinishedTimerRef?: number = null;
-  _selectedKeyframes: Array<TimelineKeyframe> = [];
   _val = 0;
-  /**
-   * TODO: should be tested on retina.
-   */
   _pixelRatio = 1;
   _currentZoom = 0;
   _intervalRef?: number | null = null;
@@ -202,7 +198,7 @@ export class Timeline extends TimelineEventsEmitter {
 
     window.addEventListener('blur', this._handleBlurEvent, false);
     window.addEventListener('resize', this._handleWindowResizeEvent, false);
-    document.addEventListener('keydown', this._handleDocumentKeydownEvent, false);
+
     this._canvas.addEventListener('touchstart', this._handleMouseDownEvent, false);
     this._canvas.addEventListener('mousedown', this._handleMouseDownEvent, false);
     window.addEventListener('mousemove', this._handleMouseMoveEvent, false);
@@ -229,7 +225,7 @@ export class Timeline extends TimelineEventsEmitter {
 
     window.removeEventListener('blur', this._handleBlurEvent);
     window.removeEventListener('resize', this._handleWindowResizeEvent);
-    document.removeEventListener('keydown', this._handleDocumentKeydownEvent);
+
     this._canvas.removeEventListener('touchstart', this._handleMouseDownEvent);
     this._canvas.removeEventListener('mousedown', this._handleMouseDownEvent);
     window.removeEventListener('mousemove', this._handleMouseMoveEvent);
@@ -248,14 +244,13 @@ export class Timeline extends TimelineEventsEmitter {
     this.rescale();
     this.redraw();
   };
-  _handleDocumentKeydownEvent = (args: KeyboardEvent): boolean => {
-    // ctrl + a. Select all keyframes
-    if (args.which === 65 && this._controlKeyPressed(args)) {
-      this._performSelection(true);
-      args.preventDefault();
-      return false;
-    }
-  };
+
+  /**
+   * Select all keyframes
+   */
+  public selectAllKeyframes(): void {
+    this._performSelection(true);
+  }
 
   _clearScrollFinishedTimer(): void {
     if (this._scrollFinishedTimerRef) {
@@ -279,14 +274,7 @@ export class Timeline extends TimelineEventsEmitter {
     }, this._consts.scrollFinishedTimeoutMs);
 
     this.redraw();
-    const scrollEvent = {
-      args: args,
-      scrollLeft: this._scrollContainer.scrollLeft,
-      scrollTop: this._scrollContainer.scrollTop,
-      scrollHeight: this._scrollContainer.scrollHeight,
-      scrollWidth: this._scrollContainer.scrollWidth,
-    } as TimelineScrollEvent;
-    super.emit(TimelineEvents.Scroll, scrollEvent);
+    this._emitScrollEvent(args);
   };
   _controlKeyPressed(e: MouseEvent | KeyboardEvent): boolean {
     return this._options.controlKeyIsMetaKey || this._options.controlKeyIsMetaKey ? e.metaKey : e.ctrlKey;
@@ -402,12 +390,12 @@ export class Timeline extends TimelineEventsEmitter {
         }
         // Allow to drag all selected keyframes on a screen
         this._drag.elements = this.getSelectedElements();
-      } else if (target.type === TimelineElementType.Stripe) {
+      } else if (target.type === TimelineElementType.Group) {
         const keyframes = this._drag.target.row.keyframes;
         this._drag.elements =
           keyframes && Array.isArray(keyframes)
             ? keyframes.map((keyframe) => {
-                return this._convertToElement(this._drag.target.row, keyframe) as TimelineClickableElement;
+                return this._convertToElement(this._drag.target.row, keyframe) as TimelineElement;
               })
             : [];
       } else {
@@ -449,7 +437,7 @@ export class Timeline extends TimelineEventsEmitter {
           //redraw();
           if (this._drag.type === TimelineElementType.Timeline) {
             isChanged = this._setTimeInternal(convertedVal, TimelineEventSource.User) || isChanged;
-          } else if ((this._drag.type == TimelineElementType.Keyframe || this._drag.type == TimelineElementType.Stripe) && this._drag.elements) {
+          } else if ((this._drag.type == TimelineElementType.Keyframe || this._drag.type == TimelineElementType.Group) && this._drag.elements) {
             let offset = Math.floor(convertedVal - this._drag.val);
             if (Math.abs(offset) > 0) {
               // don't allow to move less than zero.
@@ -520,7 +508,7 @@ export class Timeline extends TimelineEventsEmitter {
 
       if (target) {
         let cursor: TimelineCursorType | null = null;
-        if (target.type === TimelineElementType.Stripe) {
+        if (target.type === TimelineElementType.Group) {
           cursor = cursor || TimelineCursorType.EWResize;
         } else if (target.type == TimelineElementType.Keyframe) {
           cursor = cursor || TimelineCursorType.Pointer;
@@ -625,18 +613,18 @@ export class Timeline extends TimelineEventsEmitter {
   public getInteractionMode(): TimelineInteractionMode {
     return this._interactionMode;
   }
-  _convertToElement(row: TimelineRow, keyframe: TimelineKeyframe): TimelineClickableElement {
+  _convertToElement(row: TimelineRow, keyframe: TimelineKeyframe): TimelineElement {
     const data = {
       type: TimelineElementType.Keyframe,
       val: keyframe.val,
       keyframe: keyframe,
       row: row,
-    } as TimelineClickableElement;
+    } as TimelineElement;
     return data;
   }
 
-  public getSelectedElements(): Array<TimelineClickableElement> {
-    const selected: Array<TimelineClickableElement> = [];
+  public getSelectedElements(): Array<TimelineElement> {
+    const selected: Array<TimelineElement> = [];
     this._forEachKeyframe((keyframe, index, rowModel): void => {
       if (keyframe && keyframe.selected) {
         selected.push(this._convertToElement(rowModel.row, keyframe));
@@ -665,7 +653,7 @@ export class Timeline extends TimelineEventsEmitter {
       deselectionMode = isSelected;
     }
 
-    this._selectedKeyframes.length = 0;
+    const selected: Array<TimelineKeyframe> = [];
     let isChanged = true;
     this._forEachKeyframe((keyframe, keyframeIndex, rowSize): void => {
       const keyframePos = this._getKeyframePosition(keyframe, rowSize);
@@ -673,12 +661,14 @@ export class Timeline extends TimelineEventsEmitter {
       if (keyframePos) {
         if ((selector && selector === keyframe) || TimelineUtils.isOverlap(keyframePos.x, keyframePos.y, selector as DOMRect)) {
           if (keyframe.selected != isSelected) {
-            keyframe.selected = isSelected;
-            isChanged = true;
+            if (isSelected && keyframe.selectable) {
+              keyframe.selected = isSelected;
+              isChanged = true;
+            }
           }
 
           if (keyframe.selected) {
-            this._selectedKeyframes.push(keyframe);
+            selected.push(keyframe);
           }
         } else {
           // Deselect all other keyframes.
@@ -693,7 +683,7 @@ export class Timeline extends TimelineEventsEmitter {
     });
 
     if (isChanged) {
-      this._emitKeyframesSelected(this._selectedKeyframes);
+      this._emitKeyframesSelected(selected);
     }
 
     return isChanged;
@@ -702,12 +692,12 @@ export class Timeline extends TimelineEventsEmitter {
   /**
    * foreach visible keyframe.
    */
-  _forEachKeyframe(callback: (keyframe: TimelineKeyframe, keyframeIndex?: number, row?: RowSize, index?: number, newRow?: boolean) => void, calculateStripesBounds = false): void {
+  _forEachKeyframe(callback: (keyframe: TimelineKeyframe, keyframeIndex?: number, row?: RowSize, index?: number, newRow?: boolean) => void, calculateGroupsBounds = false): void {
     if (!this._model) {
       return;
     }
 
-    const model = this._calculateRowsBounds(calculateStripesBounds);
+    const model = this._calculateRowsBounds(calculateGroupsBounds);
     if (!model) {
       return;
     }
@@ -1160,11 +1150,11 @@ export class Timeline extends TimelineEventsEmitter {
             }
           });
         }
-        // get keyframes stripe size
+        // get keyframes group size
         if (!isNaN(rowData.minValue) && !isNaN(rowData.maxValue)) {
-          // get stripe screen coords
-          const stripeRect = this._getKeyframesStripeSize(row, rowData.y, rowData.minValue, rowData.maxValue);
-          rowData.stripeRect = stripeRect;
+          // get group screen coords
+          const groupRect = this._getKeyframesGroupSize(row, rowData.y, rowData.minValue, rowData.maxValue);
+          rowData.groupRect = groupRect;
         }
 
         // get absolute min and max bounds:
@@ -1203,14 +1193,14 @@ export class Timeline extends TimelineEventsEmitter {
           this._ctx.fillRect(bounds.x, bounds.y, bounds.width, bounds.height);
         }
 
-        const keyframeLaneColor = TimelineStyleUtils.stripeFillColor(rowData.row, this._options);
+        const keyframeLaneColor = TimelineStyleUtils.groupFillColor(rowData.row, this._options);
 
         if ((rowData.row.keyframes && rowData.row.keyframes.length <= 1) || !keyframeLaneColor) {
           return;
         }
 
         // get the bounds on a canvas
-        const rectBounds = this._cutBounds(rowData.stripeRect);
+        const rectBounds = this._cutBounds(rowData.groupRect);
         if (rectBounds) {
           this._ctx.fillStyle = keyframeLaneColor;
           this._ctx.fillRect(rectBounds.x, rectBounds.y, rectBounds.width, rectBounds.height);
@@ -1261,23 +1251,23 @@ export class Timeline extends TimelineEventsEmitter {
   }
 
   /**
-   * get keyframe stripe screen rect coordinates.
+   * get keyframe group screen rect coordinates.
    * @param row
    * @param rowY row screen coords y position
    */
-  _getKeyframesStripeSize(row: TimelineRow, rowY: number, minValue: number, maxValue: number): DOMRect {
-    let stripeHeight: number | string = TimelineStyleUtils.rowStripeHeight(row, this._options);
+  _getKeyframesGroupSize(row: TimelineRow, rowY: number, minValue: number, maxValue: number): DOMRect {
+    let groupHeight: number | string = TimelineStyleUtils.rowGroupHeight(row, this._options);
 
     const height = TimelineStyleUtils.getRowHeight(row, this._options);
-    if ((!stripeHeight && stripeHeight !== 0) || isNaN(stripeHeight as number) || stripeHeight == 'auto') {
-      stripeHeight = Math.floor(height * 0.7);
+    if ((!groupHeight && groupHeight !== 0) || isNaN(groupHeight as number) || groupHeight == 'auto') {
+      groupHeight = Math.floor(height * 0.7);
     }
 
-    if (stripeHeight > height) {
-      stripeHeight = height;
+    if (groupHeight > height) {
+      groupHeight = height;
     }
 
-    const margin = height - (stripeHeight as number);
+    const margin = height - (groupHeight as number);
 
     // draw keyframes rows.
     const xMin = this.valToPx(minValue);
@@ -1286,7 +1276,7 @@ export class Timeline extends TimelineEventsEmitter {
     return {
       x: xMin,
       y: rowY + Math.floor(margin / 2),
-      height: stripeHeight,
+      height: groupHeight,
       width: TimelineUtils.getDistance(xMin, xMax),
     } as DOMRect;
   }
@@ -1591,9 +1581,9 @@ export class Timeline extends TimelineEventsEmitter {
     }
 
     if (this._val != val) {
+      const prevVal = this._val;
       const timelineEvent = new TimelineTimeChangedEvent();
       timelineEvent.val = val;
-      const prevVal = this._val;
       timelineEvent.prevVal = prevVal;
       timelineEvent.source = source;
       this._val = val;
@@ -1780,14 +1770,14 @@ export class Timeline extends TimelineEventsEmitter {
    * @param Array
    * @param val current mouse value
    */
-  _findDraggable(elements: Array<TimelineClickableElement>, val: number | null = null): TimelineClickableElement {
-    // filter and sort: Timeline, individual keyframes, stripes (distance).
+  _findDraggable(elements: Array<TimelineElement>, val: number | null = null): TimelineElement {
+    // filter and sort: Timeline, individual keyframes, groups (distance).
     const getPriority = (type: TimelineElementType): number => {
       if (type === TimelineElementType.Timeline) {
         return 1;
       } else if (type === TimelineElementType.Keyframe) {
         return 2;
-      } else if (type === TimelineElementType.Stripe) {
+      } else if (type === TimelineElementType.Group) {
         return 3;
       }
       return -1;
@@ -1800,8 +1790,8 @@ export class Timeline extends TimelineEventsEmitter {
         if (!TimelineStyleUtils.keyframeDraggable(element.keyframe, element.row, this._options)) {
           return false;
         }
-      } else if (element.type === TimelineElementType.Stripe) {
-        if (!TimelineStyleUtils.stripeDraggable(element.row, this._options)) {
+      } else if (element.type === TimelineElementType.Group) {
+        if (!TimelineStyleUtils.groupDraggable(element.row, this._options)) {
           return false;
         }
       } else if (element.type === TimelineElementType.Row) {
@@ -1839,9 +1829,9 @@ export class Timeline extends TimelineEventsEmitter {
   /**
    * get all clickable elements by a screen point.
    */
-  public elementFromPoint(pos: DOMPoint, clickRadius = 2): Array<TimelineClickableElement> {
+  public elementFromPoint(pos: DOMPoint, clickRadius = 2): Array<TimelineElement> {
     clickRadius = Math.max(clickRadius, 1);
-    const toReturn: Array<TimelineClickableElement> = [];
+    const toReturn: Array<TimelineElement> = [];
 
     if (!pos) {
       return toReturn;
@@ -1859,35 +1849,35 @@ export class Timeline extends TimelineEventsEmitter {
       toReturn.push({
         val: this._val,
         type: TimelineElementType.Timeline,
-      } as TimelineClickableElement);
+      } as TimelineElement);
     }
 
     if (pos.y >= this._options.headerHeight && this._options.keyframesDraggable) {
       this._forEachKeyframe((keyframe, keyframeIndex, rowModel, rowIndex, isNextRow): void => {
-        // Check keyframes stripe overlap
-        if (isNextRow && rowModel.stripeRect) {
+        // Check keyframes group overlap
+        if (isNextRow && rowModel.groupRect) {
           const rowOverlapped = TimelineUtils.isOverlap(pos.x, pos.y, rowModel);
           if (rowOverlapped) {
             const row = {
               val: this._mousePosToVal(pos.x, true),
               type: TimelineElementType.Row,
               row: rowModel.row,
-            } as TimelineClickableElement;
+            } as TimelineElement;
             toReturn.push(row);
           }
 
-          const keyframesStripeOverlapped = TimelineUtils.isOverlap(pos.x, pos.y, rowModel.stripeRect);
-          if (keyframesStripeOverlapped) {
-            const stripe = {
+          const keyframesGroupOverlapped = TimelineUtils.isOverlap(pos.x, pos.y, rowModel.groupRect);
+          if (keyframesGroupOverlapped) {
+            const group = {
               val: this._mousePosToVal(pos.x, true),
-              type: TimelineElementType.Stripe,
+              type: TimelineElementType.Group,
               row: rowModel.row,
-            } as TimelineClickableElement;
+            } as TimelineElement;
 
             const snapped = this.snapVal(rowModel.minValue);
             // get snapped mouse pos based on a min value.
-            stripe.val += rowModel.minValue - snapped;
-            toReturn.push(stripe);
+            group.val += rowModel.minValue - snapped;
+            toReturn.push(group);
           }
         }
 
@@ -1900,7 +1890,7 @@ export class Timeline extends TimelineEventsEmitter {
               val: keyframe.val,
               row: rowModel.row,
               type: TimelineElementType.Keyframe,
-            } as TimelineClickableElement);
+            } as TimelineElement);
           }
         }
         return;
@@ -1982,13 +1972,26 @@ export class Timeline extends TimelineEventsEmitter {
     this.on(TimelineEvents.MouseDown, callback);
   }
 
+  public onSelected(callback: (eventArgs: TimelineSelectedEvent) => void): void {
+    this.on(TimelineEvents.Selected, callback);
+  }
   /**
    * Subscribe on scroll event
    */
   public onScroll(callback: (eventArgs: TimelineScrollEvent) => void): void {
     this.on(TimelineEvents.Scroll, callback);
   }
-
+  _emitScrollEvent(args: MouseEvent | null): TimelineScrollEvent {
+    const scrollEvent = {
+      args: args,
+      scrollLeft: this._scrollContainer.scrollLeft,
+      scrollTop: this._scrollContainer.scrollTop,
+      scrollHeight: this._scrollContainer.scrollHeight,
+      scrollWidth: this._scrollContainer.scrollWidth,
+    } as TimelineScrollEvent;
+    super.emit(TimelineEvents.Scroll, scrollEvent);
+    return scrollEvent;
+  }
   _emitDragStartedEvent(): TimelineDragEvent {
     const args = this._getDragEventArgs();
     this.emit(TimelineEvents.DragStarted, args);
@@ -2013,11 +2016,12 @@ export class Timeline extends TimelineEventsEmitter {
 
     return null;
   }
-  _emitKeyframesSelected(selectedKeyframes: Array<TimelineKeyframe>): void {
+  _emitKeyframesSelected(selectedKeyframes: Array<TimelineKeyframe>): TimelineSelectedEvent {
     // TODO: refine, add changed
-    this.emit(TimelineEvents.Selected, {
-      keyframes: selectedKeyframes,
-    } as TimelineSelectedEvent);
+    const args = new TimelineSelectedEvent();
+    args.keyframes = selectedKeyframes;
+    this.emit(TimelineEvents.Selected, args);
+    return args;
   }
   _getDragEventArgs(): TimelineDragEvent {
     const draggableArguments = new TimelineDragEvent();

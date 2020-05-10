@@ -8,9 +8,9 @@ export enum TimelineElementType {
    */
   Keyframe = 'keyframe',
   /**
-   * Keyframes stripe
+   * Keyframes group
    */
-  Stripe = 'stripe',
+  Group = 'group',
   /**
    * Row
    */

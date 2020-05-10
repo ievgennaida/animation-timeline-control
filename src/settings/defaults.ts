@@ -42,10 +42,10 @@ export const defaultTimelineRowStyle = {
   marginBottom: 2,
   fillColor: '#252526',
   /**
-   * Keyframes stripe color
+   * Keyframes group color
    */
-  stripeFillColor: '#094771',
-  stripeHeight: 'auto',
+  groupFillColor: '#094771',
+  groupHeight: 'auto',
   keyframesStyle: defaultTimelineKeyframeStyle,
 } as TimelineRowStyle;
 
@@ -115,11 +115,11 @@ export const defaultTimelineOptions = {
    */
   scrollContainerClass: 'scroll-container',
   /**
-   * keyframes stripe is draggable.
+   * keyframes group is draggable.
    */
-  stripesDraggable: true,
+  groupsDraggable: true,
   /**
-   * keyframes stripe is draggable.
+   * keyframes group is draggable.
    */
   keyframesDraggable: true,
 } as TimelineOptions;

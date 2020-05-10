@@ -102,11 +102,11 @@ export class TimelineStyleUtils {
   static getRowHeight(rowStyle: TimelineRowStyle, options: TimelineOptions): number {
     return TimelineStyleUtils.getRowStyle<number>(rowStyle, options, 'height', 24);
   }
-  static rowStripeHeight(rowStyle: TimelineRowStyle, options: TimelineOptions): number | string {
-    return TimelineStyleUtils.getRowStyle<number | string>(rowStyle, options, 'stripeHeight', 'auto');
+  static rowGroupHeight(rowStyle: TimelineRowStyle, options: TimelineOptions): number | string {
+    return TimelineStyleUtils.getRowStyle<number | string>(rowStyle, options, 'groupHeight', 'auto');
   }
-  static stripeFillColor(rowStyle: TimelineRowStyle, options: TimelineOptions): string {
-    return TimelineStyleUtils.getRowStyle<string>(rowStyle, options, 'stripeFillColor');
+  static groupFillColor(rowStyle: TimelineRowStyle, options: TimelineOptions): string {
+    return TimelineStyleUtils.getRowStyle<string>(rowStyle, options, 'groupFillColor');
   }
   static getRowMarginBottom(rowStyle: TimelineRowStyle, options: TimelineOptions): number {
     return TimelineStyleUtils.getRowStyle<number>(rowStyle, options, 'marginBottom', 0);
@@ -116,7 +116,7 @@ export class TimelineStyleUtils {
     return TimelineStyleUtils.getKeyframeStyle<boolean>(keyframe, rowStyle, options, 'draggable', defaultValue, true);
   }
 
-  static stripeDraggable(rowStyle: TimelineRowStyle, options: TimelineOptions, defaultValue = true): boolean {
-    return TimelineStyleUtils.getRowStyle<boolean>(rowStyle, options, 'stripeDraggable', defaultValue, true);
+  static groupDraggable(rowStyle: TimelineRowStyle, options: TimelineOptions, defaultValue = true): boolean {
+    return TimelineStyleUtils.getRowStyle<boolean>(rowStyle, options, 'groupDraggable', defaultValue, true);
   }
 }

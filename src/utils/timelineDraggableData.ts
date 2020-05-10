@@ -1,4 +1,4 @@
-import { TimelineClickableElement } from './timelineClickableElement';
+import { TimelineElement } from './TimelineElement';
 import { TimelineElementType } from '../enums/timelineElementType';
 
 export interface TimelineDraggableData {
@@ -6,11 +6,11 @@ export interface TimelineDraggableData {
   /**
    * Drag initial click target.
    */
-  target: TimelineClickableElement;
+  target: TimelineElement;
   /**
    * Elements to be dragged.
    */
-  elements: Array<TimelineClickableElement>;
+  elements: Array<TimelineElement>;
   /**
    * Dragging type.
    */
