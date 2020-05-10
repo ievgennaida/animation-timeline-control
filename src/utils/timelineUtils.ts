@@ -4,6 +4,14 @@ export class TimelineUtils {
     ctx.moveTo(x1, y1);
     ctx.lineTo(x2, y2);
   }
+  static deleteElement<T>(array: Array<T>, element: T): Array<T> {
+    const index: number = array.indexOf(element);
+    if (index !== -1) {
+      return array.splice(index, 1);
+    }
+    return array;
+  }
+
   /**
    * Check rectangle overlap.
    */

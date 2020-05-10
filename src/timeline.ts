@@ -24,6 +24,8 @@ import { TimelineDragEvent } from './utils/events/timelineDragEvent';
 import { defaultTimelineConsts, defaultTimelineOptions } from './settings/defaults';
 import { TimelineEventSource } from './enums/timelineEventSource';
 import { TimelineTimeChangedEvent } from './utils/events/timelineTimeChangedEvent';
+import { TimelineSelectionMode } from './enums/timelineSelectionMode';
+import { TimelineSelectionResults } from './utils/timelineSelectionResults';
 
 interface MousePoint extends DOMPoint {
   radius: number;
@@ -246,17 +248,6 @@ export class Timeline extends TimelineEventsEmitter {
     this.redraw();
   };
 
-  /**
-   * Select all keyframes
-   */
-  public selectAllKeyframes(): void {
-    const changed = this._performSelection(true);
-    if (changed) {
-      this.rescale();
-      this.redraw();
-    }
-  }
-
   _clearScrollFinishedTimer(): void {
     if (this._scrollFinishedTimerRef) {
       clearTimeout(this._scrollFinishedTimerRef);
@@ -391,7 +382,7 @@ export class Timeline extends TimelineEventsEmitter {
         this._startedDragWithShiftKey = args.shiftKey;
         // get all related selected keyframes if we are selecting one.
         if (!target.keyframe.selected && !this._controlKeyPressed(args) && !args.shiftKey) {
-          this._performSelection(true, target.keyframe);
+          this._selectInternal(target.keyframe);
         }
         // Allow to drag all selected keyframes on a screen
         this._drag.elements = this.getSelectedElements();
@@ -537,10 +528,12 @@ export class Timeline extends TimelineEventsEmitter {
       const pos = this._trackMousePos(this._canvas, args);
 
       // Click detection.
-      if (this._clickAllowed || !this._clickTimeoutIsOver() || (this._drag && this._startedDragWithCtrl) || (this._drag && this._startedDragWithShiftKey)) {
+      if (this._clickAllowed || !this._clickTimeoutIsOver() || (this._drag && (this._startedDragWithCtrl || this._startedDragWithShiftKey))) {
         this._performClick(pos, args, this._drag);
       } else if (!this._drag && this._selectionRect && this._selectionRectEnabled) {
-        this._performSelection(true, this._selectionRect, args.shiftKey);
+        const keyframes = this._getKeyframesByRectangle(this._selectionRect);
+        const selectionMode = args.shiftKey ? TimelineSelectionMode.Append : TimelineSelectionMode.Normal;
+        this.select(keyframes, selectionMode);
       }
 
       this._cleanUpSelection();
@@ -548,17 +541,45 @@ export class Timeline extends TimelineEventsEmitter {
     }
   };
 
+  /**
+   * Convert virtual calculation results to keyframes
+   */
+  _mapKeyframes(array: Array<TimelineCalculatedKeyframe | TimelineElement>): Array<TimelineKeyframe> {
+    const results: Array<TimelineKeyframe> = [];
+    if (!array) {
+      return results;
+    }
+
+    for (let i = 0; i < array.length; i++) {
+      results.push((array[i] as TimelineCalculatedKeyframe).model || (array[i] as TimelineElement).keyframe);
+    }
+    return results;
+  }
+  /**
+   * Get all keyframes under the screen rectangle.
+   * @param screenRect screen coordinates to get keyframes.
+   */
+  _getKeyframesByRectangle(screenRect: DOMRect): TimelineKeyframe[] {
+    const keyframesModels: Array<TimelineKeyframe> = [];
+    this._forEachKeyframe((calcKeyframe) => {
+      if (TimelineUtils.isOverlap(calcKeyframe.size.x, calcKeyframe.size.y, screenRect)) {
+        keyframesModels.push(calcKeyframe.model);
+      }
+    });
+    return keyframesModels;
+  }
+
   _performClick(pos: MouseData, args: MouseEvent, drag: TimelineDraggableData): boolean {
     let isChanged = false;
     if (drag && drag.type === TimelineElementType.Keyframe) {
-      let isSelected = true;
+      let mode = TimelineSelectionMode.Normal;
       if ((this._startedDragWithCtrl && this._controlKeyPressed(args)) || (this._startedDragWithShiftKey && args.shiftKey)) {
         if (this._controlKeyPressed(args)) {
-          isSelected = !drag.target.keyframe.selected;
+          mode = TimelineSelectionMode.Revert;
         }
       }
       // Reverse selected keyframe selection by a click:
-      isChanged = this._performSelection(isSelected, this._drag.target.keyframe, this._controlKeyPressed(args) || args.shiftKey) || isChanged;
+      isChanged = this._selectInternal(this._drag.target.keyframe, mode).selectionChanged || isChanged;
 
       if (args.shiftKey) {
         // change timeline pos:
@@ -568,7 +589,7 @@ export class Timeline extends TimelineEventsEmitter {
       }
     } else {
       // deselect keyframes if any:
-      isChanged = this._performSelection(false) || isChanged;
+      isChanged = this._selectInternal(null).selectionChanged || isChanged;
 
       // change timeline pos:
       // Set current timeline position if it's not a drag or selection rect small or fast click.
@@ -628,6 +649,10 @@ export class Timeline extends TimelineEventsEmitter {
     return data;
   }
 
+  public getSelectedKeyframes(): Array<TimelineKeyframe> {
+    return this._mapKeyframes(this.getSelectedElements());
+  }
+
   public getSelectedElements(): Array<TimelineElement> {
     const selected: Array<TimelineElement> = [];
     this._forEachKeyframe((keyframe): void => {
@@ -639,7 +664,109 @@ export class Timeline extends TimelineEventsEmitter {
 
     return selected;
   }
+  public getAllKeyframes(): Array<TimelineKeyframe> {
+    const selected: Array<TimelineKeyframe> = [];
+    this._forEachKeyframe((keyframe): void => {
+      selected.push(keyframe.model);
+    });
 
+    return selected;
+  }
+
+  public selectAllKeyframes(): TimelineSelectionResults {
+    return this.select(this.getAllKeyframes(), TimelineSelectionMode.Normal);
+  }
+  public deselectAll(): TimelineSelectionResults {
+    return this.select(null);
+  }
+
+  private _changeNodeState(state: TimelineSelectionResults, node: TimelineKeyframe, value: boolean): boolean {
+    if (node.selected !== value) {
+      node.selected = value;
+      state.changed.push(node);
+      return true;
+    }
+
+    return false;
+  }
+
+  public select(nodes: TimelineKeyframe[] | TimelineKeyframe | null, mode = TimelineSelectionMode.Normal): TimelineSelectionResults {
+    const results = this._selectInternal(nodes, mode);
+    if (results.selectionChanged) {
+      this.redraw();
+    }
+    return results;
+  }
+
+  /**
+   * Select keyframes
+   * @param nodes keyframe or list of the keyframes to be selected.
+   * @param mode selection mode.
+   */
+  public _selectInternal(nodes: TimelineKeyframe[] | TimelineKeyframe | null, mode = TimelineSelectionMode.Normal): TimelineSelectionResults {
+    if (!nodes) {
+      nodes = [];
+    }
+    if (!Array.isArray(nodes)) {
+      nodes = [nodes];
+    }
+
+    const state = {
+      selectionChanged: false,
+      selected: this.getSelectedKeyframes(),
+      changed: [] as Array<any>,
+    } as TimelineSelectionResults;
+    const nodesArray = nodes as TimelineKeyframe[];
+    //const state = this.selectedSubject.getValue();
+    this.getSelectedElements();
+    if (nodesArray && mode === TimelineSelectionMode.Append) {
+      nodes.forEach((node) => {
+        const changed = this._changeNodeState(state, node, true);
+        if (changed) {
+          state.selected.push(node);
+        }
+      });
+    } else if (nodesArray && mode === TimelineSelectionMode.Revert) {
+      nodes.forEach((node) => {
+        if (state.selected.indexOf(node) >= 0) {
+          this._changeNodeState(state, node, false);
+          TimelineUtils.deleteElement<TimelineKeyframe>(state.selected, node);
+        } else {
+          this._changeNodeState(state, node, true);
+          state.selected.push(node);
+        }
+      });
+    } else if (mode === TimelineSelectionMode.Normal) {
+      if (nodes) {
+        nodes.forEach((node) => {
+          this._changeNodeState(state, node, true);
+        });
+      }
+
+      state.selected.forEach((node) => {
+        const exists = nodesArray.indexOf(node) >= 0;
+        // Deselect
+        if (!exists) {
+          this._changeNodeState(state, node, false);
+        }
+      });
+
+      if (state.changed.length > 0) {
+        if (nodes) {
+          state.selected = nodes;
+        } else {
+          state.selected.length = 0;
+        }
+      }
+    }
+
+    if (state.changed.length > 0) {
+      state.selectionChanged = true;
+      this._emitKeyframesSelected(state);
+    }
+
+    return state;
+  }
   /**
    * Do the selection.
    * @param {boolean} isSelected
@@ -664,7 +791,7 @@ export class Timeline extends TimelineEventsEmitter {
       const keyframePos = calcKeyframe.size;
       const keyframe = calcKeyframe.model;
       if (keyframePos) {
-        if ((selector && selector === keyframe) || TimelineUtils.isOverlap(keyframePos.x, keyframePos.y, selector as DOMRect)) {
+        if (selector && selector === keyframe) {
           if (keyframe.selected != isSelected) {
             if (isSelected && keyframe) {
               keyframe.selected = isSelected;
@@ -688,7 +815,6 @@ export class Timeline extends TimelineEventsEmitter {
     });
 
     if (isChanged) {
-      this._emitKeyframesSelected(selected);
     }
 
     return isChanged;
@@ -1649,11 +1775,6 @@ export class Timeline extends TimelineEventsEmitter {
     return this._setTimeInternal(val, TimelineEventSource.SetTimeMethod);
   }
 
-  public select(value = true): void {
-    this._performSelection(value);
-    this.redraw();
-  }
-
   public getOptions(): TimelineOptions {
     return this._options;
   }
@@ -1912,12 +2033,7 @@ export class Timeline extends TimelineEventsEmitter {
             calcKeyframe.parentRow.groups.forEach((group) => {
               const keyframesGroupOverlapped = TimelineUtils.isOverlap(pos.x, pos.y, group.size);
               if (keyframesGroupOverlapped) {
-                const keyframesModels = [];
-                const calcKeyframes = group.keyframes;
-                for (let i = 0; i < calcKeyframes.length; i++) {
-                  keyframesModels.push(calcKeyframes[i].model);
-                }
-
+                const keyframesModels = this._mapKeyframes(group.keyframes);
                 const groupElement = {
                   val: this._mousePosToVal(pos.x, true),
                   type: TimelineElementType.Group,
@@ -2069,10 +2185,10 @@ export class Timeline extends TimelineEventsEmitter {
 
     return null;
   }
-  _emitKeyframesSelected(selectedKeyframes: Array<TimelineKeyframe>): TimelineSelectedEvent {
-    // TODO: refine, add changed
+  _emitKeyframesSelected(state: TimelineSelectionResults): TimelineSelectedEvent {
     const args = new TimelineSelectedEvent();
-    args.keyframes = selectedKeyframes;
+    args.selected = state.selected;
+    args.changed = state.changed;
     this.emit(TimelineEvents.Selected, args);
     return args;
   }

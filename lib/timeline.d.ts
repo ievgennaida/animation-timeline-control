@@ -15,6 +15,8 @@ import { TimelineClickEvent } from './utils/events/timelineClickEvent';
 import { TimelineDragEvent } from './utils/events/timelineDragEvent';
 import { TimelineEventSource } from './enums/timelineEventSource';
 import { TimelineTimeChangedEvent } from './utils/events/timelineTimeChangedEvent';
+import { TimelineSelectionMode } from './enums/timelineSelectionMode';
+import { TimelineSelectionResults } from './utils/timelineSelectionResults';
 interface MousePoint extends DOMPoint {
     radius: number;
 }
@@ -98,10 +100,6 @@ export declare class Timeline extends TimelineEventsEmitter {
     dispose(): void;
     _handleBlurEvent: () => void;
     _handleWindowResizeEvent: () => void;
-    /**
-     * Select all keyframes
-     */
-    selectAllKeyframes(): void;
     _clearScrollFinishedTimer(): void;
     _handleScrollEvent: (args: MouseEvent) => void;
     _controlKeyPressed(e: MouseEvent | KeyboardEvent): boolean;
@@ -113,6 +111,15 @@ export declare class Timeline extends TimelineEventsEmitter {
     isLeftButtonClicked(args: MouseEvent | TouchEvent | any): boolean;
     _handleMouseMoveEvent: (args: any) => void;
     _handleMouseUpEvent: (args: MouseEvent) => void;
+    /**
+     * Convert virtual calculation results to keyframes
+     */
+    _mapKeyframes(array: Array<TimelineCalculatedKeyframe | TimelineElement>): Array<TimelineKeyframe>;
+    /**
+     * Get all keyframes under the screen rectangle.
+     * @param screenRect screen coordinates to get keyframes.
+     */
+    _getKeyframesByRectangle(screenRect: DOMRect): TimelineKeyframe[];
     _performClick(pos: MouseData, args: MouseEvent, drag: TimelineDraggableData): boolean;
     /**
      * Set keyframe value.
@@ -134,7 +141,19 @@ export declare class Timeline extends TimelineEventsEmitter {
      */
     getInteractionMode(): TimelineInteractionMode;
     _convertToElement(row: TimelineRow, keyframe: TimelineKeyframe): TimelineElement;
+    getSelectedKeyframes(): Array<TimelineKeyframe>;
     getSelectedElements(): Array<TimelineElement>;
+    getAllKeyframes(): Array<TimelineKeyframe>;
+    selectAllKeyframes(): TimelineSelectionResults;
+    deselectAll(): TimelineSelectionResults;
+    private _changeNodeState;
+    select(nodes: TimelineKeyframe[] | TimelineKeyframe | null, mode?: TimelineSelectionMode): TimelineSelectionResults;
+    /**
+     * Select keyframes
+     * @param nodes keyframe or list of the keyframes to be selected.
+     * @param mode selection mode.
+     */
+    _selectInternal(nodes: TimelineKeyframe[] | TimelineKeyframe | null, mode?: TimelineSelectionMode): TimelineSelectionResults;
     /**
      * Do the selection.
      * @param {boolean} isSelected
@@ -240,7 +259,6 @@ export declare class Timeline extends TimelineEventsEmitter {
      */
     _setTimeInternal(val: number, source?: TimelineEventSource): boolean;
     setTime(val: number): boolean;
-    select(value?: boolean): void;
     getOptions(): TimelineOptions;
     setScrollLeft(value: number): void;
     setScrollTop(value: number): void;
@@ -315,7 +333,7 @@ export declare class Timeline extends TimelineEventsEmitter {
     _emitDragStartedEvent(): TimelineDragEvent;
     _emitDragFinishedEvent(): TimelineDragEvent;
     _emitDragEvent(): TimelineDragEvent;
-    _emitKeyframesSelected(selectedKeyframes: Array<TimelineKeyframe>): TimelineSelectedEvent;
+    _emitKeyframesSelected(state: TimelineSelectionResults): TimelineSelectedEvent;
     _getDragEventArgs(): TimelineDragEvent;
 }
 export {};

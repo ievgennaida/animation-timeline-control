@@ -1,5 +1,6 @@
 export declare class TimelineUtils {
     static drawLine(ctx: CanvasRenderingContext2D, x1: number, y1: number, x2: number, y2: number): void;
+    static deleteElement<T>(array: Array<T>, element: T): Array<T>;
     /**
      * Check rectangle overlap.
      */

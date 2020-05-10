@@ -18,6 +18,7 @@ export { TimelineUtils } from './utils/timelineUtils';
 export { TimelineElement } from './utils/timelineElement';
 export { Selectable } from './utils/selectable';
 export { CutBoundsRect } from './utils/cutBoundsRect';
+export { TimelineSelectionResults } from './utils/timelineSelectionResults';
 
 // virtual model
 export { TimelineModelCalcResults } from './utils/timelineModelCalcResults';
@@ -41,6 +42,7 @@ export { TimelineElementType } from './enums/timelineElementType';
 export { TimelineCursorType } from './enums/timelineCursorType';
 export { TimelineCapShape } from './enums/timelineCapShape';
 export { TimelineEventSource } from './enums/timelineEventSource';
+export { TimelineSelectionMode } from './enums/timelineSelectionMode';
 
 // private defaults are exposed:
 export { defaultTimelineOptions } from './settings/defaults';
