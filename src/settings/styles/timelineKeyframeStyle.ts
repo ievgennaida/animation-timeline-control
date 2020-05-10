@@ -5,4 +5,12 @@ export interface TimelineKeyframeStyle {
   shape?: TimelineKeyframeShape;
   draggable?: boolean;
   hidden?: boolean;
+  /**
+   * keyframe size, number or text 'auto'
+   */
+  height?: number | string;
+  /**
+   * keyframe size, number or text 'auto'
+   */
+  width?: number | string;
 }

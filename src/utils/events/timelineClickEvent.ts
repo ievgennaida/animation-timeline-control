@@ -1,4 +1,4 @@
-import { TimelineElement } from '../TimelineElement';
+import { TimelineElement } from '../timelineElement';
 import { TimelineBaseEvent } from './timelineBaseEvent';
 
 export class TimelineClickEvent extends TimelineBaseEvent {
@@ -13,7 +13,7 @@ export class TimelineClickEvent extends TimelineBaseEvent {
   val: number;
 
   /**
-   * Elements under the click
+   * Elements list under the click
    */
   elements: Array<TimelineElement>;
   /**

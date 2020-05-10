@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { TimelineKeyframe } from '../timelineKeyframe';
 import { TimelineElementType } from '../enums/timelineElementType';
 import { TimelineRow } from '../timelineRow';
@@ -12,7 +13,7 @@ export interface TimelineElement {
   val: number;
 
   /**
-   * Related keyframe model. In a case of a group this value will be empty.
+   * Related keyframe model.
    */
   keyframe?: TimelineKeyframe;
 
@@ -20,4 +21,13 @@ export interface TimelineElement {
    * Related row model.
    */
   row?: TimelineRow;
+
+  /**
+   * Current group.
+   */
+  group?: any;
+  /**
+   * List of the selected, grouped, row keyframes.
+   */
+  keyframes?: Array<TimelineKeyframe>;
 }

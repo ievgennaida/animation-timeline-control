@@ -11,11 +11,19 @@ export interface TimelineElement {
      */
     val: number;
     /**
-     * Related keyframe model. In a case of a group this value will be empty.
+     * Related keyframe model.
      */
     keyframe?: TimelineKeyframe;
     /**
      * Related row model.
      */
     row?: TimelineRow;
+    /**
+     * Current group.
+     */
+    group?: any;
+    /**
+     * List of the selected, grouped, row keyframes.
+     */
+    keyframes?: Array<TimelineKeyframe>;
 }

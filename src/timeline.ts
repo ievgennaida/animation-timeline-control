@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { TimelineEventsEmitter } from './timelineEventsEmitter';
 import { TimelineUtils } from './utils/timelineUtils';
 import { TimelineOptions } from './settings/timelineOptions';
@@ -13,7 +14,7 @@ import { TimelineElementType } from './enums/timelineElementType';
 import { TimelineEvents } from './enums/timelineEvents';
 import { CutBoundsRect } from './utils/cutBoundsRect';
 import { TimelineCapShape } from './enums/timelineCapShape';
-import { RowSize, RowsCalculationsResults } from './utils/rowsCalculationsResults';
+import { TimelineCalculatedRow, TimelineModelCalcResults, TimelineCalculated, TimelineCalculatedGroup, TimelineCalculatedKeyframe } from './utils/timelineModelCalcResults';
 import { TimelineInteractionMode } from './enums/timelineInteractionMode';
 import { TimelineScrollEvent } from './utils/events/timelineScrollEvent';
 import { TimelineSelectedEvent } from './utils/events/timelineSelectedEvent';
@@ -249,7 +250,11 @@ export class Timeline extends TimelineEventsEmitter {
    * Select all keyframes
    */
   public selectAllKeyframes(): void {
-    this._performSelection(true);
+    const changed = this._performSelection(true);
+    if (changed) {
+      this.rescale();
+      this.redraw();
+    }
   }
 
   _clearScrollFinishedTimer(): void {
@@ -391,7 +396,7 @@ export class Timeline extends TimelineEventsEmitter {
         // Allow to drag all selected keyframes on a screen
         this._drag.elements = this.getSelectedElements();
       } else if (target.type === TimelineElementType.Group) {
-        const keyframes = this._drag.target.row.keyframes;
+        const keyframes = this._drag.target.keyframes;
         this._drag.elements =
           keyframes && Array.isArray(keyframes)
             ? keyframes.map((keyframe) => {
@@ -625,9 +630,9 @@ export class Timeline extends TimelineEventsEmitter {
 
   public getSelectedElements(): Array<TimelineElement> {
     const selected: Array<TimelineElement> = [];
-    this._forEachKeyframe((keyframe, index, rowModel): void => {
-      if (keyframe && keyframe.selected) {
-        selected.push(this._convertToElement(rowModel.row, keyframe));
+    this._forEachKeyframe((keyframe): void => {
+      if (keyframe && keyframe.model.selected) {
+        selected.push(this._convertToElement(keyframe.parentRow.model, keyframe.model));
       }
       return;
     });
@@ -655,13 +660,13 @@ export class Timeline extends TimelineEventsEmitter {
 
     const selected: Array<TimelineKeyframe> = [];
     let isChanged = true;
-    this._forEachKeyframe((keyframe, keyframeIndex, rowSize): void => {
-      const keyframePos = this._getKeyframePosition(keyframe, rowSize);
-
+    this._forEachKeyframe((calcKeyframe): void => {
+      const keyframePos = calcKeyframe.size;
+      const keyframe = calcKeyframe.model;
       if (keyframePos) {
         if ((selector && selector === keyframe) || TimelineUtils.isOverlap(keyframePos.x, keyframePos.y, selector as DOMRect)) {
           if (keyframe.selected != isSelected) {
-            if (isSelected && keyframe.selectable) {
+            if (isSelected && keyframe) {
               keyframe.selected = isSelected;
               isChanged = true;
             }
@@ -692,35 +697,32 @@ export class Timeline extends TimelineEventsEmitter {
   /**
    * foreach visible keyframe.
    */
-  _forEachKeyframe(callback: (keyframe: TimelineKeyframe, keyframeIndex?: number, row?: RowSize, index?: number, newRow?: boolean) => void, calculateGroupsBounds = false): void {
+  _forEachKeyframe(callback: (keyframe: TimelineCalculatedKeyframe, index?: number, newRow?: boolean) => void): void {
+    if (!callback) {
+      return;
+    }
     if (!this._model) {
       return;
     }
 
-    const model = this._calculateRowsBounds(calculateGroupsBounds);
+    const model = this._calculateModel();
     if (!model) {
       return;
     }
 
-    model.rows.forEach((rowSize, index) => {
-      if (!rowSize) {
-        return;
-      }
-      const row = rowSize.row;
-      if (!row || !row.keyframes || !Array.isArray(row.keyframes) || row.keyframes.length <= 0) {
+    model.rows.forEach((calcRow) => {
+      if (!calcRow) {
         return;
       }
 
       let nextRow = true;
-      row.keyframes
-        .filter((p) => p && !p.hidden)
-        .forEach((keyframe: TimelineKeyframe, keyframeIndex) => {
-          if (callback && keyframe) {
-            callback(keyframe, keyframeIndex, rowSize, index, nextRow);
-          }
+      calcRow.keyframes.forEach((keyframe, keyframeIndex) => {
+        if (keyframe) {
+          callback(keyframe, keyframeIndex, nextRow);
+        }
 
-          nextRow = false;
-        });
+        nextRow = false;
+      });
     });
   }
 
@@ -1080,13 +1082,32 @@ export class Timeline extends TimelineEventsEmitter {
     this._ctx.restore();
   }
 
+  _setMinMax(to: TimelineCalculated, from: TimelineCalculated): TimelineCalculated {
+    if (!from || !to) {
+      return to;
+    }
+    // get absolute min and max bounds:
+    if (to.minValue !== null && from.minValue !== null) {
+      const min = Math.min(from.minValue, to.minValue);
+      to.minValue = min;
+    } else if (from.minValue !== null) {
+      to.minValue = from.minValue;
+    }
+
+    if (to.maxValue !== null && from.maxValue !== null) {
+      to.maxValue = Math.min(from.maxValue, to.maxValue);
+    } else if (from.maxValue !== null) {
+      to.maxValue = from.maxValue;
+    }
+  }
+
   /**
-   * calculate screen positions of the model elements.
+   * determine screen positions of the model elements.
    */
-  _calculateRowsBounds(includeStipesBounds = true): RowsCalculationsResults {
+  _calculateModel(): TimelineModelCalcResults {
     const toReturn = {
       rows: [],
-      area: {
+      size: {
         x: 0,
         y: 0,
         width: 0,
@@ -1094,7 +1115,8 @@ export class Timeline extends TimelineEventsEmitter {
       } as DOMRect,
       minValue: null,
       maxValue: null,
-    } as RowsCalculationsResults;
+      keyframes: [] as Array<TimelineCalculatedKeyframe>,
+    } as TimelineModelCalcResults;
 
     if (!this._model) {
       return toReturn;
@@ -1104,107 +1126,129 @@ export class Timeline extends TimelineEventsEmitter {
       return toReturn;
     }
     let rowAbsoluteHeight = this._options.headerHeight;
-    rows
-      .filter((p) => p && !p.hidden)
-      .forEach((row, index) => {
-        if (!row) {
-          return;
-        }
+    rows.forEach((row, index) => {
+      if (!row || row.hidden) {
+        return;
+      }
 
-        // draw with scroll virtualization:
-        const rowHeight = TimelineStyleUtils.getRowHeight(row, this._options);
-        const marginBottom = TimelineStyleUtils.getRowMarginBottom(row, this._options);
-        const currentRowY = rowAbsoluteHeight - this._scrollContainer.scrollTop;
-        rowAbsoluteHeight += rowHeight + marginBottom;
-        if (index == 0) {
-          toReturn.area.y = currentRowY;
-        }
+      // draw with scroll virtualization:
+      const rowHeight = TimelineStyleUtils.getRowHeight(row, this._options);
+      const marginBottom = TimelineStyleUtils.getRowMarginBottom(row, this._options);
+      const currentRowY = rowAbsoluteHeight - this._scrollContainer.scrollTop;
+      rowAbsoluteHeight += rowHeight + marginBottom;
+      if (index == 0) {
+        toReturn.size.y = currentRowY;
+      }
 
-        toReturn.area.height = Math.max(rowAbsoluteHeight + rowHeight, toReturn.area.height);
+      toReturn.size.height = Math.max(rowAbsoluteHeight + rowHeight, toReturn.size.height);
 
-        const rowData = {
-          x: 0,
-          y: currentRowY,
-          width: this._canvas.clientWidth,
-          height: rowHeight,
-          marginBottom: marginBottom,
-          row: row,
-          index: index,
-          minValue: null,
-          maxValue: null,
-        } as RowSize;
+      const rowSize = { x: 0, y: currentRowY, width: this._canvas.clientWidth, height: rowHeight } as DOMRect;
+      const calcRow = {
+        size: rowSize,
+        marginBottom: marginBottom,
+        model: row,
+        minValue: null,
+        maxValue: null,
+        groups: [] as Array<TimelineCalculatedGroup>,
+        keyframes: [] as Array<TimelineCalculatedKeyframe>,
+      } as TimelineCalculatedRow;
 
-        toReturn.rows.push(rowData);
-        if (!includeStipesBounds && (!row.keyframes || !row.keyframes.forEach || row.keyframes.length <= 0)) {
-          return;
-        }
+      toReturn.rows.push(calcRow);
+      if (!row.keyframes || !row.keyframes.forEach || row.keyframes.length <= 0) {
+        return;
+      }
 
-        // Get min and max ms to draw keyframe rows:
-        if (row && row.keyframes) {
-          row.keyframes.forEach((keyframe) => {
-            const val = keyframe.val;
-
-            if (keyframe && !isNaN(val)) {
-              rowData.minValue = rowData.minValue == null ? val : Math.min(val, rowData.minValue);
-              rowData.maxValue = rowData.maxValue == null ? val : Math.max(val, rowData.maxValue);
+      // Get min and max ms to draw keyframe rows:
+      if (row && row.keyframes) {
+        row.keyframes.forEach((keyframe) => {
+          if (keyframe && !isNaN(keyframe.val) && !keyframe.hidden) {
+            let currentGroup: TimelineCalculatedGroup = null;
+            for (let i = 0; i < calcRow.groups.length; i++) {
+              const existingGroup = calcRow.groups[i];
+              if (keyframe.group === existingGroup.group) {
+                currentGroup = existingGroup;
+                break;
+              }
             }
-          });
-        }
-        // get keyframes group size
-        if (!isNaN(rowData.minValue) && !isNaN(rowData.maxValue)) {
-          // get group screen coords
-          const groupRect = this._getKeyframesGroupSize(row, rowData.y, rowData.minValue, rowData.maxValue);
-          rowData.groupRect = groupRect;
-        }
+            if (!currentGroup) {
+              currentGroup = {
+                minValue: null,
+                maxValue: null,
+                group: keyframe.group,
+                keyframes: [] as Array<TimelineCalculatedKeyframe>,
+              } as TimelineCalculatedGroup;
 
-        // get absolute min and max bounds:
-        if (toReturn.minValue !== null && rowData.minValue !== null) {
-          toReturn.minValue = Math.min(rowData.minValue, toReturn.minValue);
-        } else if (rowData.minValue !== null) {
-          toReturn.minValue = rowData.minValue;
-        }
+              calcRow.groups.push(currentGroup);
+            }
+            const keyframeSize = this._getKeyframePosition(keyframe, calcRow);
+            const calcKeyframe = {
+              model: keyframe,
+              parentRow: calcRow,
+              parentGroup: currentGroup,
+              size: keyframeSize,
+            } as TimelineCalculatedKeyframe;
 
-        if (toReturn.maxValue !== null && rowData.maxValue !== null) {
-          toReturn.maxValue = Math.min(rowData.maxValue, toReturn.maxValue);
-        } else if (rowData.maxValue !== null) {
-          toReturn.maxValue = rowData.maxValue;
-        }
+            const min = currentGroup.minValue == null ? keyframe.val : Math.min(keyframe.val, currentGroup.minValue);
+            const max = currentGroup.maxValue == null ? keyframe.val : Math.max(keyframe.val, currentGroup.maxValue);
+            if (!isNaN(min)) {
+              currentGroup.minValue = min;
+            }
+            if (!isNaN(max)) {
+              currentGroup.maxValue = max;
+            }
+            calcRow.keyframes.push(calcKeyframe);
+            currentGroup.keyframes.push(calcKeyframe);
+            toReturn.keyframes.push(calcKeyframe);
+          }
+        });
+      }
+
+      calcRow.groups.forEach((group) => {
+        // Extend row min max bounds by a group bounds:
+        this._setMinMax(calcRow, group);
+        // get group screen coords
+        const groupRect = this._getKeyframesGroupSize(row, rowSize.y, group.minValue, group.maxValue);
+        group.size = groupRect;
       });
+
+      // Extend screen bounds by a current calculation:
+      this._setMinMax(toReturn, calcRow);
+    });
     if (toReturn.maxValue !== null) {
-      toReturn.area.width = this.valToPx(toReturn.maxValue, true);
+      toReturn.size.width = this.valToPx(toReturn.maxValue, true);
     }
     return toReturn;
   }
 
   _renderRows(): void {
-    const data = this._calculateRowsBounds();
+    const data = this._calculateModel();
     if (data && data.rows) {
       this._ctx.save();
-      data.rows.forEach((rowData) => {
-        if (!rowData) {
+      data.rows.forEach((rowCalc) => {
+        if (!rowCalc) {
           return;
         }
 
-        this._ctx.fillStyle = TimelineStyleUtils.getRowStyle<string>(rowData.row, this._options, 'fillColor', '#252526');
+        this._ctx.fillStyle = TimelineStyleUtils.getRowFillColor(rowCalc.model, this._options);
         //this._ctx.fillRect(data.areaRect.x, data.areaRect.y, data.areaRect.w, data.areaRect.h);
         // Note: bounds used instead of the clip while clip is slow!
-        const bounds = this._cutBounds(rowData);
+        const bounds = this._cutBounds(rowCalc.size);
         if (bounds) {
           this._ctx.fillRect(bounds.x, bounds.y, bounds.width, bounds.height);
         }
 
-        const keyframeLaneColor = TimelineStyleUtils.groupFillColor(rowData.row, this._options);
-
-        if ((rowData.row.keyframes && rowData.row.keyframes.length <= 1) || !keyframeLaneColor) {
+        const keyframeLaneColor = TimelineStyleUtils.groupFillColor(rowCalc.model, this._options);
+        if (!rowCalc.groups) {
           return;
         }
-
-        // get the bounds on a canvas
-        const rectBounds = this._cutBounds(rowData.groupRect);
-        if (rectBounds) {
-          this._ctx.fillStyle = keyframeLaneColor;
-          this._ctx.fillRect(rectBounds.x, rectBounds.y, rectBounds.width, rectBounds.height);
-        }
+        rowCalc.groups.forEach((group) => {
+          // get the bounds on a canvas
+          const rectBounds = this._cutBounds(group.size);
+          if (rectBounds) {
+            this._ctx.fillStyle = keyframeLaneColor;
+            this._ctx.fillRect(rectBounds.x, rectBounds.y, rectBounds.width, rectBounds.height);
+          }
+        });
       });
 
       this._ctx.restore();
@@ -1281,7 +1325,7 @@ export class Timeline extends TimelineEventsEmitter {
     } as DOMRect;
   }
 
-  _getKeyframePosition(keyframe: TimelineKeyframe, rowSize: RowSize): DOMRect | null {
+  _getKeyframePosition(keyframe: TimelineKeyframe, rowCalculated: TimelineCalculatedRow): DOMRect | null {
     if (!keyframe) {
       console.log('keyframe should be defined.');
       return null;
@@ -1292,22 +1336,26 @@ export class Timeline extends TimelineEventsEmitter {
       return null;
     }
 
+    const rowSize = rowCalculated.size;
     // get center of the lane:
     const y = rowSize.y + rowSize.height / 2;
 
-    // TODO: keyframe size:
-    let size = 1; //this._options.keyframeSizePx || keyframe.size;
-    //if (size == "auto") {
-    size = rowSize.height / 3;
-    //}
+    let height: number | string = TimelineStyleUtils.getKeyframeStyle(keyframe, rowCalculated.model, this._options, 'height', 'auto');
+    let width: number | string = TimelineStyleUtils.getKeyframeStyle(keyframe, rowCalculated.model, this._options, 'width', 'auto');
 
-    if (size > 0) {
+    if (height == 'auto') {
+      height = rowSize.height / 3;
+    }
+    if (width == 'auto') {
+      width = height;
+    }
+    if (height > 0) {
       if (!isNaN(val)) {
         const toReturn = {
           x: Math.floor(this.valToPx(val)),
           y: Math.floor(y),
-          height: size,
-          width: size,
+          height: height,
+          width: width,
         } as DOMRect;
         return toReturn;
       }
@@ -1317,18 +1365,18 @@ export class Timeline extends TimelineEventsEmitter {
   }
 
   _renderKeyframes(): void {
-    this._forEachKeyframe((keyframe, keyframeIndex, rowSize): boolean => {
-      const row = rowSize.row;
-      const pos = this._getKeyframePosition(keyframe, rowSize);
+    this._forEachKeyframe((calcKeyframe): boolean => {
+      const row = calcKeyframe.parentRow.model;
+      const pos = calcKeyframe.size;
+      const keyframe = calcKeyframe.model;
       if (pos) {
         let x = this._getSharp(pos.x);
         let y = pos.y;
-        const size = pos.height;
         const bounds = this._cutBounds({
-          x: x - size / 2,
-          y: y - size / 2,
-          width: size,
-          height: size,
+          x: x - pos.width / 2,
+          y: y - pos.height / 2,
+          width: pos.width,
+          height: pos.height,
         } as DOMRect);
         if (!bounds) {
           return;
@@ -1344,20 +1392,14 @@ export class Timeline extends TimelineEventsEmitter {
           this._ctx.clip();
         }
 
-        const shape = TimelineStyleUtils.getKeyframeStyle<TimelineKeyframeShape>(keyframe, row, this._options, 'shape', TimelineKeyframeShape.Rhomb);
+        const shape = TimelineStyleUtils.keyframeShape(keyframe, row, this._options);
         if (shape === TimelineKeyframeShape.None) {
           return;
         }
 
-        const keyframeColor = TimelineStyleUtils.getKeyframeStyle<string>(
-          keyframe,
-          row,
-          this._options,
-          keyframe.selected ? 'fillColor' : 'selectedFillColor',
-          keyframe.selected ? 'red' : 'DarkOrange',
-        );
-        const border = TimelineStyleUtils.getKeyframeStyle<number>(keyframe, row, this._options, 'strokeThickness', 0.2);
-        const strokeColor = border > 0 ? TimelineStyleUtils.getKeyframeStyle<string>(keyframe, row, this._options, 'strokeColor', 'Black') : '';
+        const keyframeColor = keyframe.selected ? TimelineStyleUtils.keyframeFillColor(keyframe, row, this._options) : TimelineStyleUtils.keyframeSelectedFillColor(keyframe, row, this._options);
+        const border = TimelineStyleUtils.keyframeStrokeThickness(keyframe, row, this._options);
+        const strokeColor = border > 0 ? TimelineStyleUtils.keyframeStrokeColor(keyframe, row, this._options) : '';
 
         if (shape == TimelineKeyframeShape.Rhomb) {
           this._ctx.beginPath();
@@ -1365,36 +1407,36 @@ export class Timeline extends TimelineEventsEmitter {
           this._ctx.rotate((45 * Math.PI) / 180);
           if (border > 0 && strokeColor) {
             this._ctx.fillStyle = strokeColor;
-            this._ctx.rect(-size / 2, -size / 2, size, size);
+            this._ctx.rect(-pos.width / 2, -pos.height / 2, pos.width, pos.height);
             this._ctx.fill();
           }
 
           this._ctx.fillStyle = keyframeColor;
           // draw main keyframe data with offset.
           this._ctx.translate(border, border);
-          this._ctx.rect(-size / 2, -size / 2, size - border * 2, size - border * 2);
+          this._ctx.rect(-pos.width / 2, -pos.height / 2, pos.width - border * 2, pos.height - border * 2);
           this._ctx.fill();
         } else if (shape == TimelineKeyframeShape.Circle) {
           this._ctx.beginPath();
           if (border > 0 && strokeColor) {
             this._ctx.fillStyle = strokeColor;
-            this._ctx.arc(x, y, size, 0, 2 * Math.PI);
+            this._ctx.arc(x, y, pos.height, 0, 2 * Math.PI);
           }
           this._ctx.fillStyle = keyframeColor;
-          this._ctx.arc(x, y, size - border, 0, 2 * Math.PI);
+          this._ctx.arc(x, y, pos.height - border, 0, 2 * Math.PI);
           this._ctx.fill();
         } else if (shape == TimelineKeyframeShape.Rect) {
           this._ctx.beginPath();
-          y = y - size / 2;
-          x = x - size / 2;
+          y = y - pos.height / 2;
+          x = x - pos.width / 2;
           if (border > 0 && strokeColor) {
             this._ctx.fillStyle = strokeColor;
-            this._ctx.rect(x, y, size, size);
+            this._ctx.rect(x, y, pos.width, pos.height);
             this._ctx.fill();
           }
 
           this._ctx.fillStyle = keyframeColor;
-          this._ctx.rect(x + border, y + border, size - border, size - border);
+          this._ctx.rect(x + border, y + border, pos.width - border, pos.height - border);
           this._ctx.fill();
         }
 
@@ -1539,10 +1581,10 @@ export class Timeline extends TimelineEventsEmitter {
    * @param posY y screen coordinate.
    */
   public getRowByY(posY: number): TimelineRow {
-    const model = this._calculateRowsBounds();
+    const model = this._calculateModel();
     if (model && model.rows) {
       for (let i = 0; i < model.rows.length; i++) {
-        const row = model.rows[i];
+        const row = model.rows[i].size;
         if (row && row.y >= posY && posY <= row.y + row.height) {
           return row;
         }
@@ -1725,8 +1767,8 @@ export class Timeline extends TimelineEventsEmitter {
 
   _rescaleInternal(newWidth: number | null = null, newHeight: number | null = null, scrollMode = 'default'): void {
     this._updateCanvasScale();
-    const data = this._calculateRowsBounds();
-    if (data && data.area) {
+    const data = this._calculateModel();
+    if (data && data.size) {
       const additionalOffset = this._options.stepPx;
       newWidth = newWidth || 0;
       // not less than current timeline position
@@ -1739,7 +1781,7 @@ export class Timeline extends TimelineEventsEmitter {
           timelinePos = Math.floor(timelineGlobalPos + this._canvas.clientWidth / 1.5);
         }
       }
-      const keyframeW = data.area.width + this._options.leftMargin + additionalOffset;
+      const keyframeW = data.size.width + this._options.leftMargin + additionalOffset;
 
       newWidth = Math.max(
         newWidth,
@@ -1755,7 +1797,7 @@ export class Timeline extends TimelineEventsEmitter {
         this._scrollContent.style.minWidth = minWidthPx;
       }
 
-      newHeight = Math.max(Math.floor(data.area.height + this._canvas.clientHeight * 0.2), this._scrollContainer.scrollTop + this._canvas.clientHeight - 1, Math.round(newHeight || 0));
+      newHeight = Math.max(Math.floor(data.size.height + this._canvas.clientHeight * 0.2), this._scrollContainer.scrollTop + this._canvas.clientHeight - 1, Math.round(newHeight || 0));
 
       const h = newHeight + 'px';
       if (this._scrollContent.style.minHeight != h) {
@@ -1853,48 +1895,61 @@ export class Timeline extends TimelineEventsEmitter {
     }
 
     if (pos.y >= this._options.headerHeight && this._options.keyframesDraggable) {
-      this._forEachKeyframe((keyframe, keyframeIndex, rowModel, rowIndex, isNextRow): void => {
+      this._forEachKeyframe((calcKeyframe, index, isNextRow): void => {
         // Check keyframes group overlap
-        if (isNextRow && rowModel.groupRect) {
-          const rowOverlapped = TimelineUtils.isOverlap(pos.x, pos.y, rowModel);
+        if (isNextRow) {
+          const rowOverlapped = TimelineUtils.isOverlap(pos.x, pos.y, calcKeyframe.parentRow.size);
           if (rowOverlapped) {
             const row = {
               val: this._mousePosToVal(pos.x, true),
+              keyframes: calcKeyframe.parentRow.model.keyframes,
               type: TimelineElementType.Row,
-              row: rowModel.row,
+              row: calcKeyframe.parentRow.model,
             } as TimelineElement;
             toReturn.push(row);
           }
+          if (calcKeyframe.parentRow.groups) {
+            calcKeyframe.parentRow.groups.forEach((group) => {
+              const keyframesGroupOverlapped = TimelineUtils.isOverlap(pos.x, pos.y, group.size);
+              if (keyframesGroupOverlapped) {
+                const keyframesModels = [];
+                const calcKeyframes = group.keyframes;
+                for (let i = 0; i < calcKeyframes.length; i++) {
+                  keyframesModels.push(calcKeyframes[i].model);
+                }
 
-          const keyframesGroupOverlapped = TimelineUtils.isOverlap(pos.x, pos.y, rowModel.groupRect);
-          if (keyframesGroupOverlapped) {
-            const group = {
-              val: this._mousePosToVal(pos.x, true),
-              type: TimelineElementType.Group,
-              row: rowModel.row,
-            } as TimelineElement;
+                const groupElement = {
+                  val: this._mousePosToVal(pos.x, true),
+                  type: TimelineElementType.Group,
+                  group: group,
+                  row: calcKeyframe.parentRow.model,
+                  keyframes: keyframesModels,
+                } as TimelineElement;
 
-            const snapped = this.snapVal(rowModel.minValue);
-            // get snapped mouse pos based on a min value.
-            group.val += rowModel.minValue - snapped;
-            toReturn.push(group);
+                const snapped = this.snapVal(group.minValue);
+                // get snapped mouse pos based on a min value.
+                groupElement.val += group.minValue - snapped;
+                toReturn.push(groupElement);
+              }
+            });
           }
         }
 
-        const keyframePos = this._getKeyframePosition(keyframe, rowModel);
+        const keyframePos = calcKeyframe.size;
         if (keyframePos) {
           const dist = TimelineUtils.getDistance(keyframePos.x, keyframePos.y, pos.x, pos.y);
           if (dist <= keyframePos.height + clickRadius) {
             toReturn.push({
-              keyframe: keyframe,
-              val: keyframe.val,
-              row: rowModel.row,
+              keyframe: calcKeyframe.model,
+              keyframes: [calcKeyframe.model],
+              val: calcKeyframe.model.val,
+              row: calcKeyframe.parentRow.model,
               type: TimelineElementType.Keyframe,
             } as TimelineElement);
           }
         }
         return;
-      }, true);
+      });
     }
     return toReturn;
   }
@@ -2007,9 +2062,7 @@ export class Timeline extends TimelineEventsEmitter {
   _emitDragEvent(): TimelineDragEvent {
     if (this._drag) {
       const args = this._getDragEventArgs();
-      this.emit(TimelineEvents.Drag, {
-        keyframes: this._drag.elements,
-      });
+      this.emit(TimelineEvents.Drag, args);
 
       return args;
     }

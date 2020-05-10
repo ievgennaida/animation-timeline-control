@@ -3,6 +3,7 @@ import { TimelineRow } from '../timelineRow';
 import { TimelineOptions } from '../settings/timelineOptions';
 import { TimelineRowStyle } from '../settings/styles/timelineRowStyle';
 import { TimelineKeyframeStyle } from '../settings/styles/timelineKeyframeStyle';
+import { TimelineKeyframeShape } from '../enums/timelineKeyframeShape';
 
 export class TimelineStyleUtils {
   /**
@@ -22,7 +23,7 @@ export class TimelineStyleUtils {
     reverseOrder = false,
   ): T {
     // Don't spawn new array for the normal order.
-    let styles: Array<any> = null;
+    let styles: Array<any> | null = null;
     if (keyframeStyle) {
       const style: any = keyframeStyle;
       if (style[propertyName] !== undefined) {
@@ -96,6 +97,27 @@ export class TimelineStyleUtils {
     return reverseOrder && styles && styles.length > 0 ? styles[styles.length - 1] : defaultValue;
   }
 
+  static keyframeShape(keyframe: TimelineKeyframeStyle | null, rowStyle: TimelineRowStyle | null, options: TimelineOptions | null): TimelineKeyframeShape {
+    const shape = TimelineStyleUtils.getKeyframeStyle<TimelineKeyframeShape>(keyframe, rowStyle, options, 'shape', TimelineKeyframeShape.Rhomb);
+    return shape;
+  }
+  static keyframeFillColor(keyframe: TimelineKeyframeStyle | null, rowStyle: TimelineRowStyle | null, options: TimelineOptions | null): string {
+    const color = TimelineStyleUtils.getKeyframeStyle<string>(keyframe, rowStyle, options, 'fillColor', 'DarkOrange');
+    return color;
+  }
+  static keyframeSelectedFillColor(keyframe: TimelineKeyframeStyle | null, rowStyle: TimelineRowStyle | null, options: TimelineOptions | null): string {
+    const color = TimelineStyleUtils.getKeyframeStyle<string>(keyframe, rowStyle, options, 'selectedFillColor', 'red');
+    return color;
+  }
+
+  static keyframeStrokeThickness(keyframe: TimelineKeyframeStyle | null, rowStyle: TimelineRowStyle | null, options: TimelineOptions | null): number {
+    return TimelineStyleUtils.getKeyframeStyle<number>(keyframe, rowStyle, options, 'strokeThickness', 0.2, false);
+  }
+
+  static keyframeStrokeColor(keyframe: TimelineKeyframeStyle | null, rowStyle: TimelineRowStyle | null, options: TimelineOptions | null): string {
+    return TimelineStyleUtils.getKeyframeStyle<string>(keyframe, rowStyle, options, 'strokeColor', 'Black', false);
+  }
+
   /**
    * Get current row height from styling
    */
@@ -105,11 +127,14 @@ export class TimelineStyleUtils {
   static rowGroupHeight(rowStyle: TimelineRowStyle, options: TimelineOptions): number | string {
     return TimelineStyleUtils.getRowStyle<number | string>(rowStyle, options, 'groupHeight', 'auto');
   }
-  static groupFillColor(rowStyle: TimelineRowStyle, options: TimelineOptions): string {
+  static groupFillColor(rowStyle: TimelineRowStyle, options: TimelineOptions): string | null {
     return TimelineStyleUtils.getRowStyle<string>(rowStyle, options, 'groupFillColor');
   }
   static getRowMarginBottom(rowStyle: TimelineRowStyle, options: TimelineOptions): number {
     return TimelineStyleUtils.getRowStyle<number>(rowStyle, options, 'marginBottom', 0);
+  }
+  static getRowFillColor(rowStyle: TimelineRowStyle, options: TimelineOptions): string {
+    return TimelineStyleUtils.getRowStyle<string>(rowStyle, options, 'fillColor', '#252526');
   }
 
   static keyframeDraggable(keyframe: TimelineKeyframeStyle | null, rowStyle: TimelineRowStyle | null, options: TimelineOptions | null, defaultValue = true): boolean {

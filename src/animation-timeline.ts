@@ -5,9 +5,9 @@ export { TimelineModel } from './timelineModel';
 export { TimelineRow } from './timelineRow';
 export { TimelineKeyframe } from './timelineKeyframe';
 export { TimelineEventsEmitter } from './timelineEventsEmitter';
-
 export { TimelineConsts } from './settings/timelineConsts';
 
+// styles
 export { TimelineOptions } from './settings/timelineOptions';
 export { TimelineKeyframeStyle } from './settings/styles/timelineKeyframeStyle';
 export { TimelineRowStyle } from './settings/styles/timelineRowStyle';
@@ -17,10 +17,16 @@ export { TimelineStyleUtils } from './utils/timelineStyleUtils';
 export { TimelineUtils } from './utils/timelineUtils';
 export { TimelineElement } from './utils/timelineElement';
 export { Selectable } from './utils/selectable';
-export { RowsCalculationsResults } from './utils/rowsCalculationsResults';
-export { RowSize } from './utils/rowsCalculationsResults';
 export { CutBoundsRect } from './utils/cutBoundsRect';
 
+// virtual model
+export { TimelineModelCalcResults } from './utils/timelineModelCalcResults';
+export { TimelineCalculatedRow } from './utils/timelineModelCalcResults';
+export { TimelineCalculatedGroup } from './utils/timelineModelCalcResults';
+export { TimelineCalculated } from './utils/timelineModelCalcResults';
+export { TimelineCalculatedKeyframe } from './utils/timelineModelCalcResults';
+
+// events
 export { TimelineSelectedEvent } from './utils/events/timelineSelectedEvent';
 export { TimelineScrollEvent } from './utils/events/timelineScrollEvent';
 export { TimelineClickEvent } from './utils/events/timelineClickEvent';
@@ -28,6 +34,7 @@ export { TimelineDragEvent } from './utils/events/timelineDragEvent';
 export { TimelineTimeChangedEvent } from './utils/events/timelineTimeChangedEvent';
 export { TimelineEvents } from './enums/timelineEvents';
 
+// enums
 export { TimelineKeyframeShape } from './enums/timelineKeyframeShape';
 export { TimelineInteractionMode } from './enums/timelineInteractionMode';
 export { TimelineElementType } from './enums/timelineElementType';

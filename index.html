@@ -129,6 +129,12 @@
       font-family: Roboto, "Helvetica Neue", sans-serif;
     }
 
+    .logs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      height: 100%;
+    }
+
     .output {
       height: 100%;
       width: 100%;
@@ -162,7 +168,11 @@
       </aside>
       <div class="content">
         <div id="currentTime"></div>
-        <div id="output"></div>
+        <div class="logs">
+          <div class="output" id="output1"></div>
+          <div class="output" id="output2"></div>
+        </div>
+
       </div>
     </main>
     <div class="toolbar">
@@ -241,10 +251,24 @@
       {
         keyframes: [
           {
-            val: 40
+            val: 40,
+            group: 'a'
           },
           {
-            val: 3000
+            val: 800,
+            group: 'a'
+          },
+          {
+            val: 1900,
+            group: 'b'
+          },
+          {
+            val: 3000,
+            group: 'b'
+          },
+          {
+            val: 4000,
+            group: 'c'
           }
         ]
       },
@@ -284,13 +308,20 @@
     // Select all elements on key down
     document.addEventListener('keydown', function (args) {
       if (args.which === 65 && timeline._controlKeyPressed(args)) {
-        timeline.selectAll();
-        alert('selected');
+        timeline.selectAllKeyframes();
+        args.preventDefault();
       }
     });
+    var logMessage = function (message, log = 1) {
+      if (message) {
+        document.getElementById("output" + log).innerHTML += message + '<br/>';
+      }
+    }
+
+
     var dragHandler = function (object, eventName) {
       if (object.elements) {
-        document.getElementById("output").innerHTML += 'Keyframe value: ' + object.elements[0].val + '. Selected (' + object.elements.length + ').' + eventName + '<br/>';
+        logMessage('Keyframe value: ' + object.elements[0].val + '. Selected (' + object.elements.length + ').' + eventName);
       }
     }
 
@@ -298,12 +329,28 @@
     timeline.onTimeChanged(function (event) {
       document.getElementById("currentTime").innerHTML = event.val + "ms source:" + event.source;
     });
-    timeline.onSelected(function (obj) { console.log('selected'); });
+    timeline.onSelected(function (obj) { logMessage('selected '); });
     timeline.onDragStarted(function (obj) { dragHandler(obj, 'dragstarted') });
-    timeline.onDrag(function (obj) { dragHandler(obj, 'drag') });
-    timeline.onDragFinished(function (obj) { dragHandler(obj, 'dragfinished') });
-    timeline.onMouseDown(function (obj) { console.log('mouse down') });
-    timeline.onDoubleClick(function (obj) { alert(obj.val); });
+    timeline.onDrag(function (obj) {
+      dragHandler(obj, 'drag')
+      return;
+      if (obj.row && obj.type == 'keyframe' && obj.val <= 2) {
+        obj.preventDefault();
+      } else {
+       
+      }
+    });
+    timeline.onDragFinished(function (obj) {
+      dragHandler(obj, 'dragfinished')
+    });
+    timeline.onMouseDown(function (obj) {
+      var type = (obj.target ? obj.target.type : '');
+      logMessage('mousedown:' + obj.val + '.  elements:' + type);
+    });
+    timeline.onDoubleClick(function (obj) {
+      var type = (obj.target ? obj.target.type : '');
+      logMessage('doubleclick:' + obj.val + '.  elements:' + type);
+    });
     timeline.onScroll(function (obj) {
       var options = timeline.getOptions();
       if (options) {

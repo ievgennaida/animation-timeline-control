@@ -6,7 +6,7 @@ import { TimelineModel } from './timelineModel';
 import { TimelineElement } from './utils/timelineElement';
 import { TimelineRow } from './timelineRow';
 import { CutBoundsRect } from './utils/cutBoundsRect';
-import { RowSize, RowsCalculationsResults } from './utils/rowsCalculationsResults';
+import { TimelineCalculatedRow, TimelineModelCalcResults, TimelineCalculated, TimelineCalculatedKeyframe } from './utils/timelineModelCalcResults';
 import { TimelineInteractionMode } from './enums/timelineInteractionMode';
 import { TimelineScrollEvent } from './utils/events/timelineScrollEvent';
 import { TimelineSelectedEvent } from './utils/events/timelineSelectedEvent';
@@ -98,6 +98,9 @@ export declare class Timeline extends TimelineEventsEmitter {
     dispose(): void;
     _handleBlurEvent: () => void;
     _handleWindowResizeEvent: () => void;
+    /**
+     * Select all keyframes
+     */
     selectAllKeyframes(): void;
     _clearScrollFinishedTimer(): void;
     _handleScrollEvent: (args: MouseEvent) => void;
@@ -143,7 +146,7 @@ export declare class Timeline extends TimelineEventsEmitter {
     /**
      * foreach visible keyframe.
      */
-    _forEachKeyframe(callback: (keyframe: TimelineKeyframe, keyframeIndex?: number, row?: RowSize, index?: number, newRow?: boolean) => void, calculateGroupsBounds?: boolean): void;
+    _forEachKeyframe(callback: (keyframe: TimelineCalculatedKeyframe, index?: number, newRow?: boolean) => void): void;
     _trackMousePos(canvas: HTMLCanvasElement, mouseArgs: MouseEvent | TouchEvent): MouseData;
     _cleanUpSelection(): void;
     /**
@@ -185,10 +188,11 @@ export declare class Timeline extends TimelineEventsEmitter {
      */
     _formatLineGaugeText(ms: number, isSeconds?: boolean): string;
     _renderTicks(): void;
+    _setMinMax(to: TimelineCalculated, from: TimelineCalculated): TimelineCalculated;
     /**
-     * calculate screen positions of the model elements.
+     * determine screen positions of the model elements.
      */
-    _calculateRowsBounds(includeStipesBounds?: boolean): RowsCalculationsResults;
+    _calculateModel(): TimelineModelCalcResults;
     _renderRows(): void;
     /**
      * Method is used for the optimization.
@@ -201,7 +205,7 @@ export declare class Timeline extends TimelineEventsEmitter {
      * @param rowY row screen coords y position
      */
     _getKeyframesGroupSize(row: TimelineRow, rowY: number, minValue: number, maxValue: number): DOMRect;
-    _getKeyframePosition(keyframe: TimelineKeyframe, rowSize: RowSize): DOMRect | null;
+    _getKeyframePosition(keyframe: TimelineKeyframe, rowCalculated: TimelineCalculatedRow): DOMRect | null;
     _renderKeyframes(): void;
     _renderSelectionRect(): void;
     _renderBackground(): void;
