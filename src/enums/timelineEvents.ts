@@ -1,10 +1,11 @@
 export enum TimelineEvents {
   Selected = 'selected',
   TimeChanged = 'timechanged',
-  DragStarted = 'dragstarted',
+  KeyframeTimeChanged = 'keyframeTimeChanged',
+  DragStarted = 'dragStarted',
   Drag = 'drag',
-  DragFinished = 'dragfinished',
+  DragFinished = 'dragFinished',
   Scroll = 'scroll',
-  DoubleClick = 'doubleclick',
-  MouseDown = 'mousedown',
+  DoubleClick = 'doubleClick',
+  MouseDown = 'mouseDown',
 }

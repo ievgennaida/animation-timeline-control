@@ -4,6 +4,13 @@ export class TimelineUtils {
     ctx.moveTo(x1, y1);
     ctx.lineTo(x2, y2);
   }
+  static isNumber(val?: number): boolean {
+    if (typeof val === 'number' && !isNaN(val)) {
+      return true;
+    }
+
+    return false;
+  }
   static deleteElement<T>(array: Array<T>, element: T): Array<T> {
     const index: number = array.indexOf(element);
     if (index !== -1) {

@@ -200,9 +200,6 @@
 
     let rows = [
       {
-        keyframesStyle: {
-          shape: "rect"
-        },
         selected: false,
         draggable: false,
 
@@ -249,24 +246,31 @@
         ]
       },
       {
+        title: 'Groups',
         keyframes: [
           {
             val: 40,
+            max: 850,
             group: 'a'
           },
           {
             val: 800,
+            max: 900,
             group: 'a'
           },
           {
+            min: 1000,
+            max: 3400,
             val: 1900,
             group: 'b'
           },
           {
             val: 3000,
+            max: 3500,
             group: 'b'
           },
           {
+            min: 3500,
             val: 4000,
             group: 'c'
           }
@@ -286,19 +290,46 @@
         ]
       },
       {
+        title: 'Style Customized',
+        groupHeight: 20,
+        keyframesStyle: {
+          shape: "rect",
+          width: 5,
+          height: 20,
+        },
         keyframes: [
           {
             val: 90
           },
           {
-            val: 100
+            val: 200
           }
         ]
       }, {
-        rowsStyle: {
-          height: 40
-        }
-      }, {}, {}, {}, {}, {}, {}, {}, {}
+
+      }, {
+        title: 'Max Value',
+        max: 2000,
+        keyframes: [,
+          {
+            width: 5,
+            height: 20,
+            group: 'block',
+            shape: "rect",
+            fillColor: 'Blue',
+            strokeColor: 'Black',
+            val: 2000,
+            selectable: false,
+            draggable: false
+          },
+          {
+            val: 90
+          },
+          {
+            val: 500
+          },
+        ]
+      }, {}, {}, {}, {}, {}, {}, {}
     ];
 
     var timeline = new timelineModule.Timeline()
@@ -314,7 +345,8 @@
     });
     var logMessage = function (message, log = 1) {
       if (message) {
-        document.getElementById("output" + log).innerHTML += message + '<br/>';
+        let el = document.getElementById("output" + log);
+        el.innerHTM = message + '<br/>' + el.innerHTM;
       }
     }
 
@@ -329,15 +361,16 @@
     timeline.onTimeChanged(function (event) {
       document.getElementById("currentTime").innerHTML = event.val + "ms source:" + event.source;
     });
-    timeline.onSelected(function (obj) { logMessage('selected '); });
+    timeline.onSelected(function (obj) { logMessage('selected :' + obj.selected.length + '. changed :' + obj.changed.length, 2); });
     timeline.onDragStarted(function (obj) { dragHandler(obj, 'dragstarted') });
     timeline.onDrag(function (obj) {
-      dragHandler(obj, 'drag')
-      return;
+      dragHandler(obj, 'drag');
+      // obj.preventDefault();
+      //  return;
       if (obj.row && obj.type == 'keyframe' && obj.val <= 2) {
-        obj.preventDefault();
+
       } else {
-       
+
       }
     });
     timeline.onDragFinished(function (obj) {
@@ -345,11 +378,11 @@
     });
     timeline.onMouseDown(function (obj) {
       var type = (obj.target ? obj.target.type : '');
-      logMessage('mousedown:' + obj.val + '.  elements:' + type);
+      logMessage('mousedown:' + obj.val + '.  elements:' + type, 2);
     });
     timeline.onDoubleClick(function (obj) {
       var type = (obj.target ? obj.target.type : '');
-      logMessage('doubleclick:' + obj.val + '.  elements:' + type);
+      logMessage('doubleclick:' + obj.val + '.  elements:' + type, 2);
     });
     timeline.onScroll(function (obj) {
       var options = timeline.getOptions();
@@ -372,7 +405,7 @@
       div.classList.add('outline-node');
       div.style.maxHeight = div.style.minHeight = options.rowsStyle.height + 'px';
       div.style.marginBottom = options.rowsStyle.marginBottom + 'px';
-      div.innerText = "Track " + index;
+      div.innerText = obj.title || "Track " + index;
       outlineContainer.appendChild(div);
     });
     /*Handle events from html page*/

@@ -14,7 +14,7 @@ describe('_mergeOptions', function () {
     assert.equal(merged.leftMargin, defOptions.leftMargin);
     assert.equal(merged.selectionColor, defOptions.selectionColor);
 
-    assert.equal(defOptions.selectionColor === undefined, 'initial options should not be affected');
+    assert.equal(options.selectionColor === undefined, true, 'initial options should not be affected');
   });
 
   it('Default styles are merged', function () {

@@ -1,6 +1,7 @@
 import { TimelineRowStyle } from './styles/timelineRowStyle';
 import { TimelineStyle } from './styles/timelineStyle';
-export interface TimelineOptions {
+import { TimelineRanged } from '../timelineRanged';
+export interface TimelineOptions extends TimelineRanged {
     /**
      * Id or HTMLElement of the timeline container.
      */

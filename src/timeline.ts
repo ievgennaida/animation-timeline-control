@@ -14,7 +14,7 @@ import { TimelineElementType } from './enums/timelineElementType';
 import { TimelineEvents } from './enums/timelineEvents';
 import { CutBoundsRect } from './utils/cutBoundsRect';
 import { TimelineCapShape } from './enums/timelineCapShape';
-import { TimelineCalculatedRow, TimelineModelCalcResults, TimelineCalculated, TimelineCalculatedGroup, TimelineCalculatedKeyframe } from './utils/timelineModelCalcResults';
+import { TimelineCalculatedRow, TimelineModelCalcResults, TimelineCalculatedGroup, TimelineCalculatedKeyframe } from './utils/timelineModelCalcResults';
 import { TimelineInteractionMode } from './enums/timelineInteractionMode';
 import { TimelineScrollEvent } from './utils/events/timelineScrollEvent';
 import { TimelineSelectedEvent } from './utils/events/timelineSelectedEvent';
@@ -26,6 +26,7 @@ import { TimelineEventSource } from './enums/timelineEventSource';
 import { TimelineTimeChangedEvent } from './utils/events/timelineTimeChangedEvent';
 import { TimelineSelectionMode } from './enums/timelineSelectionMode';
 import { TimelineSelectionResults } from './utils/timelineSelectionResults';
+import { TimelineRanged } from './timelineRanged';
 
 interface MousePoint extends DOMPoint {
   radius: number;
@@ -381,7 +382,7 @@ export class Timeline extends TimelineEventsEmitter {
         this._startedDragWithCtrl = this._controlKeyPressed(args);
         this._startedDragWithShiftKey = args.shiftKey;
         // get all related selected keyframes if we are selecting one.
-        if (!target.keyframe.selected && !this._controlKeyPressed(args) && !args.shiftKey) {
+        if (!target.keyframe.selected && !this._controlKeyPressed(args)) {
           this._selectInternal(target.keyframe);
         }
         // Allow to drag all selected keyframes on a screen
@@ -427,49 +428,25 @@ export class Timeline extends TimelineEventsEmitter {
     const isLeftClicked = this.isLeftButtonClicked(args);
     if (this._startPos) {
       if (isLeftClicked || isTouch) {
-        let isChanged = false;
         if (this._drag && !this._startedDragWithCtrl) {
           const convertedVal = this._mousePosToVal(this._currentPos.x, true);
-          //redraw();
           if (this._drag.type === TimelineElementType.Timeline) {
-            isChanged = this._setTimeInternal(convertedVal, TimelineEventSource.User) || isChanged;
+            this._setTimeInternal(convertedVal, TimelineEventSource.User);
           } else if ((this._drag.type == TimelineElementType.Keyframe || this._drag.type == TimelineElementType.Group) && this._drag.elements) {
-            let offset = Math.floor(convertedVal - this._drag.val);
-            if (Math.abs(offset) > 0) {
-              // don't allow to move less than zero.
-              this._drag.elements.forEach((p) => {
-                if (this._options.snapAllKeyframesOnMove) {
-                  const toSet = this.snapVal(p.keyframe.val);
-                  isChanged = this._setKeyframePos(p.keyframe, toSet) || isChanged;
+            const offset = Math.floor(convertedVal - this._drag.val);
+            const movedOffset = this._moveElements(offset, this._drag.elements);
+            if (movedOffset !== 0) {
+              if (!this._drag.changed) {
+                const eventArgs = this._emitDragStartedEvent();
+                if (eventArgs.isPrevented()) {
+                  return;
                 }
-
-                const newPosition = p.val + offset;
-                if (newPosition < 0) {
-                  offset = -p.val;
-                }
-              });
-
-              if (Math.abs(offset) > 0) {
-                // don't allow to move less than zero.
-                this._drag.elements.forEach((element) => {
-                  const toSet = element.keyframe.val + offset;
-                  isChanged = this._setKeyframePos(element.keyframe, toSet) || isChanged;
-                  if (isChanged) {
-                    element.val = element.keyframe.val;
-                  }
-                });
               }
 
-              if (isChanged) {
-                if (!this._drag.changed) {
-                  this._emitDragStartedEvent();
-                }
+              this._drag.changed = true;
 
-                this._drag.changed = true;
-
-                this._drag.val += offset;
-                this._emitDragEvent();
-              }
+              this._drag.val += offset;
+              this._emitDragEvent();
             }
           }
         }
@@ -522,6 +499,59 @@ export class Timeline extends TimelineEventsEmitter {
       args.preventDefault();
     }
   };
+
+  /**
+   * Move elements
+   * @param offset vector to move elements along.
+   * @param elements Element to move.
+   * @returns real moved value.
+   */
+  _moveElements(offset: number, elements: Array<TimelineElement>): number {
+    if (!elements) {
+      return;
+    }
+    let isChanged = false;
+    if (Math.abs(offset) > 0) {
+      // Find drag min and max bounds:
+      let bounds = { min: Number.MIN_SAFE_INTEGER, max: Number.MAX_SAFE_INTEGER } as TimelineRanged;
+      bounds = this._setMinMax(bounds, this._options);
+      // find allowed min bounds for the draggable items
+      elements.forEach((p) => {
+        bounds = this._setMinMax(bounds, p.keyframe);
+        bounds = this._setMinMax(bounds, p.row);
+      });
+
+      elements.forEach((p) => {
+        const expectedKeyframeValue = this._options && this._options.snapAllKeyframesOnMove ? this.snapVal(p.keyframe.val) : p.keyframe.val;
+        const newPosition = expectedKeyframeValue + offset;
+        if (bounds.min !== null && newPosition < bounds.min) {
+          // Return to the bounds:
+          offset = offset + TimelineUtils.getDistance(bounds.min, newPosition);
+        }
+        if (bounds.max !== null && newPosition > bounds.max) {
+          // Return to the bounds:
+          offset = offset - TimelineUtils.getDistance(bounds.max, newPosition);
+        }
+      });
+
+      if (Math.abs(offset) > 0) {
+        // don't allow to move less than zero.
+        elements.forEach((element) => {
+          const toSet = element.keyframe.val + offset;
+          isChanged = this._setKeyframePos(element.keyframe, toSet) || isChanged;
+          if (isChanged) {
+            element.val = element.keyframe.val;
+          }
+        });
+      }
+
+      if (isChanged) {
+        return offset;
+      }
+    }
+
+    return 0;
+  }
   _handleMouseUpEvent = (args: MouseEvent): void => {
     if (this._startPos) {
       //window.releaseCapture();
@@ -607,6 +637,7 @@ export class Timeline extends TimelineEventsEmitter {
     value = Math.floor(value);
     if (keyframe && keyframe.val != value) {
       keyframe.val = value;
+
       return true;
     }
 
@@ -1055,15 +1086,14 @@ export class Timeline extends TimelineEventsEmitter {
    */
   public snapVal(ms: number): number {
     // Apply snap to steps if enabled.
-    if (this._options.snapsPerSeconds && this._options.snapEnabled) {
+    if (this._options && this._options.snapsPerSeconds && this._options.snapEnabled) {
       const stopsPerPixel = 1000 / this._options.snapsPerSeconds;
       const step = ms / stopsPerPixel;
       const stepsFit = Math.round(step);
       ms = Math.round(stepsFit * stopsPerPixel);
     }
 
-    // TODO: allow negative values.
-    if (ms < 0) {
+    if (this._options && TimelineUtils.isNumber(this._options.min) && ms < this._options.min) {
       ms = 0;
     }
 
@@ -1137,7 +1167,7 @@ export class Timeline extends TimelineEventsEmitter {
     this._ctx.save();
 
     const areaWidth = this._scrollContainer.scrollWidth - (this._options.leftMargin || 0);
-    let from = this.pxToVal(0);
+    let from = this.pxToVal(this._options.min);
     let to = this.pxToVal(areaWidth);
     const dist = TimelineUtils.getDistance(from, to);
     if (dist === 0) {
@@ -1211,23 +1241,27 @@ export class Timeline extends TimelineEventsEmitter {
     this._ctx.restore();
   }
 
-  _setMinMax(to: TimelineCalculated, from: TimelineCalculated): TimelineCalculated {
+  _setMinMax(to: TimelineRanged, from: TimelineRanged): TimelineRanged {
     if (!from || !to) {
       return to;
     }
+    const isFromMinNumber = TimelineUtils.isNumber(from.min);
+    const isToMinNumber = TimelineUtils.isNumber(to.min);
     // get absolute min and max bounds:
-    if (to.minValue !== null && from.minValue !== null) {
-      const min = Math.min(from.minValue, to.minValue);
-      to.minValue = min;
-    } else if (from.minValue !== null) {
-      to.minValue = from.minValue;
+    if (isFromMinNumber && isToMinNumber) {
+      to.min = Math.max(from.min, to.min);
+    } else if (isFromMinNumber) {
+      to.min = from.min;
+    }
+    const isFromMaxNumber = TimelineUtils.isNumber(from.max);
+    const isToMaxNumber = TimelineUtils.isNumber(to.max);
+    if (isFromMaxNumber && isToMaxNumber) {
+      to.max = Math.min(from.max, to.max);
+    } else if (isFromMaxNumber) {
+      to.max = from.max;
     }
 
-    if (to.maxValue !== null && from.maxValue !== null) {
-      to.maxValue = Math.min(from.maxValue, to.maxValue);
-    } else if (from.maxValue !== null) {
-      to.maxValue = from.maxValue;
-    }
+    return to;
   }
 
   /**
@@ -1242,8 +1276,8 @@ export class Timeline extends TimelineEventsEmitter {
         width: 0,
         height: 0,
       } as DOMRect,
-      minValue: null,
-      maxValue: null,
+      min: null,
+      max: null,
       keyframes: [] as Array<TimelineCalculatedKeyframe>,
     } as TimelineModelCalcResults;
 
@@ -1275,8 +1309,8 @@ export class Timeline extends TimelineEventsEmitter {
         size: { x: 0, y: currentRowY, width: this._canvas ? this._canvas.clientWidth : 0, height: rowHeight } as DOMRect,
         marginBottom: marginBottom,
         model: row,
-        minValue: null,
-        maxValue: null,
+        min: null,
+        max: null,
         groups: [] as Array<TimelineCalculatedGroup>,
         keyframes: [] as Array<TimelineCalculatedKeyframe>,
       } as TimelineCalculatedRow;
@@ -1299,8 +1333,8 @@ export class Timeline extends TimelineEventsEmitter {
             }
             if (!currentGroup) {
               currentGroup = {
-                minValue: null,
-                maxValue: null,
+                min: null,
+                max: null,
                 group: keyframe.group,
                 keyframes: [] as Array<TimelineCalculatedKeyframe>,
               } as TimelineCalculatedGroup;
@@ -1315,13 +1349,13 @@ export class Timeline extends TimelineEventsEmitter {
               size: keyframeSize,
             } as TimelineCalculatedKeyframe;
 
-            const min = currentGroup.minValue == null ? keyframe.val : Math.min(keyframe.val, currentGroup.minValue);
-            const max = currentGroup.maxValue == null ? keyframe.val : Math.max(keyframe.val, currentGroup.maxValue);
+            const min = currentGroup.min == null ? keyframe.val : Math.min(keyframe.val, currentGroup.min);
+            const max = currentGroup.max == null ? keyframe.val : Math.max(keyframe.val, currentGroup.max);
             if (!isNaN(min)) {
-              currentGroup.minValue = min;
+              currentGroup.min = min;
             }
             if (!isNaN(max)) {
-              currentGroup.maxValue = max;
+              currentGroup.max = max;
             }
             calcRow.keyframes.push(calcKeyframe);
             currentGroup.keyframes.push(calcKeyframe);
@@ -1334,15 +1368,15 @@ export class Timeline extends TimelineEventsEmitter {
         // Extend row min max bounds by a group bounds:
         this._setMinMax(calcRow, group);
         // get group screen coords
-        const groupRect = this._getKeyframesGroupSize(row, calcRow.size.y, group.minValue, group.maxValue);
+        const groupRect = this._getKeyframesGroupSize(row, calcRow.size.y, group.min, group.max);
         group.size = groupRect;
       });
 
       // Extend screen bounds by a current calculation:
       this._setMinMax(toReturn, calcRow);
     });
-    if (toReturn.maxValue !== null) {
-      toReturn.size.width = this.valToPx(toReturn.maxValue, true);
+    if (toReturn.max !== null) {
+      toReturn.size.width = this.valToPx(toReturn.max, true);
     }
     return toReturn;
   }
@@ -1769,7 +1803,6 @@ export class Timeline extends TimelineEventsEmitter {
 
     return false;
   }
-
   public setTime(val: number): boolean {
     // don't allow to change time during drag:
     if (this._drag && this._drag.type === TimelineElementType.Timeline) {
@@ -2047,9 +2080,9 @@ export class Timeline extends TimelineEventsEmitter {
                   keyframes: keyframesModels,
                 } as TimelineElement;
 
-                const snapped = this.snapVal(group.minValue);
+                const snapped = this.snapVal(group.min);
                 // get snapped mouse pos based on a min value.
-                groupElement.val += group.minValue - snapped;
+                groupElement.val += group.min - snapped;
                 toReturn.push(groupElement);
               }
             });
@@ -2090,7 +2123,7 @@ export class Timeline extends TimelineEventsEmitter {
         return;
       }
       // eslint-disable-next-line prefer-const
-      for (let key in to) {
+      for (let key in from) {
         if (Object.prototype.hasOwnProperty.call(from, key)) {
           if (from[key] !== undefined) {
             if (typeof from[key] === 'object') {

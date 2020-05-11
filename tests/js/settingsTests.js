@@ -15,7 +15,7 @@ describe('_mergeOptions', function () {
         asserts_1.assert.equal(merged.labelsColor, defOptions.labelsColor);
         asserts_1.assert.equal(merged.leftMargin, defOptions.leftMargin);
         asserts_1.assert.equal(merged.selectionColor, defOptions.selectionColor);
-        asserts_1.assert.equal(defOptions.selectionColor === undefined, 'initial options should not be affected');
+        asserts_1.assert.equal(options.selectionColor === undefined, true, 'initial options should not be affected');
     });
     it('Default styles are merged', function () {
         var timeline = new animation_timeline_1.Timeline();

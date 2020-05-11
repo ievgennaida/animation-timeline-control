@@ -5,7 +5,7 @@ export const assert = {
       if (!message) {
         message = 'AssertionError:';
       }
-      new Error(message + ' Expected: ' + expected + ' Result:' + value);
+      throw new Error(message + ' Expected: ' + expected + ' Result:' + value);
     }
   },
 };

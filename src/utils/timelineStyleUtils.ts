@@ -140,10 +140,10 @@ export class TimelineStyleUtils {
     return options ? options.headerHeight : 0 || 30;
   }
   static keyframeDraggable(keyframe: TimelineKeyframeStyle | null, rowStyle: TimelineRowStyle | null, options: TimelineOptions | null, defaultValue = true): boolean {
-    return TimelineStyleUtils.getKeyframeStyle<boolean>(keyframe, rowStyle, options, 'draggable', defaultValue, true);
+    return TimelineStyleUtils.getKeyframeStyle<boolean>(keyframe, rowStyle, options, 'draggable', defaultValue, false);
   }
 
   static groupDraggable(rowStyle: TimelineRowStyle, options: TimelineOptions, defaultValue = true): boolean {
-    return TimelineStyleUtils.getRowStyle<boolean>(rowStyle, options, 'groupDraggable', defaultValue, true);
+    return TimelineStyleUtils.getRowStyle<boolean>(rowStyle, options, 'groupDraggable', defaultValue, false);
   }
 }

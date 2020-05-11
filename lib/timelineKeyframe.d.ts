@@ -1,6 +1,7 @@
 import { TimelineKeyframeStyle } from './settings/styles/timelineKeyframeStyle';
 import { Selectable } from './utils/selectable';
-export interface TimelineKeyframe extends TimelineKeyframeStyle, Selectable {
+import { TimelineRanged } from './timelineRanged';
+export interface TimelineKeyframe extends TimelineKeyframeStyle, Selectable, TimelineRanged {
     val: number;
     /**
      * Related keyframe group.

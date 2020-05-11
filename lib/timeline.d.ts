@@ -6,7 +6,7 @@ import { TimelineModel } from './timelineModel';
 import { TimelineElement } from './utils/timelineElement';
 import { TimelineRow } from './timelineRow';
 import { CutBoundsRect } from './utils/cutBoundsRect';
-import { TimelineCalculatedRow, TimelineModelCalcResults, TimelineCalculated, TimelineCalculatedKeyframe } from './utils/timelineModelCalcResults';
+import { TimelineCalculatedRow, TimelineModelCalcResults, TimelineCalculatedKeyframe } from './utils/timelineModelCalcResults';
 import { TimelineInteractionMode } from './enums/timelineInteractionMode';
 import { TimelineScrollEvent } from './utils/events/timelineScrollEvent';
 import { TimelineSelectedEvent } from './utils/events/timelineSelectedEvent';
@@ -17,6 +17,7 @@ import { TimelineEventSource } from './enums/timelineEventSource';
 import { TimelineTimeChangedEvent } from './utils/events/timelineTimeChangedEvent';
 import { TimelineSelectionMode } from './enums/timelineSelectionMode';
 import { TimelineSelectionResults } from './utils/timelineSelectionResults';
+import { TimelineRanged } from './timelineRanged';
 interface MousePoint extends DOMPoint {
     radius: number;
 }
@@ -110,6 +111,13 @@ export declare class Timeline extends TimelineEventsEmitter {
     _handleMouseDownEvent: (args: MouseEvent) => void;
     isLeftButtonClicked(args: MouseEvent | TouchEvent | any): boolean;
     _handleMouseMoveEvent: (args: any) => void;
+    /**
+     * Move elements
+     * @param offset vector to move elements along.
+     * @param elements Element to move.
+     * @returns real moved value.
+     */
+    _moveElements(offset: number, elements: Array<TimelineElement>): number;
     _handleMouseUpEvent: (args: MouseEvent) => void;
     /**
      * Convert virtual calculation results to keyframes
@@ -207,7 +215,7 @@ export declare class Timeline extends TimelineEventsEmitter {
      */
     _formatLineGaugeText(ms: number, isSeconds?: boolean): string;
     _renderTicks(): void;
-    _setMinMax(to: TimelineCalculated, from: TimelineCalculated): TimelineCalculated;
+    _setMinMax(to: TimelineRanged, from: TimelineRanged): TimelineRanged;
     /**
      * calculate virtual mode. Determine screen positions for the elements.
      */

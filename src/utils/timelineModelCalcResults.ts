@@ -1,19 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { TimelineRow } from '../timelineRow';
 import { TimelineKeyframe } from '../timelineKeyframe';
-export interface TimelineCalculated {
+import { TimelineRanged } from '../timelineRanged';
+export interface TimelineCalculated extends TimelineRanged {
   /**
    * Screen coordinates of the element.
    */
   size: DOMRect;
-  /**
-   * Min value found.
-   */
-  minValue: number | null;
-  /**
-   * Max value found.
-   */
-  maxValue: number | null;
   /**
    * model keyframes.
    */

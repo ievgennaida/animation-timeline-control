@@ -6,7 +6,7 @@ export { TimelineRow } from './timelineRow';
 export { TimelineKeyframe } from './timelineKeyframe';
 export { TimelineEventsEmitter } from './timelineEventsEmitter';
 export { TimelineConsts } from './settings/timelineConsts';
-
+export { TimelineRanged } from './timelineRanged';
 // styles
 export { TimelineOptions } from './settings/timelineOptions';
 export { TimelineKeyframeStyle } from './settings/styles/timelineKeyframeStyle';

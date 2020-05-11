@@ -101,7 +101,94 @@ describe('Timeline', function () {
                 },
             ];
             var element = timeline._findDraggable(elements, 5);
-            asserts_1.assert.equal(element.val, elements[2].val);
+            asserts_1.assert.equal(element.val, elements[1].val);
+        });
+        it('Keyframes are not draggable by global settings', function () {
+            var timeline = new animation_timeline_1.Timeline();
+            var elements = [
+                {
+                    type: animation_timeline_1.TimelineElementType.Keyframe,
+                    val: 4,
+                },
+                {
+                    type: animation_timeline_1.TimelineElementType.Keyframe,
+                    val: 5,
+                },
+                {
+                    type: animation_timeline_1.TimelineElementType.Group,
+                    val: 5,
+                },
+            ];
+            // Apply global options::
+            timeline._options = {
+                rowsStyle: {
+                    keyframesStyle: {
+                        draggable: false,
+                    },
+                },
+            };
+            var element = timeline._findDraggable(elements, 5);
+            asserts_1.assert.equal(element.type, animation_timeline_1.TimelineElementType.Group, 'Group should be selected');
+        });
+        it('Keyframes are not draggable by row settings', function () {
+            var timeline = new animation_timeline_1.Timeline();
+            var elements = [
+                {
+                    type: animation_timeline_1.TimelineElementType.Keyframe,
+                    val: 4,
+                    row: {
+                        keyframesStyle: {
+                            draggable: false,
+                        },
+                    },
+                },
+                {
+                    type: animation_timeline_1.TimelineElementType.Keyframe,
+                    val: 5,
+                    row: {
+                        keyframesStyle: {
+                            draggable: true,
+                        },
+                    },
+                },
+            ];
+            // Apply global options::
+            var element = timeline._findDraggable(elements, 4);
+            // Keyframe with value 5 should be selected as draggable
+            asserts_1.assert.equal(element.val, 5);
+        });
+        it('Keyframes are draggable', function () {
+            var timeline = new animation_timeline_1.Timeline();
+            var elements = [
+                {
+                    type: animation_timeline_1.TimelineElementType.Keyframe,
+                    val: 4,
+                    keyframe: {
+                        val: 0,
+                    },
+                    row: {
+                        keyframesStyle: {
+                            draggable: false,
+                        },
+                    },
+                },
+                {
+                    type: animation_timeline_1.TimelineElementType.Keyframe,
+                    val: 5,
+                    keyframe: {
+                        draggable: true,
+                    },
+                    row: {
+                        keyframesStyle: {
+                            keyframesStyle: {},
+                        },
+                    },
+                },
+            ];
+            // Apply global options::
+            var element = timeline._findDraggable(elements, 4);
+            // Keyframe with value 5 should be selected as draggable
+            asserts_1.assert.equal(element.val, 5);
         });
     });
     describe('select', function () {
@@ -176,18 +263,20 @@ describe('Timeline', function () {
         it('Revert selection (Toggle)', function () {
             var timeline = new animation_timeline_1.Timeline();
             timeline._model = model;
+            var totalKeyframes = 0;
             // Select all
             model.rows.forEach(function (row) {
                 row.keyframes.forEach(function (keyframe) {
                     keyframe.selected = true;
+                    totalKeyframes++;
                 });
             });
-            // select one will deselect other
+            // toggle selection
             var toSelect = model.rows[1].keyframes[0];
             // item is selected, should be reverted
             var element = timeline.select(toSelect, animation_timeline_1.TimelineSelectionMode.Revert);
             asserts_1.assert.equal(element.selectionChanged, true);
-            asserts_1.assert.equal(element.selected.length, 1);
+            asserts_1.assert.equal(element.selected.length, totalKeyframes - 1);
             asserts_1.assert.equal(element.changed.length, 1);
             model.rows.forEach(function (row) {
                 row.keyframes.forEach(function (keyframe) {
@@ -245,7 +334,7 @@ describe('Timeline', function () {
             asserts_1.assert.equal(results.changed.length, rowToSelect.keyframes.length);
             // (array of the keyframes)
             var rowToSelect2 = model.rows[2];
-            results = timeline.select(rowToSelect.keyframes, animation_timeline_1.TimelineSelectionMode.Append);
+            results = timeline.select(rowToSelect2.keyframes, animation_timeline_1.TimelineSelectionMode.Append);
             asserts_1.assert.equal(results.selectionChanged, true);
             asserts_1.assert.equal(results.selected.length, rowToSelect.keyframes.length + rowToSelect2.keyframes.length);
             asserts_1.assert.equal(results.changed.length, rowToSelect2.keyframes.length);
@@ -261,6 +350,150 @@ describe('Timeline', function () {
                     });
                 }
             });
+        });
+    });
+    describe('Move Keyframes', function () {
+        it('move left', function () {
+            var timeline = new animation_timeline_1.Timeline();
+            timeline._options = null;
+            var item1 = 25;
+            var item2 = 50;
+            var model = {
+                rows: [{ val: 0, keyframes: [{ val: item1 }, { val: item2 }] }],
+            };
+            timeline._model = model;
+            var move = -50;
+            var movedOffset = timeline._moveElements(move, [
+                {
+                    keyframe: model.rows[0].keyframes[1],
+                    row: model.rows[0],
+                },
+                {
+                    keyframe: model.rows[0].keyframes[0],
+                    row: model.rows[0],
+                },
+            ]);
+            asserts_1.assert.equal(movedOffset, move);
+            asserts_1.assert.equal(model.rows[0].keyframes[0].val, item1 + move);
+            asserts_1.assert.equal(model.rows[0].keyframes[1].val, item2 + move);
+        });
+        it('move right', function () {
+            var timeline = new animation_timeline_1.Timeline();
+            var item1 = 25;
+            var item2 = 50;
+            var model = {
+                rows: [{ val: 0, keyframes: [{ val: item1 }, { val: item2 }] }],
+            };
+            timeline._model = model;
+            var move = 100;
+            var movedOffset = timeline._moveElements(move, [
+                {
+                    keyframe: model.rows[0].keyframes[1],
+                    row: model.rows[0],
+                },
+                {
+                    keyframe: model.rows[0].keyframes[0],
+                    row: model.rows[0],
+                },
+            ]);
+            asserts_1.assert.equal(movedOffset, move);
+            asserts_1.assert.equal(model.rows[0].keyframes[0].val, item1 + move);
+            asserts_1.assert.equal(model.rows[0].keyframes[1].val, item2 + move);
+        });
+        it('move left limited by min', function () {
+            var timeline = new animation_timeline_1.Timeline();
+            var item1 = 25;
+            var item2 = 50;
+            timeline._options = { min: 0, max: 75 };
+            var move = -50;
+            var elementsToMove = [
+                {
+                    keyframe: { val: item1 },
+                },
+                {
+                    keyframe: { val: item2 },
+                },
+            ];
+            var movedOffset = timeline._moveElements(move, elementsToMove);
+            asserts_1.assert.equal(movedOffset, move / 2);
+            asserts_1.assert.equal(elementsToMove[0].keyframe.val, 0);
+            asserts_1.assert.equal(elementsToMove[1].keyframe.val, 25);
+        });
+        it('move right limited by max', function () {
+            var timeline = new animation_timeline_1.Timeline();
+            var item1 = 25;
+            var item2 = 50;
+            timeline._options = { min: 0, max: 100 };
+            var move = 100;
+            var elementsToMove = [
+                {
+                    keyframe: { val: item1 },
+                },
+                {
+                    keyframe: { val: item2 },
+                },
+            ];
+            var movedOffset = timeline._moveElements(move, elementsToMove);
+            asserts_1.assert.equal(movedOffset, move / 2);
+            asserts_1.assert.equal(elementsToMove[0].keyframe.val, item1 + 50);
+            asserts_1.assert.equal(elementsToMove[1].keyframe.val, item2 + 50);
+        });
+        it('move right limited by max negative', function () {
+            var timeline = new animation_timeline_1.Timeline();
+            var item1 = -125;
+            var item2 = -150;
+            timeline._options = { min: -200, max: -100 };
+            var move = 100;
+            var elementsToMove = [
+                {
+                    keyframe: { val: item1 },
+                },
+                {
+                    keyframe: { val: item2 },
+                },
+            ];
+            var movedOffset = timeline._moveElements(move, elementsToMove);
+            asserts_1.assert.equal(movedOffset, 25);
+            asserts_1.assert.equal(elementsToMove[0].keyframe.val, item1 + 25);
+            asserts_1.assert.equal(elementsToMove[1].keyframe.val, item2 + 25);
+        });
+        it('move left limited by min negative', function () {
+            var timeline = new animation_timeline_1.Timeline();
+            var item1 = -125;
+            var item2 = -150;
+            timeline._options = { min: -200, max: -100 };
+            var move = -100;
+            var elementsToMove = [
+                {
+                    keyframe: { val: item1 },
+                },
+                {
+                    keyframe: { val: item2 },
+                },
+            ];
+            var movedOffset = timeline._moveElements(move, elementsToMove);
+            asserts_1.assert.equal(movedOffset, move / 2);
+            asserts_1.assert.equal(elementsToMove[0].keyframe.val, item1 - 50);
+            asserts_1.assert.equal(elementsToMove[1].keyframe.val, item2 - 50);
+        });
+        it('move left only one keyframe is limited', function () {
+            var timeline = new animation_timeline_1.Timeline();
+            var item1 = 25;
+            var item2 = 50;
+            var move = 100;
+            var elementsToMove = [
+                {
+                    keyframe: { val: item1 },
+                    row: { min: 0, max: 100 },
+                },
+                {
+                    keyframe: { val: item2 },
+                },
+            ];
+            var movedOffset = timeline._moveElements(move, elementsToMove);
+            asserts_1.assert.equal(movedOffset, move / 2);
+            asserts_1.assert.equal(elementsToMove[0].keyframe.val, item1 + 50);
+            asserts_1.assert.equal(elementsToMove[1].keyframe.val, item2 + 50);
         });
     });
 });

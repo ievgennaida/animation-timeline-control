@@ -14,7 +14,7 @@ describe('TimelineStyleUtils', function () {
             var keyframeStyle = { shape: animation_timeline_1.TimelineKeyframeShape.Rect };
             asserts_1.assert.equal(animation_timeline_1.TimelineStyleUtils.keyframeDraggable(keyframeStyle, null, globalStyle), true);
         });
-        it('Keyframe draggable', function () {
+        it('Keyframe is draggable', function () {
             var globalStyle = {
                 rowsStyle: {
                     keyframesStyle: {},
@@ -32,7 +32,7 @@ describe('TimelineStyleUtils', function () {
             var keyframeStyle = { draggable: false, shape: animation_timeline_1.TimelineKeyframeShape.Rect };
             asserts_1.assert.equal(animation_timeline_1.TimelineStyleUtils.keyframeDraggable(keyframeStyle, null, globalStyle), false);
         });
-        it('Keyframe row is not draggable than keyframe is not draggable', function () {
+        it('Keyframe is draggable override row', function () {
             var globalStyle = {
                 rowsStyle: {
                     keyframesStyle: {},
@@ -40,18 +40,19 @@ describe('TimelineStyleUtils', function () {
             };
             var rowStyle = { keyframesStyle: { draggable: false, shape: animation_timeline_1.TimelineKeyframeShape.Rect } };
             var keyframeStyle = { draggable: true, shape: animation_timeline_1.TimelineKeyframeShape.Rect };
-            asserts_1.assert.equal(animation_timeline_1.TimelineStyleUtils.keyframeDraggable(keyframeStyle, rowStyle, globalStyle), false);
+            var value = animation_timeline_1.TimelineStyleUtils.keyframeDraggable(keyframeStyle, rowStyle, globalStyle);
+            asserts_1.assert.equal(value, true);
         });
-        it('Keyframes are not draggable by general settings', function () {
+        it('Keyframes are not draggable by row settings', function () {
             var globalStyle = {
                 rowsStyle: {
                     keyframesStyle: {
-                        draggable: false,
+                        draggable: true,
                     },
                 },
             };
-            var rowStyle = { keyframesStyle: { draggable: true, shape: animation_timeline_1.TimelineKeyframeShape.Rect } };
-            var keyframeStyle = { draggable: true, shape: animation_timeline_1.TimelineKeyframeShape.Rect };
+            var rowStyle = { keyframesStyle: { draggable: false, shape: animation_timeline_1.TimelineKeyframeShape.Rect } };
+            var keyframeStyle = { shape: animation_timeline_1.TimelineKeyframeShape.Rect };
             asserts_1.assert.equal(animation_timeline_1.TimelineStyleUtils.keyframeDraggable(keyframeStyle, rowStyle, globalStyle), false);
         });
         it('Keyframes are draggable', function () {
@@ -64,9 +65,21 @@ describe('TimelineStyleUtils', function () {
             };
             var rowStyle = { keyframesStyle: { draggable: true, shape: animation_timeline_1.TimelineKeyframeShape.Rect } };
             var keyframeStyle = { draggable: true, shape: animation_timeline_1.TimelineKeyframeShape.Rect };
-            asserts_1.assert.equal(animation_timeline_1.TimelineStyleUtils.keyframeDraggable(keyframeStyle, rowStyle, globalStyle), false);
+            asserts_1.assert.equal(animation_timeline_1.TimelineStyleUtils.keyframeDraggable(keyframeStyle, rowStyle, globalStyle), true);
         });
-        it('Group is draggable by default', function () {
+        it('Keyframes are draggable', function () {
+            var globalStyle = {
+                rowsStyle: {
+                    keyframesStyle: {
+                        draggable: false,
+                    },
+                },
+            };
+            var rowStyle = { keyframesStyle: { draggable: false, shape: animation_timeline_1.TimelineKeyframeShape.Rect } };
+            var keyframeStyle = { draggable: true, shape: animation_timeline_1.TimelineKeyframeShape.Rect };
+            asserts_1.assert.equal(animation_timeline_1.TimelineStyleUtils.keyframeDraggable(keyframeStyle, rowStyle, globalStyle), true);
+        });
+        it('Groups are draggable by default', function () {
             var globalStyle = {
                 rowsStyle: {
                     keyframesStyle: {
@@ -77,21 +90,21 @@ describe('TimelineStyleUtils', function () {
             var rowStyle = { keyframesStyle: { draggable: true, shape: animation_timeline_1.TimelineKeyframeShape.Rect } };
             asserts_1.assert.equal(animation_timeline_1.TimelineStyleUtils.groupDraggable(rowStyle, globalStyle), true);
         });
-        it('Group is not draggable by row settings', function () {
+        it('Group is draggable', function () {
             var globalStyle = {
                 rowsStyle: {
                     keyframesStyle: {
-                        draggable: true,
+                        draggable: false,
                     },
                 },
             };
-            var rowStyle = { groupDraggable: false, keyframesStyle: { draggable: true, shape: animation_timeline_1.TimelineKeyframeShape.Rect } };
-            asserts_1.assert.equal(animation_timeline_1.TimelineStyleUtils.groupDraggable(rowStyle, globalStyle), false);
+            var rowStyle = { groupDraggable: true, keyframesStyle: { draggable: true, shape: animation_timeline_1.TimelineKeyframeShape.Rect } };
+            asserts_1.assert.equal(animation_timeline_1.TimelineStyleUtils.groupDraggable(rowStyle, globalStyle), true);
         });
-        it('Group is not draggable by global settings', function () {
+        it('Group is not draggable by row settings', function () {
             var globalStyle = {
                 rowsStyle: {
-                    groupDraggable: false,
+                    groupDraggable: true,
                     keyframesStyle: {
                         draggable: true,
                     },

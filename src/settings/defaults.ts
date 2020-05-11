@@ -122,6 +122,8 @@ export const defaultTimelineOptions = {
    * keyframes group is draggable.
    */
   keyframesDraggable: true,
+  min: 0,
+  max: Number.MAX_VALUE,
 } as TimelineOptions;
 
 export const defaultTimelineConsts: TimelineConsts = {
