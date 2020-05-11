@@ -227,11 +227,33 @@ describe('Timeline', function () {
 
       assert.equal(element.selected.length, changed);
     });
+    it('Select all selectable', function () {
+      const timeline = new Timeline();
+      timeline._model = model;
+      const element = timeline.getAllKeyframes();
+
+      let changed = 0;
+      let selectable = 0;
+      model.rows.forEach((row: TimelineRow) => {
+        row.keyframes.forEach((keyframe: TimelineKeyframe) => {
+          keyframe.selected = false;
+          keyframe.selectable = changed % 2 === 0;
+          if (keyframe.selectable) {
+            selectable++;
+          }
+          changed++;
+        });
+      });
+      const selectionResults = timeline.select(element);
+      assert.equal(selectionResults.changed.length, selectable);
+      assert.equal(selectionResults.selected.length, selectable);
+    });
     it('Deselect all', function () {
       const timeline = new Timeline();
       timeline._model = model;
       model.rows.forEach((row: TimelineRow) => {
         row.keyframes.forEach((keyframe: TimelineKeyframe) => {
+          keyframe.selectable = true;
           keyframe.selected = true;
         });
       });
@@ -252,6 +274,7 @@ describe('Timeline', function () {
       // Select all
       model.rows.forEach((row: TimelineRow) => {
         row.keyframes.forEach((keyframe: TimelineKeyframe) => {
+          keyframe.selectable = true;
           keyframe.selected = true;
           expectedChanged++;
         });
@@ -282,6 +305,7 @@ describe('Timeline', function () {
       // Select all
       model.rows.forEach((row: TimelineRow) => {
         row.keyframes.forEach((keyframe: TimelineKeyframe) => {
+          keyframe.selectable = true;
           keyframe.selected = true;
           totalKeyframes++;
         });
@@ -311,6 +335,7 @@ describe('Timeline', function () {
       // Deselect all
       model.rows.forEach((row: TimelineRow) => {
         row.keyframes.forEach((keyframe: TimelineKeyframe) => {
+          keyframe.selectable = true;
           keyframe.selected = false;
         });
       });

@@ -117,7 +117,9 @@ export class TimelineStyleUtils {
   static keyframeStrokeColor(keyframe: TimelineKeyframeStyle | null, rowStyle: TimelineRowStyle | null, options: TimelineOptions | null): string {
     return TimelineStyleUtils.getKeyframeStyle<string>(keyframe, rowStyle, options, 'strokeColor', 'Black', false);
   }
-
+  static keyframeSelectedStrokeColor(keyframe: TimelineKeyframeStyle | null, rowStyle: TimelineRowStyle | null, options: TimelineOptions | null): string {
+    return TimelineStyleUtils.getKeyframeStyle<string>(keyframe, rowStyle, options, 'selectedStrokeColor', 'Black', false);
+  }
   /**
    * Get current row height from styling
    */

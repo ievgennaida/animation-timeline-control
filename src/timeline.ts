@@ -713,9 +713,12 @@ export class Timeline extends TimelineEventsEmitter {
 
   private _changeNodeState(state: TimelineSelectionResults, node: TimelineKeyframe, value: boolean): boolean {
     if (node.selected !== value) {
-      node.selected = value;
-      state.changed.push(node);
-      return true;
+      const selectable = typeof node.selectable === 'boolean' ? node.selectable : true;
+      if (!value || (value && selectable)) {
+        node.selected = value;
+        state.changed.push(node);
+        return true;
+      }
     }
 
     return false;
@@ -753,7 +756,7 @@ export class Timeline extends TimelineEventsEmitter {
     if (nodesArray && mode === TimelineSelectionMode.Append) {
       nodes.forEach((node) => {
         const changed = this._changeNodeState(state, node, true);
-        if (changed) {
+        if (changed && node.selected) {
           state.selected.push(node);
         }
       });
@@ -764,13 +767,19 @@ export class Timeline extends TimelineEventsEmitter {
           TimelineUtils.deleteElement<TimelineKeyframe>(state.selected, node);
         } else {
           this._changeNodeState(state, node, true);
-          state.selected.push(node);
+          if (node.selected) {
+            state.selected.push(node);
+          }
         }
       });
     } else if (mode === TimelineSelectionMode.Normal) {
+      const selectedItems: Array<TimelineKeyframe> = [];
       if (nodes) {
         nodes.forEach((node) => {
           this._changeNodeState(state, node, true);
+          if (node.selected) {
+            selectedItems.push(node);
+          }
         });
       }
 
@@ -783,8 +792,8 @@ export class Timeline extends TimelineEventsEmitter {
       });
 
       if (state.changed.length > 0) {
-        if (nodes) {
-          state.selected = nodes;
+        if (selectedItems) {
+          state.selected = selectedItems;
         } else {
           state.selected.length = 0;
         }
@@ -797,58 +806,6 @@ export class Timeline extends TimelineEventsEmitter {
     }
 
     return state;
-  }
-  /**
-   * Do the selection.
-   * @param {boolean} isSelected
-   * @param {object} selector can be a rectangle or a keyframe object.
-   * @param {boolean} ignoreOthers value indicating whether all other object should be reversed.
-   * @return {boolean} isChanged
-   */
-  _performSelection(isSelected = true, selector: DOMRect | TimelineKeyframe | null = null, ignoreOthers = false): boolean {
-    let deselectionMode = false;
-    // TODO: simplify
-    if (!selector) {
-      if (!isSelected) {
-        isSelected = false;
-      }
-
-      deselectionMode = isSelected;
-    }
-
-    const selected: Array<TimelineKeyframe> = [];
-    let isChanged = true;
-    this._forEachKeyframe((calcKeyframe): void => {
-      const keyframePos = calcKeyframe.size;
-      const keyframe = calcKeyframe.model;
-      if (keyframePos) {
-        if (selector && selector === keyframe) {
-          if (keyframe.selected != isSelected) {
-            if (isSelected && keyframe) {
-              keyframe.selected = isSelected;
-              isChanged = true;
-            }
-          }
-
-          if (keyframe.selected) {
-            selected.push(keyframe);
-          }
-        } else {
-          // Deselect all other keyframes.
-          if (!ignoreOthers && keyframe.selected != deselectionMode) {
-            keyframe.selected = deselectionMode;
-            isChanged = deselectionMode;
-          }
-        }
-      }
-
-      return;
-    });
-
-    if (isChanged) {
-    }
-
-    return isChanged;
   }
 
   /**
@@ -1558,9 +1515,10 @@ export class Timeline extends TimelineEventsEmitter {
           return;
         }
 
-        const keyframeColor = keyframe.selected ? TimelineStyleUtils.keyframeFillColor(keyframe, row, this._options) : TimelineStyleUtils.keyframeSelectedFillColor(keyframe, row, this._options);
+        const keyframeColor = keyframe.selected ? TimelineStyleUtils.keyframeSelectedFillColor(keyframe, row, this._options) : TimelineStyleUtils.keyframeFillColor(keyframe, row, this._options);
         const border = TimelineStyleUtils.keyframeStrokeThickness(keyframe, row, this._options);
-        const strokeColor = border > 0 ? TimelineStyleUtils.keyframeStrokeColor(keyframe, row, this._options) : '';
+        const strokeColor =
+          border > 0 ? (keyframe.selected ? TimelineStyleUtils.keyframeSelectedStrokeColor(keyframe, row, this._options) : TimelineStyleUtils.keyframeStrokeColor(keyframe, row, this._options)) : '';
 
         if (shape == TimelineKeyframeShape.Rhomb) {
           this._ctx.beginPath();

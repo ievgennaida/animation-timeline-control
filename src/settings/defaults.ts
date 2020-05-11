@@ -23,13 +23,14 @@ export const defaultTimelineKeyframeStyle = {
   /**
    * keyframe fill color.
    */
-  fillColor: 'red',
+  fillColor: 'DarkOrange',
   shape: TimelineKeyframeShape.Rhomb,
   /**
    * Selected keyframe fill color.
    */
-  selectedFillColor: 'DarkOrange',
-  strokeColor: 'Black',
+  selectedFillColor: 'red',
+  strokeColor: 'black',
+  selectedStrokeColor: 'black',
   strokeThickness: 0.2,
   draggable: true,
 } as TimelineKeyframeStyle;

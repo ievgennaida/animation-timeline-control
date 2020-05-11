@@ -163,14 +163,6 @@ export declare class Timeline extends TimelineEventsEmitter {
      */
     _selectInternal(nodes: TimelineKeyframe[] | TimelineKeyframe | null, mode?: TimelineSelectionMode): TimelineSelectionResults;
     /**
-     * Do the selection.
-     * @param {boolean} isSelected
-     * @param {object} selector can be a rectangle or a keyframe object.
-     * @param {boolean} ignoreOthers value indicating whether all other object should be reversed.
-     * @return {boolean} isChanged
-     */
-    _performSelection(isSelected?: boolean, selector?: DOMRect | TimelineKeyframe | null, ignoreOthers?: boolean): boolean;
-    /**
      * foreach visible keyframe.
      */
     _forEachKeyframe(callback: (keyframe: TimelineCalculatedKeyframe, index?: number, newRow?: boolean) => void): void;

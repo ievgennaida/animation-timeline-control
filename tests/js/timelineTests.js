@@ -214,11 +214,32 @@ describe('Timeline', function () {
             });
             asserts_1.assert.equal(element.selected.length, changed);
         });
+        it('Select all selectable', function () {
+            var timeline = new animation_timeline_1.Timeline();
+            timeline._model = model;
+            var element = timeline.getAllKeyframes();
+            var changed = 0;
+            var selectable = 0;
+            model.rows.forEach(function (row) {
+                row.keyframes.forEach(function (keyframe) {
+                    keyframe.selected = false;
+                    keyframe.selectable = changed % 2 === 0;
+                    if (keyframe.selectable) {
+                        selectable++;
+                    }
+                    changed++;
+                });
+            });
+            var selectionResults = timeline.select(element);
+            asserts_1.assert.equal(selectionResults.changed.length, selectable);
+            asserts_1.assert.equal(selectionResults.selected.length, selectable);
+        });
         it('Deselect all', function () {
             var timeline = new animation_timeline_1.Timeline();
             timeline._model = model;
             model.rows.forEach(function (row) {
                 row.keyframes.forEach(function (keyframe) {
+                    keyframe.selectable = true;
                     keyframe.selected = true;
                 });
             });
@@ -239,6 +260,7 @@ describe('Timeline', function () {
             // Select all
             model.rows.forEach(function (row) {
                 row.keyframes.forEach(function (keyframe) {
+                    keyframe.selectable = true;
                     keyframe.selected = true;
                     expectedChanged++;
                 });
@@ -267,6 +289,7 @@ describe('Timeline', function () {
             // Select all
             model.rows.forEach(function (row) {
                 row.keyframes.forEach(function (keyframe) {
+                    keyframe.selectable = true;
                     keyframe.selected = true;
                     totalKeyframes++;
                 });
@@ -295,6 +318,7 @@ describe('Timeline', function () {
             // Deselect all
             model.rows.forEach(function (row) {
                 row.keyframes.forEach(function (keyframe) {
+                    keyframe.selectable = true;
                     keyframe.selected = false;
                 });
             });

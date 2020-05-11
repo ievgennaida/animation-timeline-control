@@ -22,6 +22,7 @@ export declare class TimelineStyleUtils {
     static keyframeSelectedFillColor(keyframe: TimelineKeyframeStyle | null, rowStyle: TimelineRowStyle | null, options: TimelineOptions | null): string;
     static keyframeStrokeThickness(keyframe: TimelineKeyframeStyle | null, rowStyle: TimelineRowStyle | null, options: TimelineOptions | null): number;
     static keyframeStrokeColor(keyframe: TimelineKeyframeStyle | null, rowStyle: TimelineRowStyle | null, options: TimelineOptions | null): string;
+    static keyframeSelectedStrokeColor(keyframe: TimelineKeyframeStyle | null, rowStyle: TimelineRowStyle | null, options: TimelineOptions | null): string;
     /**
      * Get current row height from styling
      */
