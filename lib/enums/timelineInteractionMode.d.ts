@@ -1,4 +1,14 @@
 export declare enum TimelineInteractionMode {
+    /**
+     * Selection tool
+     */
     Selection = "selection",
-    Pan = "pan"
+    /**
+     * Pan tool
+     */
+    Pan = "pan",
+    /**
+     * Zoom tool.
+     */
+    Zoom = "zoom"
 }

@@ -182,11 +182,11 @@
     <div class="toolbar">
       <button class="button mat-icon material-icons mat-icon-no-color" onclick="selectMode()">tab_unselected </button>
       <button class="button mat-icon material-icons mat-icon-no-color" onclick="panMode()">pan_tool</button>
+      <button class="button mat-icon material-icons mat-icon-no-color" onclick="zoomMode()">search</button>
       <div class="links">
         <a href="./tests/unittests.html">UnitTests</a>
         <a class="git-hub-link" href="https://github.com/ievgennaida/animation-timeline-control">GitHub</a>
       </div>
-
     </div>
     <footer>
       <div class="outline">
@@ -194,7 +194,6 @@
         </div>
         <div class="outline-scroll-container" id="outline-scroll-container" onwheel="outlineMouseWheel(arguments[0])">
           <div class="outline-items" id="outline-container">
-
           </div>
         </div>
       </div>
@@ -421,6 +420,12 @@
         timeline.setInteractionMode('selector');
       }
     }
+    function zoomMode(){
+      if (timeline) {
+        timeline.setInteractionMode('zoom');
+      }
+    }
+
     function panMode() {
       if (timeline) {
         timeline.setInteractionMode('pan');
@@ -434,6 +439,5 @@
     }
   </script>
 </body>
-
 
 </html>

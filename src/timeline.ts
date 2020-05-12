@@ -199,7 +199,8 @@ export class Timeline extends TimelineEventsEmitter {
     if (this._scrollContainer) {
       this._scrollContainer.addEventListener('scroll', this._handleScrollEvent);
     }
-
+    document.addEventListener('keyup', this._handleKeyUp, false);
+    document.addEventListener('keydown', this._handleKeyDown, false);
     window.addEventListener('blur', this._handleBlurEvent, false);
     window.addEventListener('resize', this._handleWindowResizeEvent, false);
 
@@ -229,7 +230,8 @@ export class Timeline extends TimelineEventsEmitter {
 
     window.removeEventListener('blur', this._handleBlurEvent);
     window.removeEventListener('resize', this._handleWindowResizeEvent);
-
+    document.removeEventListener('keydown', this._handleKeyDown);
+    document.removeEventListener('keyup', this._handleKeyUp);
     this._canvas.removeEventListener('touchstart', this._handleMouseDownEvent);
     this._canvas.removeEventListener('mousedown', this._handleMouseDownEvent);
     window.removeEventListener('mousemove', this._handleMouseMoveEvent);
@@ -239,6 +241,23 @@ export class Timeline extends TimelineEventsEmitter {
     // Stop times
     this._stopAutoPan();
     this._clearScrollFinishedTimer();
+  }
+  _handleKeyUp = (event: KeyboardEvent): void => {
+    if (this._interactionMode === TimelineInteractionMode.Zoom) {
+      this._setZoomCursor(event);
+    }
+  };
+  _handleKeyDown = (event: KeyboardEvent): void => {
+    if (this._interactionMode === TimelineInteractionMode.Zoom) {
+      this._setZoomCursor(event);
+    }
+  };
+  _setZoomCursor(e: MouseEvent | KeyboardEvent): void {
+    if (this._controlKeyPressed(e)) {
+      this._setCursor(TimelineCursorType.ZoomOut);
+    } else {
+      this._setCursor(TimelineCursorType.ZoomIn);
+    }
   }
   _handleBlurEvent = (): void => {
     this._cleanUpSelection();
@@ -274,47 +293,66 @@ export class Timeline extends TimelineEventsEmitter {
     this._emitScrollEvent(args);
   };
   _controlKeyPressed(e: MouseEvent | KeyboardEvent): boolean {
+    if (!this._options || this._options.controlKeyIsMetaKey === undefined) {
+      return e.metaKey || e.ctrlKey;
+    }
     return this._options.controlKeyIsMetaKey || this._options.controlKeyIsMetaKey ? e.metaKey : e.ctrlKey;
   }
   _handleWheelEvent = (event: WheelEvent): void => {
     if (this._controlKeyPressed(event)) {
       event.preventDefault();
-      if (this._options.zoomSpeed > 0 && this._options.zoomSpeed <= 1) {
-        const mousePos = this._getMousePos(this._canvas, event);
-        let x = mousePos.x;
-        if (x <= 0) {
-          x = 0;
-        }
-        const val = this.pxToVal(this._scrollContainer.scrollLeft + x, false);
-        const diff = this._canvas.clientWidth / x;
-
-        const zoom = TimelineUtils.sign(event.deltaY) * this._options.zoom * this._options.zoomSpeed;
-        this._currentZoom += zoom;
-        if (this._currentZoom > this._options.zoomMax) {
-          this._currentZoom = this._options.zoomMax;
-        }
-        if (this._currentZoom < this._options.zoomMin) {
-          this._currentZoom = this._options.zoomMin;
-        }
-        const zoomCenter = this.valToPx(val, true);
-        let newScrollLeft = Math.round(zoomCenter - this._canvas.clientWidth / diff);
-        if (newScrollLeft <= 0) {
-          newScrollLeft = 0;
-        }
-
-        this._rescaleInternal(newScrollLeft + this._canvas.clientWidth, null, 'zoom');
-        if (this._scrollContainer.scrollLeft != newScrollLeft) {
-          // Scroll event will redraw the screen.
-          this._scrollContainer.scrollLeft = newScrollLeft;
-        }
-
-        this.redraw();
-      }
+      const mousePos = Math.max(0, this._getMousePos(this._canvas, event).x || 0);
+      this._zoom(TimelineUtils.sign(event.deltaY), this._options.zoomSpeed, mousePos);
     } else {
       this._scrollContainer.scrollTop += event.deltaY;
       event.preventDefault();
     }
   };
+  _zoom(direction: number, speed: number, x: number): void {
+    if (speed > 0 && speed <= 1) {
+      const deltaSpeed = TimelineUtils.getDistance(this._width() / 2, x) * 0.2;
+      x = x + deltaSpeed;
+      const diff = this._width() / x;
+      const val = this.pxToVal(this._scrollContainer.scrollLeft + x, false);
+      const zoom = direction * this._currentZoom * speed;
+      //this._options.zoom
+      this._currentZoom += zoom;
+      if (TimelineUtils.isNumber(this._options.zoomMax) && this._currentZoom > this._options.zoomMax) {
+        this._currentZoom = this._options.zoomMax;
+      }
+      if (TimelineUtils.isNumber(this._options.zoomMin) && this._currentZoom < this._options.zoomMin) {
+        this._currentZoom = this._options.zoomMin;
+      }
+      // Get only after zoom is set
+      const zoomCenter = this.valToPx(val, true);
+      let newScrollLeft = Math.round(zoomCenter - this._width() / diff);
+      if (newScrollLeft <= 0) {
+        newScrollLeft = 0;
+      }
+
+      this._rescaleInternal(newScrollLeft + this._width(), null, 'zoom');
+      if (this._scrollContainer.scrollLeft != newScrollLeft) {
+        // Scroll event will redraw the screen.
+        this._scrollContainer.scrollLeft = newScrollLeft;
+      }
+
+      this.redraw();
+    }
+  }
+  /**
+   * Zoom in
+   * @param speed value from 0 to 1
+   */
+  public zoomIn(speed = this._options.zoomSpeed): void {
+    this._zoom(1, speed, this._scrollContainer.clientWidth / 2);
+  }
+  /**
+   * Zoom out.
+   * @param speed value from 0 to 1
+   */
+  public zoomOut(speed = this._options.zoomSpeed): void {
+    this._zoom(-1, speed, this._scrollContainer.clientWidth / 2);
+  }
   /**
    * @param args
    */
@@ -369,7 +407,7 @@ export class Timeline extends TimelineEventsEmitter {
     this._currentPos = this._startPos;
 
     // Select keyframes on mouse down
-    if (target) {
+    if (target && this._interactionMode !== TimelineInteractionMode.Zoom) {
       this._drag = {
         changed: false,
         target: target,
@@ -419,7 +457,8 @@ export class Timeline extends TimelineEventsEmitter {
     const isTouch = args.changedTouches && args.changedTouches.length > 0;
     this._currentPos = this._trackMousePos(this._canvas, args);
     if (!this._isPanStarted && this._selectionRect && this._clickTimeoutIsOver()) {
-      this._selectionRectEnabled = true;
+      // TODO: implement selection by rect
+      this._selectionRectEnabled = this._interactionMode !== TimelineInteractionMode.Zoom;
     } else {
       this._selectionRectEnabled = false;
     }
@@ -460,6 +499,7 @@ export class Timeline extends TimelineEventsEmitter {
           // Track scroll by mouse or touch out of the area.
           this._scrollBySelectionOutOfBounds(this._currentPos);
         }
+
         this.redraw();
       } else {
         // Fallback. Cancel mouse move when focus was lost and mouse down is still counted.
@@ -476,7 +516,12 @@ export class Timeline extends TimelineEventsEmitter {
           this._setCursor(TimelineCursorType.Grab);
         }
       } else {
-        this._setCursor(TimelineCursorType.Default);
+        if (this._interactionMode === TimelineInteractionMode.Zoom) {
+          this._setZoomCursor(args);
+          return;
+        } else {
+          this._setCursor(TimelineCursorType.Default);
+        }
       }
 
       if (target) {
@@ -521,11 +566,11 @@ export class Timeline extends TimelineEventsEmitter {
         const currentBounds = this._setMinMax(this._setMinMax({ min: bounds.min, max: bounds.max }, p.keyframe), p.row);
         const expectedKeyframeValue = this._options && this._options.snapAllKeyframesOnMove ? this.snapVal(p.keyframe.val) : p.keyframe.val;
         const newPosition = expectedKeyframeValue + offset;
-        if (currentBounds.min !== null && newPosition < currentBounds.min) {
+        if (TimelineUtils.isNumber(currentBounds.min) && newPosition < currentBounds.min) {
           // Return to the bounds:
           offset = offset + TimelineUtils.getDistance(currentBounds.min, newPosition);
         }
-        if (currentBounds.max !== null && newPosition > currentBounds.max) {
+        if (TimelineUtils.isNumber(currentBounds.max) && newPosition > currentBounds.max) {
           // Return to the bounds:
           offset = offset - TimelineUtils.getDistance(currentBounds.max, newPosition);
         }
@@ -556,11 +601,23 @@ export class Timeline extends TimelineEventsEmitter {
 
       // Click detection.
       if (this._clickAllowed || !this._clickTimeoutIsOver() || (this._drag && (this._startedDragWithCtrl || this._startedDragWithShiftKey))) {
-        this._performClick(pos, args, this._drag);
+        if (this._options && this._interactionMode === TimelineInteractionMode.Zoom) {
+          const direction = this._controlKeyPressed(args) ? 1 : -1;
+          const mousePos = Math.max(0, this._getMousePos(this._canvas, args).x || 0);
+          this._zoom(direction, this._options.zoomSpeed, mousePos);
+        } else {
+          this._performClick(pos, args, this._drag);
+        }
       } else if (!this._drag && this._selectionRect && this._selectionRectEnabled) {
-        const keyframes = this._getKeyframesByRectangle(this._selectionRect);
-        const selectionMode = args.shiftKey ? TimelineSelectionMode.Append : TimelineSelectionMode.Normal;
-        this.select(keyframes, selectionMode);
+        if (this._interactionMode === TimelineInteractionMode.Zoom) {
+          if (this._selectionRect.width > 20) {
+            // TODO: implement zoom by screen rect.
+          }
+        } else {
+          const keyframes = this._getKeyframesByRectangle(this._selectionRect);
+          const selectionMode = args.shiftKey ? TimelineSelectionMode.Append : TimelineSelectionMode.Normal;
+          this.select(keyframes, selectionMode);
+        }
       }
 
       this._cleanUpSelection();
@@ -568,6 +625,25 @@ export class Timeline extends TimelineEventsEmitter {
     }
   };
 
+  /**
+   * client height.
+   */
+  _height(): number {
+    if (this._canvas) {
+      return this._canvas.clientHeight;
+    }
+    return 0;
+  }
+
+  /**
+   * Client width;
+   */
+  _width(): number {
+    if (this._canvas) {
+      return this._canvas.clientWidth;
+    }
+    return 0;
+  }
   /**
    * Convert virtual calculation results to keyframes
    */
@@ -936,10 +1012,10 @@ export class Timeline extends TimelineEventsEmitter {
     const newLeft = scrollStartPos.x + offsetX;
 
     if (offsetX > 0) {
-      this._rescaleInternal(newLeft + this._canvas.clientWidth);
+      this._rescaleInternal(newLeft + this._width());
     }
 
-    if (offsetX > 0 && newLeft + this._canvas.clientWidth >= this._scrollContainer.scrollWidth - 5) {
+    if (offsetX > 0 && newLeft + this._width() >= this._scrollContainer.scrollWidth - 5) {
       this._scrollContainer.scrollLeft = this._scrollContainer.scrollWidth;
     } else {
       this._scrollContainer.scrollLeft = newLeft;
@@ -956,9 +1032,9 @@ export class Timeline extends TimelineEventsEmitter {
     // Small offset to start auto pan earlier.
     const bounds = this._consts.autoPanByScrollPadding;
     const isLeft = x <= bounds;
-    const isRight = x >= this._canvas.clientWidth - bounds;
+    const isRight = x >= this._width() - bounds;
     const isTop = y <= bounds;
-    const isBottom = y >= this._canvas.clientHeight - bounds;
+    const isBottom = y >= this._height() - bounds;
     let newWidth = null;
     let newHeight = null;
     if (isLeft || isRight || isTop || isBottom) {
@@ -975,8 +1051,8 @@ export class Timeline extends TimelineEventsEmitter {
         speedX = -TimelineUtils.getDistance(x, bounds) * scrollSpeedMultiplier;
       } else if (isRight) {
         // Get normalized speed:
-        speedX = TimelineUtils.getDistance(x, this._canvas.clientWidth - bounds) * scrollSpeedMultiplier;
-        newWidth = this._scrollContainer.scrollLeft + this._canvas.clientWidth + speedX;
+        speedX = TimelineUtils.getDistance(x, this._width() - bounds) * scrollSpeedMultiplier;
+        newWidth = this._scrollContainer.scrollLeft + this._width() + speedX;
       }
 
       if (isTop) {
@@ -984,8 +1060,8 @@ export class Timeline extends TimelineEventsEmitter {
         speedY = (-TimelineUtils.getDistance(x, bounds) * scrollSpeedMultiplier) / 4;
       } else if (isBottom) {
         // Get normalized speed:
-        speedY = (TimelineUtils.getDistance(x, this._canvas.clientHeight - bounds) * scrollSpeedMultiplier) / 4;
-        newHeight = this._scrollContainer.scrollTop + this._canvas.clientHeight;
+        speedY = (TimelineUtils.getDistance(x, this._height() - bounds) * scrollSpeedMultiplier) / 4;
+        newHeight = this._scrollContainer.scrollTop + this._height();
       }
     } else {
       this._stopAutoPan();
@@ -1015,7 +1091,7 @@ export class Timeline extends TimelineEventsEmitter {
     if (!absolute) {
       coords -= this._options.leftMargin;
     }
-    const ms = (coords / this._options.stepPx) * this._options.zoom;
+    const ms = (coords / this._options.stepPx) * this._currentZoom;
     return ms;
   }
 
@@ -1032,7 +1108,7 @@ export class Timeline extends TimelineEventsEmitter {
     if (!this._options) {
       return ms;
     }
-    return (ms * this._options.stepPx) / this._options.zoom;
+    return (ms * this._options.stepPx) / this._currentZoom;
   }
 
   /**
@@ -1055,7 +1131,7 @@ export class Timeline extends TimelineEventsEmitter {
   }
 
   _mousePosToVal(x: number, snapEnabled = false): number {
-    let convertedVal = this.pxToVal(this._scrollContainer.scrollLeft + Math.min(x, this._canvas.clientWidth));
+    let convertedVal = this.pxToVal(this._scrollContainer.scrollLeft + Math.min(x, this._width()));
     convertedVal = Math.round(convertedVal);
     if (snapEnabled) {
       convertedVal = this.snapVal(convertedVal);
@@ -1161,7 +1237,7 @@ export class Timeline extends TimelineEventsEmitter {
       this._ctx.setLineDash([4]);
       this._ctx.lineWidth = 1;
       this._ctx.strokeStyle = this._options.tickColor;
-      TimelineUtils.drawLine(this._ctx, sharpPos, TimelineStyleUtils.headerHeight(this._options) / 2, sharpPos, this._canvas.clientHeight);
+      TimelineUtils.drawLine(this._ctx, sharpPos, TimelineStyleUtils.headerHeight(this._options) / 2, sharpPos, this._height());
       this._ctx.stroke();
 
       this._ctx.fillStyle = this._options.labelsColor;
@@ -1195,7 +1271,7 @@ export class Timeline extends TimelineEventsEmitter {
     this._ctx.restore();
   }
 
-  _setMinMax(to: TimelineRanged, from: TimelineRanged): TimelineRanged {
+  _setMinMax(to: TimelineRanged, from: TimelineRanged, shrink = false): TimelineRanged {
     if (!from || !to) {
       return to;
     }
@@ -1203,14 +1279,14 @@ export class Timeline extends TimelineEventsEmitter {
     const isToMinNumber = TimelineUtils.isNumber(to.min);
     // get absolute min and max bounds:
     if (isFromMinNumber && isToMinNumber) {
-      to.min = Math.max(from.min, to.min);
+      to.min = shrink ? Math.min(from.min, to.min) : Math.max(from.min, to.min);
     } else if (isFromMinNumber) {
       to.min = from.min;
     }
     const isFromMaxNumber = TimelineUtils.isNumber(from.max);
     const isToMaxNumber = TimelineUtils.isNumber(to.max);
     if (isFromMaxNumber && isToMaxNumber) {
-      to.max = Math.min(from.max, to.max);
+      to.max = shrink ? Math.max(from.max, to.max) : Math.min(from.max, to.max);
     } else if (isFromMaxNumber) {
       to.max = from.max;
     }
@@ -1260,7 +1336,7 @@ export class Timeline extends TimelineEventsEmitter {
       toReturn.size.height = Math.max(rowAbsoluteHeight + rowHeight, toReturn.size.height);
 
       const calcRow = {
-        size: { x: 0, y: currentRowY, width: this._canvas ? this._canvas.clientWidth : 0, height: rowHeight } as DOMRect,
+        size: { x: 0, y: currentRowY, width: this._canvas ? this._width() : 0, height: rowHeight } as DOMRect,
         marginBottom: marginBottom,
         model: row,
         min: null,
@@ -1320,16 +1396,16 @@ export class Timeline extends TimelineEventsEmitter {
 
       calcRow.groups.forEach((group) => {
         // Extend row min max bounds by a group bounds:
-        this._setMinMax(calcRow, group);
+        this._setMinMax(calcRow, group, true);
         // get group screen coords
         const groupRect = this._getKeyframesGroupSize(row, calcRow.size.y, group.min, group.max);
         group.size = groupRect;
       });
 
       // Extend screen bounds by a current calculation:
-      this._setMinMax(toReturn, calcRow);
+      this._setMinMax(toReturn, calcRow, true);
     });
-    if (toReturn.max !== null) {
+    if (TimelineUtils.isNumber(toReturn.max)) {
       toReturn.size.width = this.valToPx(toReturn.max, true);
     }
     return toReturn;
@@ -1380,9 +1456,9 @@ export class Timeline extends TimelineEventsEmitter {
     }
     // default bounds: minX, maxX, minY, maxY
     const minX = 0,
-      maxX = this._canvas.clientWidth,
+      maxX = this._width(),
       minY = TimelineStyleUtils.headerHeight(this._options),
-      maxY = this._canvas.clientWidth;
+      maxY = this._width();
 
     if (
       TimelineUtils.isRectOverlap(rect, {
@@ -1503,7 +1579,7 @@ export class Timeline extends TimelineEventsEmitter {
         // Other keyframes should be hidden by bounds check.
         if (bounds && bounds.overlapY) {
           this._ctx.beginPath();
-          this._ctx.rect(0, TimelineStyleUtils.headerHeight(this._options), this._canvas.clientWidth, this._canvas.clientWidth);
+          this._ctx.rect(0, TimelineStyleUtils.headerHeight(this._options), this._width(), this._width());
           this._ctx.clip();
         }
 
@@ -1587,7 +1663,7 @@ export class Timeline extends TimelineEventsEmitter {
     if (this._options.fillColor) {
       this._ctx.save();
       this._ctx.beginPath();
-      this._ctx.rect(0, 0, this._canvas.clientWidth, this._canvas.clientHeight);
+      this._ctx.rect(0, 0, this._width(), this._height());
       this._ctx.fillStyle = this._options.fillColor;
       this._ctx.fill();
       this._ctx.restore();
@@ -1610,7 +1686,7 @@ export class Timeline extends TimelineEventsEmitter {
     this._ctx.fillStyle = style.fillColor;
     const y = style.marginTop;
     this._ctx.beginPath();
-    TimelineUtils.drawLine(this._ctx, timeLinePos, y, timeLinePos, this._canvas.clientHeight);
+    TimelineUtils.drawLine(this._ctx, timeLinePos, y, timeLinePos, this._height());
     this._ctx.stroke();
 
     if (style.capHeight && style.capWidth) {
@@ -1645,9 +1721,9 @@ export class Timeline extends TimelineEventsEmitter {
         this._ctx.lineWidth = this._pixelRatio;
         // draw header background
         this._ctx.fillStyle = this._options.headerFillColor;
-        this._ctx.fillRect(0, 0, this._canvas.clientWidth, TimelineStyleUtils.headerHeight(this._options));
+        this._ctx.fillRect(0, 0, this._width(), TimelineStyleUtils.headerHeight(this._options));
       } else {
-        this._ctx.clearRect(0, 0, this._canvas.clientWidth, TimelineStyleUtils.headerHeight(this._options));
+        this._ctx.clearRect(0, 0, this._width(), TimelineStyleUtils.headerHeight(this._options));
       }
       this._ctx.restore();
     }
@@ -1887,11 +1963,11 @@ export class Timeline extends TimelineEventsEmitter {
       // not less than current timeline position
       const timelineGlobalPos = this.valToPx(this._val, true);
       let timelinePos = 0;
-      if (timelineGlobalPos > this._canvas.clientWidth) {
+      if (timelineGlobalPos > this._width()) {
         if (scrollMode == 'scrollBySelection') {
-          timelinePos = Math.floor(timelineGlobalPos + this._canvas.clientWidth + (this._options.stepPx || 0));
+          timelinePos = Math.floor(timelineGlobalPos + this._width() + (this._options.stepPx || 0));
         } else {
-          timelinePos = Math.floor(timelineGlobalPos + this._canvas.clientWidth / 1.5);
+          timelinePos = Math.floor(timelineGlobalPos + this._width() / 1.5);
         }
       }
       const keyframeW = data.size.width + this._options.leftMargin + additionalOffset;
@@ -1901,7 +1977,7 @@ export class Timeline extends TimelineEventsEmitter {
         // keyframes size
         keyframeW,
         // not less than current scroll position
-        this._scrollContainer.scrollLeft + this._canvas.clientWidth,
+        this._scrollContainer.scrollLeft + this._width(),
         timelinePos,
       );
 
@@ -1910,7 +1986,7 @@ export class Timeline extends TimelineEventsEmitter {
         this._scrollContent.style.minWidth = minWidthPx;
       }
 
-      newHeight = Math.max(Math.floor(data.size.height + this._canvas.clientHeight * 0.2), this._scrollContainer.scrollTop + this._canvas.clientHeight - 1, Math.round(newHeight || 0));
+      newHeight = Math.max(Math.floor(data.size.height + this._height() * 0.2), this._scrollContainer.scrollTop + this._height() - 1, Math.round(newHeight || 0));
 
       const h = newHeight + 'px';
       if (this._scrollContent.style.minHeight != h) {

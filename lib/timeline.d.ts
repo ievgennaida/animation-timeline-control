@@ -99,12 +99,26 @@ export declare class Timeline extends TimelineEventsEmitter {
      */
     _subscribeOnEvents(): void;
     dispose(): void;
+    _handleKeyUp: (event: KeyboardEvent) => void;
+    _handleKeyDown: (event: KeyboardEvent) => void;
+    _setZoomCursor(e: MouseEvent | KeyboardEvent): void;
     _handleBlurEvent: () => void;
     _handleWindowResizeEvent: () => void;
     _clearScrollFinishedTimer(): void;
     _handleScrollEvent: (args: MouseEvent) => void;
     _controlKeyPressed(e: MouseEvent | KeyboardEvent): boolean;
     _handleWheelEvent: (event: WheelEvent) => void;
+    _zoom(direction: number, speed: number, x: number): void;
+    /**
+     * Zoom in
+     * @param speed value from 0 to 1
+     */
+    zoomIn(speed?: number): void;
+    /**
+     * Zoom out.
+     * @param speed value from 0 to 1
+     */
+    zoomOut(speed?: number): void;
     /**
      * @param args
      */
@@ -119,6 +133,14 @@ export declare class Timeline extends TimelineEventsEmitter {
      */
     _moveElements(offset: number, elements: Array<TimelineElement>): number;
     _handleMouseUpEvent: (args: MouseEvent) => void;
+    /**
+     * client height.
+     */
+    _height(): number;
+    /**
+     * Client width;
+     */
+    _width(): number;
     /**
      * Convert virtual calculation results to keyframes
      */
@@ -207,7 +229,7 @@ export declare class Timeline extends TimelineEventsEmitter {
      */
     _formatLineGaugeText(ms: number, isSeconds?: boolean): string;
     _renderTicks(): void;
-    _setMinMax(to: TimelineRanged, from: TimelineRanged): TimelineRanged;
+    _setMinMax(to: TimelineRanged, from: TimelineRanged, shrink?: boolean): TimelineRanged;
     /**
      * calculate virtual mode. Determine screen positions for the elements.
      */
