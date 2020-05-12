@@ -515,22 +515,19 @@ export class Timeline extends TimelineEventsEmitter {
       // Find drag min and max bounds:
       let bounds = { min: Number.MIN_SAFE_INTEGER, max: Number.MAX_SAFE_INTEGER } as TimelineRanged;
       bounds = this._setMinMax(bounds, this._options);
-      // find allowed min bounds for the draggable items
       elements.forEach((p) => {
-        bounds = this._setMinMax(bounds, p.keyframe);
-        bounds = this._setMinMax(bounds, p.row);
-      });
-
-      elements.forEach((p) => {
+        // find allowed bounds for the draggable items.
+        // find for each row and keyframe separately.
+        const currentBounds = this._setMinMax(this._setMinMax({ min: bounds.min, max: bounds.max }, p.keyframe), p.row);
         const expectedKeyframeValue = this._options && this._options.snapAllKeyframesOnMove ? this.snapVal(p.keyframe.val) : p.keyframe.val;
         const newPosition = expectedKeyframeValue + offset;
-        if (bounds.min !== null && newPosition < bounds.min) {
+        if (currentBounds.min !== null && newPosition < currentBounds.min) {
           // Return to the bounds:
-          offset = offset + TimelineUtils.getDistance(bounds.min, newPosition);
+          offset = offset + TimelineUtils.getDistance(currentBounds.min, newPosition);
         }
-        if (bounds.max !== null && newPosition > bounds.max) {
+        if (currentBounds.max !== null && newPosition > currentBounds.max) {
           // Return to the bounds:
-          offset = offset - TimelineUtils.getDistance(bounds.max, newPosition);
+          offset = offset - TimelineUtils.getDistance(currentBounds.max, newPosition);
         }
       });
 

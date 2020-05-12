@@ -481,6 +481,38 @@ describe('Timeline', function () {
             asserts_1.assert.equal(elementsToMove[0].keyframe.val, item1 + 25);
             asserts_1.assert.equal(elementsToMove[1].keyframe.val, item2 + 25);
         });
+        it('move right limited by max negative when other row out of the bounds', function () {
+            var timeline = new animation_timeline_1.Timeline();
+            timeline._options = { min: 0, max: 600 };
+            var move = 200;
+            var row = { max: 500 };
+            var row2 = {};
+            var elementsToMove = [
+                {
+                    keyframe: { val: 100 },
+                    row: row,
+                },
+                {
+                    keyframe: { val: 400 },
+                    row: row,
+                },
+                {
+                    keyframe: { val: 200 },
+                    row: row2,
+                },
+                {
+                    keyframe: { val: 300 },
+                    row: row2,
+                },
+            ];
+            var movedOffset = timeline._moveElements(move, elementsToMove);
+            var moved = move / 2;
+            asserts_1.assert.equal(movedOffset, moved);
+            asserts_1.assert.equal(elementsToMove[0].keyframe.val, 100 + moved);
+            asserts_1.assert.equal(elementsToMove[1].keyframe.val, 400 + moved);
+            asserts_1.assert.equal(elementsToMove[2].keyframe.val, 200 + moved);
+            asserts_1.assert.equal(elementsToMove[3].keyframe.val, 300 + moved);
+        });
         it('move left limited by min negative', function () {
             var timeline = new animation_timeline_1.Timeline();
             var item1 = -125;
@@ -502,22 +534,22 @@ describe('Timeline', function () {
         });
         it('move left only one keyframe is limited', function () {
             var timeline = new animation_timeline_1.Timeline();
-            var item1 = 25;
-            var item2 = 50;
             var move = 100;
+            var row = { min: 0, max: 100 };
             var elementsToMove = [
                 {
-                    keyframe: { val: item1 },
-                    row: { min: 0, max: 100 },
+                    keyframe: { val: 25 },
+                    row: row,
                 },
                 {
-                    keyframe: { val: item2 },
+                    keyframe: { val: 50 },
+                    row: row,
                 },
             ];
             var movedOffset = timeline._moveElements(move, elementsToMove);
             asserts_1.assert.equal(movedOffset, move / 2);
-            asserts_1.assert.equal(elementsToMove[0].keyframe.val, item1 + 50);
-            asserts_1.assert.equal(elementsToMove[1].keyframe.val, item2 + 50);
+            asserts_1.assert.equal(elementsToMove[0].keyframe.val, 25 + 50);
+            asserts_1.assert.equal(elementsToMove[1].keyframe.val, 50 + 50);
         });
     });
 });

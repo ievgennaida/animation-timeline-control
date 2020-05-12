@@ -119,14 +119,18 @@
       background-color: #3399ff
     }
 
-    .git-hub-link {
-      color: white;
+    .links {
       display: flex;
       position: absolute;
       right: 10px;
       top: 10px;
       align-items: center;
+    }
+
+    a {
       font-family: Roboto, "Helvetica Neue", sans-serif;
+      color: white;
+      margin-right: 30px;
     }
 
     .logs {
@@ -178,7 +182,10 @@
     <div class="toolbar">
       <button class="button mat-icon material-icons mat-icon-no-color" onclick="selectMode()">tab_unselected </button>
       <button class="button mat-icon material-icons mat-icon-no-color" onclick="panMode()">pan_tool</button>
-      <a class="git-hub-link" href="https://github.com/ievgennaida/animation-timeline-control">GitHub</a>
+      <div class="links">
+        <a href="./tests/unittests.html">UnitTests</a>
+        <a class="git-hub-link" href="https://github.com/ievgennaida/animation-timeline-control">GitHub</a>
+      </div>
 
     </div>
     <footer>
@@ -246,7 +253,7 @@
         ]
       },
       {
-        title: 'Groups',
+        title: 'Groups (Limited)',
         keyframes: [
           {
             val: 40,
@@ -302,31 +309,31 @@
             val: 90
           },
           {
-            val: 200
+            val: 3000
           }
         ]
       }, {
 
       }, {
         title: 'Max Value',
-        max: 2000,
+        max: 4000,
         keyframes: [,
           {
-            width: 5,
+            width: 4,
             height: 20,
             group: 'block',
             shape: "rect",
-            fillColor: 'Blue',
+            fillColor: 'Red',
             strokeColor: 'Black',
-            val: 2000,
+            val: 4000,
             selectable: false,
             draggable: false
           },
           {
-            val: 90
+            val: 1500
           },
           {
-            val: 500
+            val: 2500
           },
         ]
       }, {}, {}, {}, {}, {}, {}, {}
