@@ -53,13 +53,21 @@ Features:
 
 ```TypeScript
 import {
+  Timeline,
+  TimelineRow,
+  TimelineModel,
   TimelineOptions,
-  Timeline
 } from "animation-timeline-js";
 
-  const options = new TimelineOptions();
-  options.id = 'timeline';
-  new Timeline(options);
+const model = { rows: [] as Array<TimelineRow> } as TimelineModel;
+const options = {
+  id: "timeline",
+  rowsStyle: {
+    height: 35,
+  } as TimelineRowStyle,
+} as TimelineOptions;
+
+const timeline = new Timeline(options, model);
 ```
 
 ### Outline list
@@ -71,21 +79,31 @@ See the [live demo](https://ievgennaida.github.io/animation-timeline-control/)
 
 ## Model
 
+
 ### Events
 
-Despite of the main options each keyframe or lane has own properties that can override main configuration:
 
+| Event name    | description                   |
+| ------------- | ----------------------------- |
+| timeChanged   			| time changed. source can be used to check event sender. args type: TimelineTimeChangedEvent	|
+| selected     				| keyframe is selected. args type: TimelineSelectedEvent							|
+| scroll     				  | On scroll. args type: TimelineScrollEvent |
+| dragStarted               | emitted on drag started. args type: TimelineDragEvent        |
+| drag                      | emitted when dragging. args type: TimelineDragEvent   	|
+| dragFinished              | emitted when drag finished. args type: TimelineDragEvent     	|
+
+
+Type strict event subscription: 
+```JavaScript
+this.timeline.onDragStarted((args) => {
+    if (args) {
+    }
+});
+```
 
 ### Styling
 
-
-### Initialization
-
-Default options:
-
-```JavaScript
-
-```
+Styles are applied by a global settings and can be overridden by a row or keyframe style. 
 
 ## Changes
 
@@ -119,7 +137,7 @@ To build TypeScript unittests command should be executed:
 
 ### Run Tests
 Tests execution can be started by opening tests/unittests.html. 
-External mocha libs are used so internet is required.
+Mocha test libs are hosted on the internet, so connection is required.
 
 ## License
 
