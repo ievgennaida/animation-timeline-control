@@ -352,7 +352,7 @@
     var logMessage = function (message, log = 1) {
       if (message) {
         let el = document.getElementById("output" + log);
-        el.innerHTM = message + '<br/>' + el.innerHTM;
+        el.innerHTML = message + '<br/>' + el.innerHTML;
       }
     }
 
@@ -367,8 +367,12 @@
     timeline.onTimeChanged(function (event) {
       document.getElementById("currentTime").innerHTML = event.val + "ms source:" + event.source;
     });
-    timeline.onSelected(function (obj) { logMessage('selected :' + obj.selected.length + '. changed :' + obj.changed.length, 2); });
-    timeline.onDragStarted(function (obj) { dragHandler(obj, 'dragstarted') });
+    timeline.onSelected(function (obj) {
+      logMessage('selected :' + obj.selected.length + '. changed :' + obj.changed.length, 2);
+    });
+    timeline.onDragStarted(function (obj) {
+      dragHandler(obj, 'dragstarted');
+    });
     timeline.onDrag(function (obj) {
       dragHandler(obj, 'drag');
       // obj.preventDefault();
@@ -420,7 +424,7 @@
         timeline.setInteractionMode('selector');
       }
     }
-    function zoomMode(){
+    function zoomMode() {
       if (timeline) {
         timeline.setInteractionMode('zoom');
       }

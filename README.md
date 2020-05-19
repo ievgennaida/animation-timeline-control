@@ -79,6 +79,11 @@ See the [live demo](https://ievgennaida.github.io/animation-timeline-control/)
 
 ## Model
 
+Read only and defined by the interfaces: 
+
+* TimelineModel
+* TimelineRow
+* TimelineKeyframe
 
 ### Events
 
@@ -107,7 +112,7 @@ Styles are applied by a global settings and can be overridden by a row or keyfra
 
 ## Changes
 
-## 2.0
+## > 2.0
 - Migrated to TypeScript, Webpack, Babel.
 - API is refined.
 
