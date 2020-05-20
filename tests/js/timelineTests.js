@@ -2,8 +2,6 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 /* eslint-disable @typescript-eslint/no-explicit-any */
 var animation_timeline_1 = require("./../lib/animation-timeline");
-// Always check that output lib is referenced.
-var asserts_1 = require("./asserts");
 describe('Timeline', function () {
     describe('_findDraggable', function () {
         it('Keyframe should be selected', function () {
@@ -22,7 +20,7 @@ describe('Timeline', function () {
             if (!element) {
                 throw new Error('element cannot be empty');
             }
-            asserts_1.assert.equal(element.type, animation_timeline_1.TimelineElementType.Keyframe, animation_timeline_1.TimelineElementType.Keyframe + ' should be selected');
+            chai.expect(element.type).equal(animation_timeline_1.TimelineElementType.Keyframe, animation_timeline_1.TimelineElementType.Keyframe + ' should be selected');
         });
         it('Timeline should be selected', function () {
             var timeline = new animation_timeline_1.Timeline();
@@ -40,7 +38,7 @@ describe('Timeline', function () {
             if (!element) {
                 throw new Error('element cannot be empty');
             }
-            asserts_1.assert.equal(element.type, animation_timeline_1.TimelineElementType.Timeline, animation_timeline_1.TimelineElementType.Timeline + ' should be selected');
+            chai.expect(element.type).equal(animation_timeline_1.TimelineElementType.Timeline, animation_timeline_1.TimelineElementType.Timeline + ' should be selected');
         });
         it('Timeline should taken first', function () {
             var timeline = new animation_timeline_1.Timeline();
@@ -66,9 +64,9 @@ describe('Timeline', function () {
             if (!element) {
                 throw new Error('element cannot be empty');
             }
-            asserts_1.assert.equal(element.type, animation_timeline_1.TimelineElementType.Timeline, animation_timeline_1.TimelineElementType.Timeline + ' should be selected');
+            chai.expect(element.type).equal(animation_timeline_1.TimelineElementType.Timeline, animation_timeline_1.TimelineElementType.Timeline + ' should be selected');
             // Keyframe with value 5 should be selected
-            asserts_1.assert.equal(element.val, 5);
+            chai.expect(element.val).equal(5);
         });
         it('Group should be selected', function () {
             var timeline = new animation_timeline_1.Timeline();
@@ -82,7 +80,7 @@ describe('Timeline', function () {
             if (!element) {
                 throw new Error('element cannot be empty');
             }
-            asserts_1.assert.equal(element.type, animation_timeline_1.TimelineElementType.Group, animation_timeline_1.TimelineElementType.Group + ' should be selected');
+            chai.expect(element.type).equal(animation_timeline_1.TimelineElementType.Group, animation_timeline_1.TimelineElementType.Group + ' should be selected');
         });
         it('closest keyframe should be returned', function () {
             var timeline = new animation_timeline_1.Timeline();
@@ -101,7 +99,7 @@ describe('Timeline', function () {
                 },
             ];
             var element = timeline._findDraggable(elements, 5);
-            asserts_1.assert.equal(element.val, elements[1].val);
+            chai.expect(element.val).equal(elements[1].val);
         });
         it('Keyframes are not draggable by global settings', function () {
             var timeline = new animation_timeline_1.Timeline();
@@ -128,7 +126,7 @@ describe('Timeline', function () {
                 },
             };
             var element = timeline._findDraggable(elements, 5);
-            asserts_1.assert.equal(element.type, animation_timeline_1.TimelineElementType.Group, 'Group should be selected');
+            chai.expect(element.type).equal(animation_timeline_1.TimelineElementType.Group, 'Group should be selected');
         });
         it('Keyframes are not draggable by row settings', function () {
             var timeline = new animation_timeline_1.Timeline();
@@ -155,7 +153,7 @@ describe('Timeline', function () {
             // Apply global options::
             var element = timeline._findDraggable(elements, 4);
             // Keyframe with value 5 should be selected as draggable
-            asserts_1.assert.equal(element.val, 5);
+            chai.expect(element.val).equal(5);
         });
         it('Keyframes are draggable', function () {
             var timeline = new animation_timeline_1.Timeline();
@@ -188,7 +186,7 @@ describe('Timeline', function () {
             // Apply global options::
             var element = timeline._findDraggable(elements, 4);
             // Keyframe with value 5 should be selected as draggable
-            asserts_1.assert.equal(element.val, 5);
+            chai.expect(element.val).equal(5);
         });
     });
     describe('select', function () {
@@ -204,15 +202,15 @@ describe('Timeline', function () {
             var timeline = new animation_timeline_1.Timeline();
             timeline._model = model;
             var element = timeline.selectAllKeyframes();
-            asserts_1.assert.equal(element.selectionChanged, true);
+            chai.expect(element.selectionChanged).equal(true);
             var changed = 0;
             model.rows.forEach(function (row) {
                 row.keyframes.forEach(function (keyframe) {
-                    asserts_1.assert.equal(keyframe.selected, true);
+                    chai.expect(keyframe.selected).equal(true);
                     changed++;
                 });
             });
-            asserts_1.assert.equal(element.selected.length, changed);
+            chai.expect(element.selected.length).equal(changed);
         });
         it('Select all selectable', function () {
             var timeline = new animation_timeline_1.Timeline();
@@ -231,8 +229,8 @@ describe('Timeline', function () {
                 });
             });
             var selectionResults = timeline.select(element);
-            asserts_1.assert.equal(selectionResults.changed.length, selectable);
-            asserts_1.assert.equal(selectionResults.selected.length, selectable);
+            chai.expect(selectionResults.changed.length).equal(selectable);
+            chai.expect(selectionResults.selected.length).equal(selectable);
         });
         it('Deselect all', function () {
             var timeline = new animation_timeline_1.Timeline();
@@ -245,11 +243,11 @@ describe('Timeline', function () {
             });
             // deselect all
             var element = timeline.deselectAll();
-            asserts_1.assert.equal(element.selectionChanged, true);
-            asserts_1.assert.equal(element.selected.length, 0);
+            chai.expect(element.selectionChanged).equal(true);
+            chai.expect(element.selected.length).equal(0);
             model.rows.forEach(function (row) {
                 row.keyframes.forEach(function (keyframe) {
-                    asserts_1.assert.equal(keyframe.selected, false);
+                    chai.expect(keyframe.selected).equal(false);
                 });
             });
         });
@@ -268,16 +266,16 @@ describe('Timeline', function () {
             // select one will deselect other
             var toSelect = model.rows[1].keyframes[0];
             var element = timeline.select(toSelect);
-            asserts_1.assert.equal(element.selectionChanged, true);
-            asserts_1.assert.equal(element.selected.length, 1);
-            asserts_1.assert.equal(element.changed.length, expectedChanged - 1);
+            chai.expect(element.selectionChanged).equal(true);
+            chai.expect(element.selected.length).equal(1);
+            chai.expect(element.changed.length).equal(expectedChanged - 1);
             model.rows.forEach(function (row) {
                 row.keyframes.forEach(function (keyframe) {
                     if (toSelect == keyframe) {
-                        asserts_1.assert.equal(keyframe.selected, true);
+                        chai.expect(keyframe.selected).equal(true);
                     }
                     else {
-                        asserts_1.assert.equal(keyframe.selected, false);
+                        chai.expect(keyframe.selected).equal(false);
                     }
                 });
             });
@@ -298,16 +296,16 @@ describe('Timeline', function () {
             var toSelect = model.rows[1].keyframes[0];
             // item is selected, should be reverted
             var element = timeline.select(toSelect, animation_timeline_1.TimelineSelectionMode.Revert);
-            asserts_1.assert.equal(element.selectionChanged, true);
-            asserts_1.assert.equal(element.selected.length, totalKeyframes - 1);
-            asserts_1.assert.equal(element.changed.length, 1);
+            chai.expect(element.selectionChanged).equal(true);
+            chai.expect(element.selected.length).equal(totalKeyframes - 1);
+            chai.expect(element.changed.length).equal(1);
             model.rows.forEach(function (row) {
                 row.keyframes.forEach(function (keyframe) {
                     if (toSelect == keyframe) {
-                        asserts_1.assert.equal(keyframe.selected, false);
+                        chai.expect(keyframe.selected).equal(false);
                     }
                     else {
-                        asserts_1.assert.equal(keyframe.selected, true);
+                        chai.expect(keyframe.selected).equal(true);
                     }
                 });
             });
@@ -325,18 +323,18 @@ describe('Timeline', function () {
             // select one will deselect other
             var rowToSelect = model.rows[1];
             var element = timeline.select(rowToSelect.keyframes);
-            asserts_1.assert.equal(element.selectionChanged, true);
-            asserts_1.assert.equal(element.selected.length, rowToSelect.keyframes.length);
-            asserts_1.assert.equal(element.changed.length, 3);
+            chai.expect(element.selectionChanged).equal(true);
+            chai.expect(element.selected.length).equal(rowToSelect.keyframes.length);
+            chai.expect(element.changed.length).equal(3);
             model.rows.forEach(function (row) {
                 if (rowToSelect === row) {
                     rowToSelect.keyframes.forEach(function (keyframe) {
-                        asserts_1.assert.equal(keyframe.selected, true);
+                        chai.expect(keyframe.selected).equal(true);
                     });
                 }
                 else {
                     row.keyframes.forEach(function (keyframe) {
-                        asserts_1.assert.equal(keyframe.selected, false);
+                        chai.expect(keyframe.selected).equal(false);
                     });
                 }
             });
@@ -353,24 +351,24 @@ describe('Timeline', function () {
             // select one row (array of the keyframes)
             var rowToSelect = model.rows[1];
             var results = timeline.select(rowToSelect.keyframes);
-            asserts_1.assert.equal(results.selectionChanged, true);
-            asserts_1.assert.equal(results.selected.length, rowToSelect.keyframes.length);
-            asserts_1.assert.equal(results.changed.length, rowToSelect.keyframes.length);
+            chai.expect(results.selectionChanged).equal(true);
+            chai.expect(results.selected.length).equal(rowToSelect.keyframes.length);
+            chai.expect(results.changed.length).equal(rowToSelect.keyframes.length);
             // (array of the keyframes)
             var rowToSelect2 = model.rows[2];
             results = timeline.select(rowToSelect2.keyframes, animation_timeline_1.TimelineSelectionMode.Append);
-            asserts_1.assert.equal(results.selectionChanged, true);
-            asserts_1.assert.equal(results.selected.length, rowToSelect.keyframes.length + rowToSelect2.keyframes.length);
-            asserts_1.assert.equal(results.changed.length, rowToSelect2.keyframes.length);
+            chai.expect(results.selectionChanged).equal(true);
+            chai.expect(results.selected.length).equal(rowToSelect.keyframes.length + rowToSelect2.keyframes.length);
+            chai.expect(results.changed.length).equal(rowToSelect2.keyframes.length);
             model.rows.forEach(function (row) {
                 if (rowToSelect === row || rowToSelect2 === row) {
                     rowToSelect.keyframes.forEach(function (keyframe) {
-                        asserts_1.assert.equal(keyframe.selected, true);
+                        chai.expect(keyframe.selected).equal(true);
                     });
                 }
                 else {
                     row.keyframes.forEach(function (keyframe) {
-                        asserts_1.assert.equal(keyframe.selected, false);
+                        chai.expect(keyframe.selected).equal(false);
                     });
                 }
             });
@@ -384,12 +382,31 @@ describe('Timeline', function () {
                 stepPx: 50,
                 zoom: 1,
             });
-            asserts_1.assert.equal(timeline.valToPx(0), 0);
-            asserts_1.assert.equal(timeline.valToPx(100), 50);
-            asserts_1.assert.equal(timeline.valToPx(200), 100);
-            asserts_1.assert.equal(timeline.pxToVal(0), 0);
-            asserts_1.assert.equal(timeline.pxToVal(50), 100);
-            asserts_1.assert.equal(timeline.pxToVal(100), 200);
+            chai.expect(timeline.valToPx(0)).equal(0);
+            chai.expect(timeline.valToPx(100)).equal(50);
+            chai.expect(timeline.valToPx(200)).equal(100);
+            chai.expect(timeline.pxToVal(0)).equal(0);
+            chai.expect(timeline.pxToVal(50)).equal(100);
+            chai.expect(timeline.pxToVal(100)).equal(200);
+        });
+        it('Coordinates. min is negative', function () {
+            var timeline = new animation_timeline_1.Timeline();
+            timeline._setOptions({
+                stepVal: 100,
+                stepPx: 50,
+                min: -100,
+                zoom: 1,
+            });
+            chai.expect(timeline.valToPx(-100)).equal(0);
+            chai.expect(timeline.valToPx(-50)).equal(25);
+            chai.expect(timeline.valToPx(0)).equal(50);
+            chai.expect(timeline.valToPx(50)).equal(75);
+            chai.expect(timeline.valToPx(100)).equal(100);
+            chai.expect(timeline.pxToVal(0)).equal(-100);
+            chai.expect(timeline.pxToVal(25)).equal(-50);
+            chai.expect(timeline.pxToVal(50)).equal(0);
+            chai.expect(timeline.pxToVal(75)).equal(50);
+            chai.expect(timeline.pxToVal(100)).equal(100);
         });
         it('Zoom is respected', function () {
             var timeline = new animation_timeline_1.Timeline();
@@ -398,16 +415,16 @@ describe('Timeline', function () {
                 stepPx: 50,
                 zoom: 1,
             });
-            asserts_1.assert.equal(timeline.valToPx(0), 0);
-            asserts_1.assert.equal(timeline.valToPx(100), 50);
-            asserts_1.assert.equal(timeline.valToPx(200), 100);
+            chai.expect(timeline.valToPx(0)).equal(0);
+            chai.expect(timeline.valToPx(100)).equal(50);
+            chai.expect(timeline.valToPx(200)).equal(100);
             timeline._setZoom(2);
-            asserts_1.assert.equal(timeline.valToPx(0), 0);
-            asserts_1.assert.equal(timeline.valToPx(100), 25);
-            asserts_1.assert.equal(timeline.valToPx(200), 50);
-            asserts_1.assert.equal(timeline.pxToVal(0), 0);
-            asserts_1.assert.equal(timeline.pxToVal(25), 100);
-            asserts_1.assert.equal(timeline.pxToVal(50), 200);
+            chai.expect(timeline.valToPx(0)).equal(0);
+            chai.expect(timeline.valToPx(100)).equal(25);
+            chai.expect(timeline.valToPx(200)).equal(50);
+            chai.expect(timeline.pxToVal(0)).equal(0);
+            chai.expect(timeline.pxToVal(25)).equal(100);
+            chai.expect(timeline.pxToVal(50)).equal(200);
         });
     });
     describe('Snapping', function () {
@@ -419,11 +436,11 @@ describe('Timeline', function () {
                 snapStep: 25,
                 zoom: 1,
             });
-            asserts_1.assert.equal(timeline.snapVal(0), 0);
-            asserts_1.assert.equal(timeline.snapVal(10), 0);
-            asserts_1.assert.equal(timeline.snapVal(26), 25);
-            asserts_1.assert.equal(timeline.snapVal(48), 50);
-            asserts_1.assert.equal(timeline.snapVal(58), 50);
+            chai.expect(timeline.snapVal(0)).equal(0);
+            chai.expect(timeline.snapVal(10)).equal(0);
+            chai.expect(timeline.snapVal(26)).equal(25);
+            chai.expect(timeline.snapVal(48)).equal(50);
+            chai.expect(timeline.snapVal(58)).equal(50);
         });
         it('Snapping. min is defined', function () {
             var timeline = new animation_timeline_1.Timeline();
@@ -434,13 +451,13 @@ describe('Timeline', function () {
                 min: 5,
                 zoom: 1,
             });
-            asserts_1.assert.equal(timeline.snapVal(0), 5);
-            asserts_1.assert.equal(timeline.snapVal(10), 5);
-            asserts_1.assert.equal(timeline.snapVal(26), 30);
-            asserts_1.assert.equal(timeline.snapVal(48), 55);
-            asserts_1.assert.equal(timeline.snapVal(58), 55);
+            chai.expect(timeline.snapVal(0)).equal(5);
+            chai.expect(timeline.snapVal(10)).equal(5);
+            chai.expect(timeline.snapVal(26)).equal(30);
+            chai.expect(timeline.snapVal(48)).equal(55);
+            chai.expect(timeline.snapVal(58)).equal(55);
             // Don't overlap the limit.
-            asserts_1.assert.equal(timeline.snapVal(-100), 5);
+            chai.expect(timeline.snapVal(-100)).equal(5);
         });
         it('Snapping. negative min is defined', function () {
             var timeline = new animation_timeline_1.Timeline();
@@ -451,18 +468,18 @@ describe('Timeline', function () {
                 min: -55,
                 zoom: 1,
             });
-            asserts_1.assert.equal(timeline.snapVal(0), -5);
-            asserts_1.assert.equal(timeline.snapVal(10), -5);
-            asserts_1.assert.equal(timeline.snapVal(26), 20);
-            asserts_1.assert.equal(timeline.snapVal(48), 45);
-            asserts_1.assert.equal(timeline.snapVal(58), 45);
-            asserts_1.assert.equal(timeline.snapVal(-1), -5);
-            asserts_1.assert.equal(timeline.snapVal(-10), -5);
-            asserts_1.assert.equal(timeline.snapVal(-26), -30);
-            asserts_1.assert.equal(timeline.snapVal(-48), -55);
-            asserts_1.assert.equal(timeline.snapVal(-58), -55);
+            chai.expect(timeline.snapVal(0)).equal(-5);
+            chai.expect(timeline.snapVal(10)).equal(-5);
+            chai.expect(timeline.snapVal(26)).equal(20);
+            chai.expect(timeline.snapVal(48)).equal(45);
+            chai.expect(timeline.snapVal(58)).equal(45);
+            chai.expect(timeline.snapVal(-1)).equal(-5);
+            chai.expect(timeline.snapVal(-10)).equal(-5);
+            chai.expect(timeline.snapVal(-26)).equal(-30);
+            chai.expect(timeline.snapVal(-48)).equal(-55);
+            chai.expect(timeline.snapVal(-58)).equal(-55);
             // Don't overlap the limit.
-            asserts_1.assert.equal(timeline.snapVal(-100), -55);
+            chai.expect(timeline.snapVal(-100)).equal(-55);
         });
         it('Snapping. negative min (-25) is defined', function () {
             var timeline = new animation_timeline_1.Timeline();
@@ -473,12 +490,12 @@ describe('Timeline', function () {
                 min: -25,
                 zoom: 1,
             });
-            asserts_1.assert.equal(timeline.snapVal(-1), 0);
-            asserts_1.assert.equal(timeline.snapVal(-10), 0);
-            asserts_1.assert.equal(timeline.snapVal(10), 0);
-            asserts_1.assert.equal(timeline.snapVal(26), 25);
-            asserts_1.assert.equal(timeline.snapVal(50), 50);
-            asserts_1.assert.equal(timeline.snapVal(-58), -25);
+            chai.expect(timeline.snapVal(-1)).equal(0);
+            chai.expect(timeline.snapVal(-10)).equal(0);
+            chai.expect(timeline.snapVal(10)).equal(0);
+            chai.expect(timeline.snapVal(26)).equal(25);
+            chai.expect(timeline.snapVal(50)).equal(50);
+            chai.expect(timeline.snapVal(-58)).equal(-25);
         });
     });
     describe('Move Keyframes', function () {
@@ -502,9 +519,9 @@ describe('Timeline', function () {
                     row: model.rows[0],
                 },
             ]);
-            asserts_1.assert.equal(movedOffset, move);
-            asserts_1.assert.equal(model.rows[0].keyframes[0].val, item1 + move);
-            asserts_1.assert.equal(model.rows[0].keyframes[1].val, item2 + move);
+            chai.expect(movedOffset).equal(move);
+            chai.expect(model.rows[0].keyframes[0].val).equal(item1 + move);
+            chai.expect(model.rows[0].keyframes[1].val).equal(item2 + move);
         });
         it('move right', function () {
             var timeline = new animation_timeline_1.Timeline();
@@ -525,9 +542,9 @@ describe('Timeline', function () {
                     row: model.rows[0],
                 },
             ]);
-            asserts_1.assert.equal(movedOffset, move);
-            asserts_1.assert.equal(model.rows[0].keyframes[0].val, item1 + move);
-            asserts_1.assert.equal(model.rows[0].keyframes[1].val, item2 + move);
+            chai.expect(movedOffset).equal(move);
+            chai.expect(model.rows[0].keyframes[0].val).equal(item1 + move);
+            chai.expect(model.rows[0].keyframes[1].val).equal(item2 + move);
         });
         it('move left limited by min', function () {
             var timeline = new animation_timeline_1.Timeline();
@@ -544,9 +561,9 @@ describe('Timeline', function () {
                 },
             ];
             var movedOffset = timeline._moveElements(move, elementsToMove);
-            asserts_1.assert.equal(movedOffset, move / 2);
-            asserts_1.assert.equal(elementsToMove[0].keyframe.val, 0);
-            asserts_1.assert.equal(elementsToMove[1].keyframe.val, 25);
+            chai.expect(movedOffset).equal(move / 2);
+            chai.expect(elementsToMove[0].keyframe.val).equal(0);
+            chai.expect(elementsToMove[1].keyframe.val).equal(25);
         });
         it('move right limited by max', function () {
             var timeline = new animation_timeline_1.Timeline();
@@ -563,9 +580,9 @@ describe('Timeline', function () {
                 },
             ];
             var movedOffset = timeline._moveElements(move, elementsToMove);
-            asserts_1.assert.equal(movedOffset, move / 2);
-            asserts_1.assert.equal(elementsToMove[0].keyframe.val, item1 + 50);
-            asserts_1.assert.equal(elementsToMove[1].keyframe.val, item2 + 50);
+            chai.expect(movedOffset).equal(move / 2);
+            chai.expect(elementsToMove[0].keyframe.val).equal(item1 + 50);
+            chai.expect(elementsToMove[1].keyframe.val).equal(item2 + 50);
         });
         it('move right limited by max negative', function () {
             var timeline = new animation_timeline_1.Timeline();
@@ -582,9 +599,9 @@ describe('Timeline', function () {
                 },
             ];
             var movedOffset = timeline._moveElements(move, elementsToMove);
-            asserts_1.assert.equal(movedOffset, 25);
-            asserts_1.assert.equal(elementsToMove[0].keyframe.val, item1 + 25);
-            asserts_1.assert.equal(elementsToMove[1].keyframe.val, item2 + 25);
+            chai.expect(movedOffset).equal(25);
+            chai.expect(elementsToMove[0].keyframe.val).equal(item1 + 25);
+            chai.expect(elementsToMove[1].keyframe.val).equal(item2 + 25);
         });
         it('move right limited by max negative when other row out of the bounds', function () {
             var timeline = new animation_timeline_1.Timeline();
@@ -612,11 +629,11 @@ describe('Timeline', function () {
             ];
             var movedOffset = timeline._moveElements(move, elementsToMove);
             var moved = move / 2;
-            asserts_1.assert.equal(movedOffset, moved);
-            asserts_1.assert.equal(elementsToMove[0].keyframe.val, 100 + moved);
-            asserts_1.assert.equal(elementsToMove[1].keyframe.val, 400 + moved);
-            asserts_1.assert.equal(elementsToMove[2].keyframe.val, 200 + moved);
-            asserts_1.assert.equal(elementsToMove[3].keyframe.val, 300 + moved);
+            chai.expect(movedOffset).equal(moved);
+            chai.expect(elementsToMove[0].keyframe.val).equal(100 + moved);
+            chai.expect(elementsToMove[1].keyframe.val).equal(400 + moved);
+            chai.expect(elementsToMove[2].keyframe.val).equal(200 + moved);
+            chai.expect(elementsToMove[3].keyframe.val).equal(300 + moved);
         });
         it('move left limited by min negative', function () {
             var timeline = new animation_timeline_1.Timeline();
@@ -633,9 +650,9 @@ describe('Timeline', function () {
                 },
             ];
             var movedOffset = timeline._moveElements(move, elementsToMove);
-            asserts_1.assert.equal(movedOffset, move / 2);
-            asserts_1.assert.equal(elementsToMove[0].keyframe.val, item1 - 50);
-            asserts_1.assert.equal(elementsToMove[1].keyframe.val, item2 - 50);
+            chai.expect(movedOffset).equal(move / 2);
+            chai.expect(elementsToMove[0].keyframe.val).equal(item1 - 50);
+            chai.expect(elementsToMove[1].keyframe.val).equal(item2 - 50);
         });
         it('move left only one keyframe is limited', function () {
             var timeline = new animation_timeline_1.Timeline();
@@ -652,9 +669,9 @@ describe('Timeline', function () {
                 },
             ];
             var movedOffset = timeline._moveElements(move, elementsToMove);
-            asserts_1.assert.equal(movedOffset, move / 2);
-            asserts_1.assert.equal(elementsToMove[0].keyframe.val, 25 + 50);
-            asserts_1.assert.equal(elementsToMove[1].keyframe.val, 50 + 50);
+            chai.expect(movedOffset).equal(move / 2);
+            chai.expect(elementsToMove[0].keyframe.val).equal(25 + 50);
+            chai.expect(elementsToMove[1].keyframe.val).equal(50 + 50);
         });
     });
 });

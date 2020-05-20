@@ -159,7 +159,7 @@ export declare class Timeline extends TimelineEventsEmitter {
      */
     _handleMouseDownEvent: (args: MouseEvent) => void;
     isLeftButtonClicked(args: MouseEvent | TouchEvent | any): boolean;
-    _handleMouseMoveEvent: (args: any) => void;
+    _handleMouseMoveEvent: (args: MouseEvent | TouchEvent | any) => void;
     /**
      * Move elements
      * @param offset vector to move elements along.

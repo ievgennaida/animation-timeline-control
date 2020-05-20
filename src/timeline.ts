@@ -1140,8 +1140,16 @@ export class Timeline extends TimelineEventsEmitter {
    * Convert screen pixel to value.
    */
   public pxToVal(px: number): number {
+    if (!this._options) {
+      return px;
+    }
+    let min = this._options.min;
+    if (!TimelineUtils.isNumber(min)) {
+      min = 0;
+    }
+    min *= this._currentZoom || 1;
     const steps = this._options.stepVal * this._currentZoom || 1;
-    const val = (px / this._options.stepPx) * steps;
+    const val = min + (px / this._options.stepPx) * steps;
     return val;
   }
 
@@ -1164,8 +1172,13 @@ export class Timeline extends TimelineEventsEmitter {
     if (!this._options) {
       return val;
     }
+    let min = this._options.min;
+    if (!TimelineUtils.isNumber(min)) {
+      min = 0;
+    }
+    min *= this._currentZoom || 1;
     const steps = this._options.stepVal * this._currentZoom || 1;
-    return (val * this._options.stepPx) / steps;
+    return (-min + val) * (this._options.stepPx / steps);
   }
 
   /**
