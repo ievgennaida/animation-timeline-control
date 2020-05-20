@@ -433,6 +433,21 @@ describe('Timeline', function () {
       chai.expect(timeline.pxToVal(75)).equal(50);
       chai.expect(timeline.pxToVal(100)).equal(100);
     });
+    it('Coordinates. min is positive', function () {
+      const timeline = new Timeline();
+      timeline._setOptions({
+        stepVal: 100,
+        stepPx: 50,
+        min: 100,
+        zoom: 1,
+      } as TimelineOptions);
+
+      chai.expect(timeline.valToPx(100)).equal(0);
+      chai.expect(timeline.valToPx(150)).equal(25);
+
+      chai.expect(timeline.pxToVal(0)).equal(100);
+      chai.expect(timeline.pxToVal(25)).equal(150);
+    });
     it('Zoom is respected', function () {
       const timeline = new Timeline();
       timeline._setOptions({
