@@ -1217,6 +1217,8 @@ export class Timeline extends TimelineEventsEmitter {
    * @param isSeconds whether seconds are passed.
    */
   _formatUnitsText(ms: number, isSeconds = false): string {
+    const sign = TimelineUtils.sign(ms) < 0 ? '-' : '';
+    ms = Math.abs(ms);
     // 1- Convert to seconds:
     let seconds = ms / 1000;
     if (isSeconds) {
@@ -1257,7 +1259,7 @@ export class Timeline extends TimelineEventsEmitter {
       str += seconds;
     }
 
-    return str;
+    return sign + str;
   }
   /**
    * Left padding of the timeline.
@@ -1875,8 +1877,8 @@ export class Timeline extends TimelineEventsEmitter {
    */
   _setTimeInternal(val: number, source: TimelineEventSource = TimelineEventSource.Programmatically): boolean {
     val = Math.round(val);
-    if (val < 0) {
-      val = 0;
+    if (val < this._options.min) {
+      val = this._options.min;
     }
 
     if (this._val != val) {
