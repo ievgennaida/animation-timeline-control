@@ -7,11 +7,11 @@ describe('_mergeOptions', function () {
     it('Top level options are merged', function () {
         var timeline = new animation_timeline_1.Timeline();
         var defOptions = animation_timeline_1.defaultTimelineOptions;
-        var options = { id: 'new id', snapsPerSeconds: 10, snapEnabled: true };
+        var options = { id: 'new id', snapStep: 10, snapEnabled: true };
         var merged = timeline._mergeOptions(options);
         asserts_1.assert.equal(merged.id, options.id);
         asserts_1.assert.equal(merged.snapEnabled, options.snapEnabled);
-        asserts_1.assert.equal(merged.snapsPerSeconds, options.snapsPerSeconds);
+        asserts_1.assert.equal(merged.snapStep, options.snapStep);
         asserts_1.assert.equal(merged.labelsColor, defOptions.labelsColor);
         asserts_1.assert.equal(merged.leftMargin, defOptions.leftMargin);
         asserts_1.assert.equal(merged.selectionColor, defOptions.selectionColor);
@@ -19,7 +19,7 @@ describe('_mergeOptions', function () {
     });
     it('Default styles are merged', function () {
         var timeline = new animation_timeline_1.Timeline();
-        var options = { id: 'new id', snapsPerSeconds: 10, snapEnabled: true };
+        var options = { id: 'new id', snapStep: 10, snapEnabled: true };
         var merged = timeline._mergeOptions(options);
         asserts_1.assert.equal(merged.id, options.id);
         asserts_1.assert.equal(!!merged.rowsStyle, true, 'Row style cannot be null');
@@ -29,7 +29,7 @@ describe('_mergeOptions', function () {
         var timeline = new animation_timeline_1.Timeline();
         var options = {
             id: 'new id',
-            snapsPerSeconds: 10,
+            snapStep: 10,
             headerHeight: 44,
             snapEnabled: true,
             rowsStyle: {
@@ -53,11 +53,11 @@ describe('_mergeOptions', function () {
         var timeline = new animation_timeline_1.Timeline();
         var options = {
             id: 'new id',
-            snapsPerSeconds: 10,
+            snapStep: 10,
         };
         var merged = timeline._mergeOptions(options);
         asserts_1.assert.equal(merged.id, 'new id');
-        asserts_1.assert.equal(merged.snapsPerSeconds, 10);
+        asserts_1.assert.equal(merged.snapStep, 10);
         asserts_1.assert.equal(options.headerHeight === undefined, true);
     });
 });

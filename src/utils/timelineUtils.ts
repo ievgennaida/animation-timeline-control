@@ -1,11 +1,16 @@
+import { TimelineRanged } from '../timelineRanged';
+
 const denominators = [1, 2, 5, 10];
 export class TimelineUtils {
   static drawLine(ctx: CanvasRenderingContext2D, x1: number, y1: number, x2: number, y2: number): void {
     ctx.moveTo(x1, y1);
     ctx.lineTo(x2, y2);
   }
+  /**
+   * Check is valid number.
+   */
   static isNumber(val?: number): boolean {
-    if (typeof val === 'number' && !isNaN(val)) {
+    if (typeof val === 'number' && !isNaN(val) && Number.isFinite(val)) {
       return true;
     }
 
@@ -37,6 +42,9 @@ export class TimelineUtils {
    * Find beautiful step for the header line gauge.
    */
   static findGoodStep(originalStep: number, divisionCheck = 0): number {
+    if (originalStep <= 0 || isNaN(originalStep) || !Number.isFinite(originalStep)) {
+      return originalStep;
+    }
     let step = originalStep;
     let lastDistance = null;
     const pow = TimelineUtils.getPowArgument(originalStep);
@@ -60,7 +68,43 @@ export class TimelineUtils {
 
     return step;
   }
+  /**
+   * Keep value in min, max bounds.
+   */
+  static keepInBounds(value: number, min: number | undefined = null, max: number | undefined = null): number {
+    if (TimelineUtils.isNumber(value)) {
+      if (TimelineUtils.isNumber(min)) {
+        value = Math.max(value, min);
+      }
+      if (TimelineUtils.isNumber(max)) {
+        value = Math.min(value, max);
+      }
+    }
 
+    return value;
+  }
+  static setMinMax(to: TimelineRanged, from: TimelineRanged, shrink = false): TimelineRanged {
+    if (!from || !to) {
+      return to;
+    }
+    const isFromMinNumber = TimelineUtils.isNumber(from.min);
+    const isToMinNumber = TimelineUtils.isNumber(to.min);
+    // get absolute min and max bounds:
+    if (isFromMinNumber && isToMinNumber) {
+      to.min = shrink ? Math.min(from.min, to.min) : Math.max(from.min, to.min);
+    } else if (isFromMinNumber) {
+      to.min = from.min;
+    }
+    const isFromMaxNumber = TimelineUtils.isNumber(from.max);
+    const isToMaxNumber = TimelineUtils.isNumber(to.max);
+    if (isFromMaxNumber && isToMaxNumber) {
+      to.max = shrink ? Math.max(from.max, to.max) : Math.min(from.max, to.max);
+    } else if (isFromMaxNumber) {
+      to.max = from.max;
+    }
+
+    return to;
+  }
   static isRectOverlap(rect: DOMRect, rect2: DOMRect): boolean {
     if (!rect || !rect2) {
       console.log('Rectangles cannot be empty');

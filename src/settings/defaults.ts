@@ -52,11 +52,6 @@ export const defaultTimelineRowStyle = {
 
 export const defaultTimelineOptions = {
   /**
-   * Snap the mouse to the values on a timeline.
-   * Value can be from 1 to 60
-   */
-  snapsPerSeconds: 5,
-  /**
    *  Snap all selected keyframes as a bundle during the drag.
    */
   snapAllKeyframesOnMove: false,
@@ -71,8 +66,15 @@ export const defaultTimelineOptions = {
    * approximate step for the timeline in pixels for 1 second
    */
   stepPx: 120,
+  /**
+   * Number of units that should fit into one stepPx. (1 second by a default)
+   */
+  stepVal: 1000,
   stepSmallPx: 30,
-  smallSteps: 50,
+  /**
+   * Snap step in units. from 0 to stepVal
+   */
+  snapStep: 200,
   /**
    * additional left margin in pixels to start the line gauge from.
    */
@@ -100,13 +102,22 @@ export const defaultTimelineOptions = {
    */
   headerHeight: 30,
   font: '11px sans-serif',
-  zoom: 1000,
-  // Zoom speed. Use percent of the screen to set zoom speed.
+  /**
+   * Default zoom level = 1. where screen pixels are equals to the corresponding stepVal stepPx.
+   */
+  zoom: 1,
+  /**
+   * Default zoom speed.
+   */
   zoomSpeed: 0.1,
-  // Max zoom
-  zoomMin: 80,
-  // Min zoom
-  zoomMax: 8000,
+  /**
+   * Max zoom value.
+   */
+  zoomMin: 0.1,
+  /**
+   * Min zoom value.
+   */
+  zoomMax: 8,
   /**
    * Set this to true in a MAC OS environment: The Meta key will be used instead of the Ctrl key.
    */

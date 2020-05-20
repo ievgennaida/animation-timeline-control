@@ -7,11 +7,6 @@ export interface TimelineOptions extends TimelineRanged {
      */
     id?: string | HTMLElement;
     /**
-     * Snap the mouse to the values on a timeline.
-     * Value can be from 1 to 60
-     */
-    snapsPerSeconds?: number;
-    /**
      * Check whether snapping is enabled.
      */
     snapEnabled?: boolean;
@@ -23,8 +18,15 @@ export interface TimelineOptions extends TimelineRanged {
      * approximate step for the timeline in pixels for 1 second
      */
     stepPx?: number;
+    /**
+     * Number of points that should fit into the one stepPx.
+     */
+    stepVal: number;
     stepSmallPx?: number;
-    smallSteps?: number;
+    /**
+     * Snap step in units. from 0 to stepVal
+     */
+    snapStep?: number;
     /**
      * additional left margin in pixels to start the line gauge from.
      */
@@ -63,12 +65,21 @@ export interface TimelineOptions extends TimelineRanged {
      * Header ticks font
      */
     font?: string;
+    /**
+     * Default zoom level = 1. where screen pixels are equals to the corresponding stepVal stepPx.
+     */
     zoom?: number;
     /**
-     * Zoom speed. Use percent of the screen to set zoom speed.
+     * Default zoom speed.
      */
     zoomSpeed?: number;
+    /**
+     * Max zoom value.
+     */
     zoomMin?: number;
+    /**
+     * Min zoom value.
+     */
     zoomMax?: number;
     /**
      * Set this to true in a MAC OS environment: The Meta key will be used instead of the Ctrl key.

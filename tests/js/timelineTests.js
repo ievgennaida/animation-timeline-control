@@ -376,6 +376,111 @@ describe('Timeline', function () {
             });
         });
     });
+    describe('Coordinates', function () {
+        it('Coordinates', function () {
+            var timeline = new animation_timeline_1.Timeline();
+            timeline._setOptions({
+                stepVal: 100,
+                stepPx: 50,
+                zoom: 1,
+            });
+            asserts_1.assert.equal(timeline.valToPx(0), 0);
+            asserts_1.assert.equal(timeline.valToPx(100), 50);
+            asserts_1.assert.equal(timeline.valToPx(200), 100);
+            asserts_1.assert.equal(timeline.pxToVal(0), 0);
+            asserts_1.assert.equal(timeline.pxToVal(50), 100);
+            asserts_1.assert.equal(timeline.pxToVal(100), 200);
+        });
+        it('Zoom is respected', function () {
+            var timeline = new animation_timeline_1.Timeline();
+            timeline._setOptions({
+                stepVal: 100,
+                stepPx: 50,
+                zoom: 1,
+            });
+            asserts_1.assert.equal(timeline.valToPx(0), 0);
+            asserts_1.assert.equal(timeline.valToPx(100), 50);
+            asserts_1.assert.equal(timeline.valToPx(200), 100);
+            timeline._setZoom(2);
+            asserts_1.assert.equal(timeline.valToPx(0), 0);
+            asserts_1.assert.equal(timeline.valToPx(100), 25);
+            asserts_1.assert.equal(timeline.valToPx(200), 50);
+            asserts_1.assert.equal(timeline.pxToVal(0), 0);
+            asserts_1.assert.equal(timeline.pxToVal(25), 100);
+            asserts_1.assert.equal(timeline.pxToVal(50), 200);
+        });
+    });
+    describe('Snapping', function () {
+        it('Snapping', function () {
+            var timeline = new animation_timeline_1.Timeline();
+            timeline._setOptions({
+                stepVal: 100,
+                stepPx: 50,
+                snapStep: 25,
+                zoom: 1,
+            });
+            asserts_1.assert.equal(timeline.snapVal(0), 0);
+            asserts_1.assert.equal(timeline.snapVal(10), 0);
+            asserts_1.assert.equal(timeline.snapVal(26), 25);
+            asserts_1.assert.equal(timeline.snapVal(48), 50);
+            asserts_1.assert.equal(timeline.snapVal(58), 50);
+        });
+        it('Snapping. min is defined', function () {
+            var timeline = new animation_timeline_1.Timeline();
+            timeline._setOptions({
+                stepVal: 100,
+                stepPx: 50,
+                snapStep: 25,
+                min: 5,
+                zoom: 1,
+            });
+            asserts_1.assert.equal(timeline.snapVal(0), 5);
+            asserts_1.assert.equal(timeline.snapVal(10), 5);
+            asserts_1.assert.equal(timeline.snapVal(26), 30);
+            asserts_1.assert.equal(timeline.snapVal(48), 55);
+            asserts_1.assert.equal(timeline.snapVal(58), 55);
+            // Don't overlap the limit.
+            asserts_1.assert.equal(timeline.snapVal(-100), 5);
+        });
+        it('Snapping. negative min is defined', function () {
+            var timeline = new animation_timeline_1.Timeline();
+            timeline._setOptions({
+                stepVal: 100,
+                stepPx: 50,
+                snapStep: 25,
+                min: -55,
+                zoom: 1,
+            });
+            asserts_1.assert.equal(timeline.snapVal(0), -5);
+            asserts_1.assert.equal(timeline.snapVal(10), -5);
+            asserts_1.assert.equal(timeline.snapVal(26), 20);
+            asserts_1.assert.equal(timeline.snapVal(48), 45);
+            asserts_1.assert.equal(timeline.snapVal(58), 45);
+            asserts_1.assert.equal(timeline.snapVal(-1), -5);
+            asserts_1.assert.equal(timeline.snapVal(-10), -5);
+            asserts_1.assert.equal(timeline.snapVal(-26), -30);
+            asserts_1.assert.equal(timeline.snapVal(-48), -55);
+            asserts_1.assert.equal(timeline.snapVal(-58), -55);
+            // Don't overlap the limit.
+            asserts_1.assert.equal(timeline.snapVal(-100), -55);
+        });
+        it('Snapping. negative min (-25) is defined', function () {
+            var timeline = new animation_timeline_1.Timeline();
+            timeline._setOptions({
+                stepVal: 100,
+                stepPx: 50,
+                snapStep: 25,
+                min: -25,
+                zoom: 1,
+            });
+            asserts_1.assert.equal(timeline.snapVal(-1), 0);
+            asserts_1.assert.equal(timeline.snapVal(-10), 0);
+            asserts_1.assert.equal(timeline.snapVal(10), 0);
+            asserts_1.assert.equal(timeline.snapVal(26), 25);
+            asserts_1.assert.equal(timeline.snapVal(50), 50);
+            asserts_1.assert.equal(timeline.snapVal(-58), -25);
+        });
+    });
     describe('Move Keyframes', function () {
         it('move left', function () {
             var timeline = new animation_timeline_1.Timeline();

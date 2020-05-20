@@ -134,6 +134,14 @@ to pack JavaScript as a bundle:
   npm run build
 ```
 
+### Debug
+
+VSCode can be used to debug the component with the next extensions:
+* Debugger for Chrome 
+* Live HTML PReviewer.
+
+Also embedded chrome debugger can be used when demo page is running. 
+
 ### Build Tests
 To build TypeScript unittests command should be executed: 
 ```bash

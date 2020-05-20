@@ -17,13 +17,24 @@ import { TimelineEventSource } from './enums/timelineEventSource';
 import { TimelineTimeChangedEvent } from './utils/events/timelineTimeChangedEvent';
 import { TimelineSelectionMode } from './enums/timelineSelectionMode';
 import { TimelineSelectionResults } from './utils/timelineSelectionResults';
-import { TimelineRanged } from './timelineRanged';
-interface MousePoint extends DOMPoint {
-    radius: number;
-}
-interface MouseData extends MousePoint {
+interface MouseData extends DOMPoint {
+    /**
+     * Value to use.
+     */
     val: number;
+    /**
+     * Snapped value.
+     */
     snapVal: number;
+    /**
+     * Unsnapped value.
+     */
+    originalVal: number;
+    /**
+     * Click radius
+     */
+    radius: number;
+    args: TouchEvent | MouseEvent;
 }
 export declare class Timeline extends TimelineEventsEmitter {
     /**
@@ -95,6 +106,11 @@ export declare class Timeline extends TimelineEventsEmitter {
      */
     initialize(options: TimelineOptions | null, model: TimelineModel | null): void;
     /**
+     * Generate component html.
+     * @param id container.
+     */
+    _generateContainers(id: string | HTMLElement): void;
+    /**
      * Subscribe current component on the related events.
      */
     _subscribeOnEvents(): void;
@@ -106,7 +122,7 @@ export declare class Timeline extends TimelineEventsEmitter {
     _handleWindowResizeEvent: () => void;
     _clearScrollFinishedTimer(): void;
     _handleScrollEvent: (args: MouseEvent) => void;
-    _controlKeyPressed(e: MouseEvent | KeyboardEvent): boolean;
+    _controlKeyPressed(e: MouseEvent | KeyboardEvent | TouchEvent): boolean;
     _handleWheelEvent: (event: WheelEvent) => void;
     _zoom(direction: number, speed: number, x: number): void;
     /**
@@ -119,6 +135,14 @@ export declare class Timeline extends TimelineEventsEmitter {
      * @param speed value from 0 to 1
      */
     zoomOut(speed?: number): void;
+    /**
+     * Set direct zoom value.
+     * @param zoom zoom value to set.
+     * @param min min zoom.
+     * @param max max zoom.
+     * @return normalized value.
+     */
+    _setZoom(zoom: number, min?: number | undefined, max?: number | undefined): number;
     /**
      * @param args
      */
@@ -150,7 +174,7 @@ export declare class Timeline extends TimelineEventsEmitter {
      * @param screenRect screen coordinates to get keyframes.
      */
     _getKeyframesByRectangle(screenRect: DOMRect): TimelineKeyframe[];
-    _performClick(pos: MouseData, args: MouseEvent, drag: TimelineDraggableData): boolean;
+    _performClick(pos: MouseData, drag: TimelineDraggableData): boolean;
     /**
      * Set keyframe value.
      * @param keyframe
@@ -211,15 +235,23 @@ export declare class Timeline extends TimelineEventsEmitter {
     /**
      * Convert screen pixel to value.
      */
-    pxToVal(coords: number, absolute?: boolean): number;
+    pxToVal(px: number): number;
     /**
-     * Convert area value to screen pixel coordinates.
+     * Convert value to local screen component coordinates.
      */
-    valToPx(ms: number, absolute?: boolean): number;
+    _toScreenPx(val: number): number;
     /**
-     * Snap a value to a nearest beautiful point.
+     * Convert screen local coordinates to a global value info.
      */
-    snapVal(ms: number): number;
+    _fromScreen(px: number): number;
+    /**
+     * Convert area value to global screen pixel coordinates.
+     */
+    valToPx(val: number): number;
+    /**
+     * Snap a value to a nearest grid point.
+     */
+    snapVal(val: number): number;
     _mousePosToVal(x: number, snapEnabled?: boolean): number;
     /**
      * Format line gauge text.
@@ -227,9 +259,12 @@ export declare class Timeline extends TimelineEventsEmitter {
      * @param ms milliseconds to convert.
      * @param isSeconds whether seconds are passed.
      */
-    _formatLineGaugeText(ms: number, isSeconds?: boolean): string;
+    _formatUnitsText(ms: number, isSeconds?: boolean): string;
+    /**
+     * Left padding of the timeline.
+     */
+    _leftMargin(): number;
     _renderTicks(): void;
-    _setMinMax(to: TimelineRanged, from: TimelineRanged, shrink?: boolean): TimelineRanged;
     /**
      * calculate virtual mode. Determine screen positions for the elements.
      */
@@ -287,17 +322,18 @@ export declare class Timeline extends TimelineEventsEmitter {
     getScrollLeft(): number;
     getScrollTop(): number;
     /**
-     * Set this._options.
+     * Set options and render the component.
      * Options will be merged with the defaults and control invalidated
      */
     setOptions(toSet: TimelineOptions): TimelineOptions;
+    _setOptions(toSet: TimelineOptions): TimelineOptions;
     getModel(): TimelineModel;
     /**
      * Set model and redraw application.
      * @param data
      */
     setModel(data: TimelineModel): void;
-    _getMousePos(canvas: HTMLCanvasElement, e: TouchEvent | MouseEvent | any): MousePoint;
+    _getMousePos(canvas: HTMLCanvasElement, e: TouchEvent | MouseEvent | any): MouseData;
     /**
      * Apply container div size to the container on changes detected.
      */

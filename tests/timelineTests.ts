@@ -396,6 +396,123 @@ describe('Timeline', function () {
       });
     });
   });
+  describe('Coordinates', function () {
+    it('Coordinates', function () {
+      const timeline = new Timeline();
+      timeline._setOptions({
+        stepVal: 100,
+        stepPx: 50,
+        zoom: 1,
+      } as TimelineOptions);
+
+      assert.equal(timeline.valToPx(0), 0);
+      assert.equal(timeline.valToPx(100), 50);
+      assert.equal(timeline.valToPx(200), 100);
+
+      assert.equal(timeline.pxToVal(0), 0);
+      assert.equal(timeline.pxToVal(50), 100);
+      assert.equal(timeline.pxToVal(100), 200);
+    });
+
+    it('Zoom is respected', function () {
+      const timeline = new Timeline();
+      timeline._setOptions({
+        stepVal: 100,
+        stepPx: 50,
+        zoom: 1,
+      } as TimelineOptions);
+
+      assert.equal(timeline.valToPx(0), 0);
+      assert.equal(timeline.valToPx(100), 50);
+      assert.equal(timeline.valToPx(200), 100);
+      timeline._setZoom(2);
+      assert.equal(timeline.valToPx(0), 0);
+      assert.equal(timeline.valToPx(100), 25);
+      assert.equal(timeline.valToPx(200), 50);
+
+      assert.equal(timeline.pxToVal(0), 0);
+      assert.equal(timeline.pxToVal(25), 100);
+      assert.equal(timeline.pxToVal(50), 200);
+    });
+  });
+  describe('Snapping', function () {
+    it('Snapping', function () {
+      const timeline = new Timeline();
+      timeline._setOptions({
+        stepVal: 100,
+        stepPx: 50,
+        snapStep: 25,
+        zoom: 1,
+      } as TimelineOptions);
+
+      assert.equal(timeline.snapVal(0), 0);
+      assert.equal(timeline.snapVal(10), 0);
+      assert.equal(timeline.snapVal(26), 25);
+      assert.equal(timeline.snapVal(48), 50);
+      assert.equal(timeline.snapVal(58), 50);
+    });
+    it('Snapping. min is defined', function () {
+      const timeline = new Timeline();
+      timeline._setOptions({
+        stepVal: 100,
+        stepPx: 50,
+        snapStep: 25,
+        min: 5,
+        zoom: 1,
+      } as TimelineOptions);
+
+      assert.equal(timeline.snapVal(0), 5);
+      assert.equal(timeline.snapVal(10), 5);
+      assert.equal(timeline.snapVal(26), 30);
+      assert.equal(timeline.snapVal(48), 55);
+      assert.equal(timeline.snapVal(58), 55);
+
+      // Don't overlap the limit.
+      assert.equal(timeline.snapVal(-100), 5);
+    });
+    it('Snapping. negative min is defined', function () {
+      const timeline = new Timeline();
+      timeline._setOptions({
+        stepVal: 100,
+        stepPx: 50,
+        snapStep: 25,
+        min: -55,
+        zoom: 1,
+      } as TimelineOptions);
+
+      assert.equal(timeline.snapVal(0), -5);
+      assert.equal(timeline.snapVal(10), -5);
+      assert.equal(timeline.snapVal(26), 20);
+      assert.equal(timeline.snapVal(48), 45);
+      assert.equal(timeline.snapVal(58), 45);
+
+      assert.equal(timeline.snapVal(-1), -5);
+      assert.equal(timeline.snapVal(-10), -5);
+      assert.equal(timeline.snapVal(-26), -30);
+      assert.equal(timeline.snapVal(-48), -55);
+      assert.equal(timeline.snapVal(-58), -55);
+
+      // Don't overlap the limit.
+      assert.equal(timeline.snapVal(-100), -55);
+    });
+    it('Snapping. negative min (-25) is defined', function () {
+      const timeline = new Timeline();
+      timeline._setOptions({
+        stepVal: 100,
+        stepPx: 50,
+        snapStep: 25,
+        min: -25,
+        zoom: 1,
+      } as TimelineOptions);
+
+      assert.equal(timeline.snapVal(-1), 0);
+      assert.equal(timeline.snapVal(-10), 0);
+      assert.equal(timeline.snapVal(10), 0);
+      assert.equal(timeline.snapVal(26), 25);
+      assert.equal(timeline.snapVal(50), 50);
+      assert.equal(timeline.snapVal(-58), -25);
+    });
+  });
   describe('Move Keyframes', function () {
     it('move left', function () {
       const timeline = new Timeline();

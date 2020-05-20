@@ -5,11 +5,11 @@ describe('_mergeOptions', function () {
   it('Top level options are merged', function () {
     const timeline = new Timeline();
     const defOptions = defaultTimelineOptions as TimelineOptions;
-    const options = { id: 'new id', snapsPerSeconds: 10, snapEnabled: true } as TimelineOptions;
+    const options = { id: 'new id', snapStep: 10, snapEnabled: true } as TimelineOptions;
     const merged = timeline._mergeOptions(options);
     assert.equal(merged.id, options.id);
     assert.equal(merged.snapEnabled, options.snapEnabled);
-    assert.equal(merged.snapsPerSeconds, options.snapsPerSeconds);
+    assert.equal(merged.snapStep, options.snapStep);
     assert.equal(merged.labelsColor, defOptions.labelsColor);
     assert.equal(merged.leftMargin, defOptions.leftMargin);
     assert.equal(merged.selectionColor, defOptions.selectionColor);
@@ -19,7 +19,7 @@ describe('_mergeOptions', function () {
 
   it('Default styles are merged', function () {
     const timeline = new Timeline();
-    const options = { id: 'new id', snapsPerSeconds: 10, snapEnabled: true } as TimelineOptions;
+    const options = { id: 'new id', snapStep: 10, snapEnabled: true } as TimelineOptions;
     const merged = timeline._mergeOptions(options);
     assert.equal(merged.id, options.id);
     assert.equal(!!merged.rowsStyle, true, 'Row style cannot be null');
@@ -30,7 +30,7 @@ describe('_mergeOptions', function () {
     const timeline = new Timeline();
     const options = {
       id: 'new id',
-      snapsPerSeconds: 10,
+      snapStep: 10,
       headerHeight: 44,
       snapEnabled: true,
       rowsStyle: {
@@ -54,11 +54,11 @@ describe('_mergeOptions', function () {
     const timeline = new Timeline();
     const options = {
       id: 'new id',
-      snapsPerSeconds: 10,
+      snapStep: 10,
     } as TimelineOptions;
     const merged = timeline._mergeOptions(options);
     assert.equal(merged.id, 'new id');
-    assert.equal(merged.snapsPerSeconds, 10);
+    assert.equal(merged.snapStep, 10);
     assert.equal(options.headerHeight === undefined, true);
   });
 });
