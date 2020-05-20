@@ -321,7 +321,7 @@ export class Timeline extends TimelineEventsEmitter {
       const deltaSpeed = TimelineUtils.getDistance(this._width() / 2, x) * 0.2;
       x = x + deltaSpeed;
       const diff = this._width() / x;
-      const val = this._fromScreen(x - this._leftMargin());
+      const val = this._fromScreen(x);
       const zoom = direction * this._currentZoom * speed;
       //this._options.zoom
       this._currentZoom = this._setZoom(this._currentZoom + zoom);
@@ -1163,7 +1163,7 @@ export class Timeline extends TimelineEventsEmitter {
    * Convert screen local coordinates to a global value info.
    */
   _fromScreen(px: number): number {
-    return this.pxToVal(this._leftMargin() + this.getScrollLeft() + px);
+    return this.pxToVal(this.getScrollLeft() + px - this._leftMargin());
   }
   /**
    * Convert area value to global screen pixel coordinates.
@@ -1200,7 +1200,7 @@ export class Timeline extends TimelineEventsEmitter {
   }
 
   _mousePosToVal(x: number, snapEnabled = false): number {
-    const mousePos = Math.min(x, this._width()) - this._leftMargin();
+    const mousePos = Math.min(x, this._width());
     let convertedVal = this._fromScreen(mousePos);
     convertedVal = Math.round(convertedVal);
     if (snapEnabled) {
