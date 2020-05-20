@@ -357,14 +357,14 @@ export class Timeline extends TimelineEventsEmitter {
   }
   /**
    * Set direct zoom value.
-   * @param zoom zoom value to set.
+   * @param zoom zoom value to set. percent 0-1 and etc.
    * @param min min zoom.
    * @param max max zoom.
    * @return normalized value.
    */
   _setZoom(zoom: number, min: number | undefined = null, max: number | undefined = null): number {
-    min = TimelineUtils.isNumber(min) ? min : this._options.zoomMin;
-    max = TimelineUtils.isNumber(max) ? max : this._options.zoomMax;
+    min = TimelineUtils.isNumber(min) ? min : this._options ? this._options.zoomMin : null;
+    max = TimelineUtils.isNumber(max) ? max : this._options ? this._options.zoomMax : null;
     if (TimelineUtils.isNumber(zoom)) {
       zoom = TimelineUtils.keepInBounds(zoom, min, max);
       zoom = zoom || 1;
@@ -375,6 +375,33 @@ export class Timeline extends TimelineEventsEmitter {
     return zoom;
   }
 
+  /**
+   * Set direct zoom value.
+   * @public
+   * @param zoom zoom value to set. percent 0-1 and etc.
+   * @return normalized value.
+   */
+  setZoom(zoom: number): number {
+    const prevZoom = this.getZoom();
+    if (prevZoom !== zoom) {
+      const zoomSet = this._setZoom(zoom);
+      if (prevZoom != zoomSet) {
+        this.rescale();
+        this.redraw();
+        return zoomSet;
+      }
+    }
+    return prevZoom;
+  }
+  /**
+   * Get current zoom level.
+   */
+  getZoom(): number {
+    if (TimelineUtils.isNumber(this._currentZoom)) {
+      return this._currentZoom || 1;
+    }
+    return 1;
+  }
   /**
    * @param args
    */
@@ -1128,7 +1155,7 @@ export class Timeline extends TimelineEventsEmitter {
    * Convert screen local coordinates to a global value info.
    */
   _fromScreen(px: number): number {
-    return this.pxToVal(this.getScrollLeft() + px);
+    return this.pxToVal(this._leftMargin() + this.getScrollLeft() + px);
   }
   /**
    * Convert area value to global screen pixel coordinates.

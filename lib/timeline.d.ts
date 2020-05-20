@@ -137,12 +137,23 @@ export declare class Timeline extends TimelineEventsEmitter {
     zoomOut(speed?: number): void;
     /**
      * Set direct zoom value.
-     * @param zoom zoom value to set.
+     * @param zoom zoom value to set. percent 0-1 and etc.
      * @param min min zoom.
      * @param max max zoom.
      * @return normalized value.
      */
     _setZoom(zoom: number, min?: number | undefined, max?: number | undefined): number;
+    /**
+     * Set direct zoom value.
+     * @public
+     * @param zoom zoom value to set. percent 0-1 and etc.
+     * @return normalized value.
+     */
+    setZoom(zoom: number): number;
+    /**
+     * Get current zoom level.
+     */
+    getZoom(): number;
     /**
      * @param args
      */
