@@ -30,3 +30,9 @@ lib/timelineModel.js
 lib/timelineKeyframe.js
 lib/timelineEventsEmitter.js
 lib/timeline.js
+lib/settings/timelineConsts.js
+lib/settings/defaults.js
+lib/settings/timelineOptions.js
+lib/settings/styles/timelineKeyframeStyle.js
+lib/settings/styles/timelineRowStyle.js
+lib/settings/styles/timelineStyle.js
