@@ -5,7 +5,7 @@ import { TimelineKeyframe } from './timelineKeyframe';
 import { TimelineModel } from './timelineModel';
 import { TimelineElement } from './utils/timelineElement';
 import { TimelineRow } from './timelineRow';
-import { CutBoundsRect } from './utils/cutBoundsRect';
+import { TimelineCutBoundsRectResults } from './utils/timelineCutBoundsRectResults';
 import { TimelineCalculatedRow, TimelineModelCalcResults, TimelineCalculatedKeyframe } from './utils/timelineModelCalcResults';
 import { TimelineInteractionMode } from './enums/timelineInteractionMode';
 import { TimelineScrollEvent } from './utils/events/timelineScrollEvent';
@@ -17,25 +17,7 @@ import { TimelineEventSource } from './enums/timelineEventSource';
 import { TimelineTimeChangedEvent } from './utils/events/timelineTimeChangedEvent';
 import { TimelineSelectionMode } from './enums/timelineSelectionMode';
 import { TimelineSelectionResults } from './utils/timelineSelectionResults';
-interface MouseData extends DOMPoint {
-    /**
-     * Value to use.
-     */
-    val: number;
-    /**
-     * Snapped value.
-     */
-    snapVal: number;
-    /**
-     * Unsnapped value.
-     */
-    originalVal: number;
-    /**
-     * Click radius
-     */
-    radius: number;
-    args: TouchEvent | MouseEvent;
-}
+import { TimelineMouseData } from './utils/timelineMouseData';
 export declare class Timeline extends TimelineEventsEmitter {
     /**
      * component container.
@@ -64,12 +46,12 @@ export declare class Timeline extends TimelineEventsEmitter {
     /**
      * Drag start position.
      */
-    _startPos: MouseData | null;
+    _startPos: TimelineMouseData | null;
     /**
      * Drag scroll started position.
      */
     _scrollStartPos: DOMPoint | null;
-    _currentPos: MouseData | null;
+    _currentPos: TimelineMouseData | null;
     _selectionRect: DOMRect | null;
     _selectionRectEnabled: boolean;
     _drag: TimelineDraggableData | null;
@@ -185,7 +167,7 @@ export declare class Timeline extends TimelineEventsEmitter {
      * @param screenRect screen coordinates to get keyframes.
      */
     _getKeyframesByRectangle(screenRect: DOMRect): TimelineKeyframe[];
-    _performClick(pos: MouseData, drag: TimelineDraggableData): boolean;
+    _performClick(pos: TimelineMouseData, drag: TimelineDraggableData): boolean;
     /**
      * Set keyframe value.
      * @param keyframe
@@ -223,7 +205,7 @@ export declare class Timeline extends TimelineEventsEmitter {
      * foreach visible keyframe.
      */
     _forEachKeyframe(callback: (keyframe: TimelineCalculatedKeyframe, index?: number, newRow?: boolean) => void): void;
-    _trackMousePos(canvas: HTMLCanvasElement, mouseArgs: MouseEvent | TouchEvent): MouseData;
+    _trackMousePos(canvas: HTMLCanvasElement, mouseArgs: MouseEvent | TouchEvent): TimelineMouseData;
     _cleanUpSelection(): void;
     /**
      * Check whether click timeout is over.
@@ -241,7 +223,7 @@ export declare class Timeline extends TimelineEventsEmitter {
      * Check whether auto pan should be slowed down a bit.
      */
     _checkUpdateSpeedTooFast(): boolean;
-    _scrollByPan(start: MouseData, pos: MouseData, scrollStartPos: DOMPoint): void;
+    _scrollByPan(start: TimelineMouseData, pos: TimelineMouseData, scrollStartPos: DOMPoint): void;
     _scrollBySelectionOutOfBounds(pos: DOMPoint): boolean;
     /**
      * Convert screen pixel to value.
@@ -285,7 +267,7 @@ export declare class Timeline extends TimelineEventsEmitter {
      * Method is used for the optimization.
      * Only visible part should be rendered.
      */
-    _cutBounds(rect: DOMRect): CutBoundsRect;
+    _cutBounds(rect: DOMRect): TimelineCutBoundsRectResults;
     /**
      * get keyframe group screen rect coordinates.
      * @param row
@@ -344,7 +326,7 @@ export declare class Timeline extends TimelineEventsEmitter {
      * @param data
      */
     setModel(data: TimelineModel): void;
-    _getMousePos(canvas: HTMLCanvasElement, e: TouchEvent | MouseEvent | any): MouseData;
+    _getMousePos(canvas: HTMLCanvasElement, e: TouchEvent | MouseEvent | any): TimelineMouseData;
     /**
      * Apply container div size to the container on changes detected.
      */
@@ -405,4 +387,3 @@ export declare class Timeline extends TimelineEventsEmitter {
     _emitKeyframesSelected(state: TimelineSelectionResults): TimelineSelectedEvent;
     _getDragEventArgs(): TimelineDragEvent;
 }
-export {};

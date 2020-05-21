@@ -17,8 +17,10 @@ export { TimelineStyleUtils } from './utils/timelineStyleUtils';
 export { TimelineUtils } from './utils/timelineUtils';
 export { TimelineElement } from './utils/timelineElement';
 export { Selectable } from './utils/selectable';
-export { CutBoundsRect } from './utils/cutBoundsRect';
+export { TimelineCutBoundsRectResults } from './utils/timelineCutBoundsRectResults';
 export { TimelineSelectionResults } from './utils/timelineSelectionResults';
+export { TimelineValues } from './utils/timelineValues';
+export { TimelineMouseData } from './utils/timelineMouseData';
 
 // virtual model
 export { TimelineModelCalcResults } from './utils/timelineModelCalcResults';

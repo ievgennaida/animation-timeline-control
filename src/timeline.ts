@@ -12,7 +12,7 @@ import { TimelineKeyframeShape } from './enums/timelineKeyframeShape';
 import { TimelineStyleUtils } from './utils/timelineStyleUtils';
 import { TimelineElementType } from './enums/timelineElementType';
 import { TimelineEvents } from './enums/timelineEvents';
-import { CutBoundsRect } from './utils/cutBoundsRect';
+import { TimelineCutBoundsRectResults } from './utils/timelineCutBoundsRectResults';
 import { TimelineCapShape } from './enums/timelineCapShape';
 import { TimelineCalculatedRow, TimelineModelCalcResults, TimelineCalculatedGroup, TimelineCalculatedKeyframe } from './utils/timelineModelCalcResults';
 import { TimelineInteractionMode } from './enums/timelineInteractionMode';
@@ -27,26 +27,7 @@ import { TimelineTimeChangedEvent } from './utils/events/timelineTimeChangedEven
 import { TimelineSelectionMode } from './enums/timelineSelectionMode';
 import { TimelineSelectionResults } from './utils/timelineSelectionResults';
 import { TimelineRanged } from './timelineRanged';
-
-interface MouseData extends DOMPoint {
-  /**
-   * Value to use.
-   */
-  val: number;
-  /**
-   * Snapped value.
-   */
-  snapVal: number;
-  /**
-   * Unsnapped value.
-   */
-  originalVal: number;
-  /**
-   * Click radius
-   */
-  radius: number;
-  args: TouchEvent | MouseEvent;
-}
+import { TimelineMouseData } from './utils/timelineMouseData';
 
 export class Timeline extends TimelineEventsEmitter {
   /**
@@ -76,12 +57,12 @@ export class Timeline extends TimelineEventsEmitter {
   /**
    * Drag start position.
    */
-  _startPos: MouseData | null = null;
+  _startPos: TimelineMouseData | null = null;
   /**
    * Drag scroll started position.
    */
   _scrollStartPos: DOMPoint | null = { x: 0, y: 0 } as DOMPoint;
-  _currentPos: MouseData | null = null;
+  _currentPos: TimelineMouseData | null = null;
 
   _selectionRect: DOMRect | null = null;
   _selectionRectEnabled = false;
@@ -432,6 +413,8 @@ export class Timeline extends TimelineEventsEmitter {
     const event = new TimelineClickEvent();
     event.pos = this._startPos;
     event.val = this._startPos.val;
+    event.originalVal = this._startPos.originalVal;
+    event.snapVal = this._startPos.snapVal;
     event.args = args;
     // all elements under the click:
     event.elements = elements;
@@ -721,7 +704,7 @@ export class Timeline extends TimelineEventsEmitter {
     return keyframesModels;
   }
 
-  _performClick(pos: MouseData, drag: TimelineDraggableData): boolean {
+  _performClick(pos: TimelineMouseData, drag: TimelineDraggableData): boolean {
     let isChanged = false;
     if (drag && drag.type === TimelineElementType.Keyframe) {
       let mode = TimelineSelectionMode.Normal;
@@ -960,8 +943,8 @@ export class Timeline extends TimelineEventsEmitter {
     });
   }
 
-  _trackMousePos(canvas: HTMLCanvasElement, mouseArgs: MouseEvent | TouchEvent): MouseData {
-    const pos = this._getMousePos(canvas, mouseArgs) as MouseData;
+  _trackMousePos(canvas: HTMLCanvasElement, mouseArgs: MouseEvent | TouchEvent): TimelineMouseData {
+    const pos = this._getMousePos(canvas, mouseArgs) as TimelineMouseData;
     pos.originalVal = this._mousePosToVal(pos.x, false);
     pos.snapVal = this._mousePosToVal(pos.x, true);
     pos.val = pos.originalVal;
@@ -1055,7 +1038,7 @@ export class Timeline extends TimelineEventsEmitter {
     return false;
   }
 
-  _scrollByPan(start: MouseData, pos: MouseData, scrollStartPos: DOMPoint): void {
+  _scrollByPan(start: TimelineMouseData, pos: TimelineMouseData, scrollStartPos: DOMPoint): void {
     if (!start || !pos) {
       return;
     }
@@ -1514,7 +1497,7 @@ export class Timeline extends TimelineEventsEmitter {
    * Method is used for the optimization.
    * Only visible part should be rendered.
    */
-  _cutBounds(rect: DOMRect): CutBoundsRect {
+  _cutBounds(rect: DOMRect): TimelineCutBoundsRectResults {
     if (!rect) {
       return null;
     }
@@ -1544,7 +1527,7 @@ export class Timeline extends TimelineEventsEmitter {
         y: y,
         overlapY: Math.abs(offsetH) > 0,
         overlapX: Math.abs(offsetW) > 0,
-      } as CutBoundsRect;
+      } as TimelineCutBoundsRectResults;
     }
     return null;
   }
@@ -1974,7 +1957,7 @@ export class Timeline extends TimelineEventsEmitter {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  _getMousePos(canvas: HTMLCanvasElement, e: TouchEvent | MouseEvent | any): MouseData {
+  _getMousePos(canvas: HTMLCanvasElement, e: TouchEvent | MouseEvent | any): TimelineMouseData {
     let radius = 1;
     let clientX = 0;
     let clientY = 0;
@@ -2001,7 +1984,7 @@ export class Timeline extends TimelineEventsEmitter {
       y: y,
       radius,
       args: e,
-    } as MouseData;
+    } as TimelineMouseData;
   }
 
   /**

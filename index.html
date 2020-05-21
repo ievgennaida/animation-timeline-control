@@ -357,7 +357,7 @@
     }
 
 
-    var dragHandler = function (object, eventName) {
+    var logDraggingMessage = function (object, eventName) {
       if (object.elements) {
         logMessage('Keyframe value: ' + object.elements[0].val + '. Selected (' + object.elements.length + ').' + eventName);
       }
@@ -371,20 +371,20 @@
       logMessage('selected :' + obj.selected.length + '. changed :' + obj.changed.length, 2);
     });
     timeline.onDragStarted(function (obj) {
-      dragHandler(obj, 'dragstarted');
+      logDraggingMessage(obj, 'dragstarted');
     });
     timeline.onDrag(function (obj) {
-      dragHandler(obj, 'drag');
+      logDraggingMessage(obj, 'drag');
       // obj.preventDefault();
       //  return;
-      if (obj.row && obj.type == 'keyframe' && obj.val <= 2) {
-
+      if (obj.row && obj.type == 'keyframe' && obj.val <= 3000) {
+        e.preventDefault();
       } else {
 
       }
     });
     timeline.onDragFinished(function (obj) {
-      dragHandler(obj, 'dragfinished')
+      logDraggingMessage(obj, 'dragfinished');
     });
     timeline.onMouseDown(function (obj) {
       var type = (obj.target ? obj.target.type : '');

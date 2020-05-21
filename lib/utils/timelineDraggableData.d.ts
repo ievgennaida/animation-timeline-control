@@ -1,6 +1,7 @@
 import { TimelineElement } from './timelineElement';
 import { TimelineElementType } from '../enums/timelineElementType';
-export interface TimelineDraggableData {
+import { TimelineValues } from './timelineValues';
+export interface TimelineDraggableData extends TimelineValues {
     changed: boolean;
     /**
      * Drag initial click target.
@@ -14,8 +15,4 @@ export interface TimelineDraggableData {
      * Dragging type.
      */
     type: TimelineElementType;
-    /**
-     * current drag position with the offset.
-     */
-    val: number;
 }
