@@ -375,13 +375,9 @@
     });
     timeline.onDrag(function (obj) {
       logDraggingMessage(obj, 'drag');
-      // obj.preventDefault();
-      //  return;
-      if (obj.row && obj.type == 'keyframe' && obj.val <= 3000) {
-        e.preventDefault();
-      } else {
-
-      }
+    });
+    timeline.onKeyframeChanged(function (obj) {
+      console.log('keyframe: ' + obj.val);
     });
     timeline.onDragFinished(function (obj) {
       logDraggingMessage(obj, 'dragfinished');

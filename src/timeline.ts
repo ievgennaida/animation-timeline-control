@@ -18,7 +18,7 @@ import { TimelineCalculatedRow, TimelineModelCalcResults, TimelineCalculatedGrou
 import { TimelineInteractionMode } from './enums/timelineInteractionMode';
 import { TimelineScrollEvent } from './utils/events/timelineScrollEvent';
 import { TimelineSelectedEvent } from './utils/events/timelineSelectedEvent';
-import { TimelineDraggableData } from './utils/timelineDraggableData';
+import { TimelineDraggableData, TimelineElementDragState } from './utils/timelineDraggableData';
 import { TimelineClickEvent } from './utils/events/timelineClickEvent';
 import { TimelineDragEvent } from './utils/events/timelineDragEvent';
 import { defaultTimelineConsts, defaultTimelineOptions } from './settings/defaults';
@@ -28,6 +28,7 @@ import { TimelineSelectionMode } from './enums/timelineSelectionMode';
 import { TimelineSelectionResults } from './utils/timelineSelectionResults';
 import { TimelineRanged } from './timelineRanged';
 import { TimelineMouseData } from './utils/timelineMouseData';
+import { TimelineKeyframeChangedEvent } from './utils/events/timelineKeyframeChangedEvent';
 
 export class Timeline extends TimelineEventsEmitter {
   /**
@@ -442,7 +443,7 @@ export class Timeline extends TimelineEventsEmitter {
     if (target && this._interactionMode !== TimelineInteractionMode.Zoom) {
       this._drag = {
         changed: false,
-        target: target,
+        target: this._setElementDragState(target, target.val),
         val: target.val,
         type: target.type,
         elements: [],
@@ -456,15 +457,17 @@ export class Timeline extends TimelineEventsEmitter {
           this._selectInternal(target.keyframe);
         }
         // Allow to drag all selected keyframes on a screen
-        this._drag.elements = this.getSelectedElements();
+        this._drag.elements = this.getSelectedElements().map((element) => {
+          return this._setElementDragState(element, element.val);
+        });
       } else if (target.type === TimelineElementType.Group) {
         const keyframes = this._drag.target.keyframes;
-        this._drag.elements =
-          keyframes && Array.isArray(keyframes)
-            ? keyframes.map((keyframe) => {
-                return this._convertToElement(this._drag.target.row, keyframe) as TimelineElement;
-              })
-            : [];
+
+        if (keyframes && Array.isArray(keyframes)) {
+          this._drag.elements = keyframes.map((keyframe) => {
+            return this._setElementDragState(this._convertToElement(this._drag.target.row, keyframe), keyframe.val);
+          });
+        }
       } else {
         this._drag.elements = [this._drag.target];
       }
@@ -472,7 +475,18 @@ export class Timeline extends TimelineEventsEmitter {
 
     this.redraw();
   };
-
+  _setElementDragState(element: TimelineElement | TimelineElementDragState, val: number): TimelineElementDragState {
+    const state = element as TimelineElementDragState;
+    state.prevVal = state.val;
+    if (state.startedVal === undefined || state.startedVal === null) {
+      state.startedVal = val;
+    }
+    if (state.prevVal === undefined || state.prevVal === null) {
+      state.prevVal = val;
+    }
+    state.val = val;
+    return state;
+  }
   isLeftButtonClicked(args: MouseEvent | TouchEvent | any): boolean {
     return !!args && args.buttons == 1;
   }
@@ -505,17 +519,20 @@ export class Timeline extends TimelineEventsEmitter {
             this._setTimeInternal(convertedVal, TimelineEventSource.User);
           } else if ((this._drag.type == TimelineElementType.Keyframe || this._drag.type == TimelineElementType.Group) && this._drag.elements) {
             const offset = Math.floor(convertedVal - this._drag.val);
-            const movedOffset = this._moveElements(offset, this._drag.elements);
+            const movedOffset = this._moveElements(offset, this._drag.elements, TimelineEventSource.User);
             if (movedOffset !== 0) {
               if (!this._drag.changed) {
+                this._drag.prevVal = this._drag.val;
                 const eventArgs = this._emitDragStartedEvent();
                 if (eventArgs.isPrevented()) {
+                  // Cleanup drag here, so drag finished will be ignored.
+                  this._drag = null;
+                  this._cleanUpSelection();
                   return;
                 }
               }
 
               this._drag.changed = true;
-
               this._drag.val += offset;
               this._emitDragEvent();
             }
@@ -583,7 +600,7 @@ export class Timeline extends TimelineEventsEmitter {
    * @param elements Element to move.
    * @returns real moved value.
    */
-  _moveElements(offset: number, elements: Array<TimelineElement>): number {
+  _moveElements(offset: number, elements: Array<TimelineElementDragState>, source: TimelineEventSource = TimelineEventSource.Programmatically): number {
     if (!elements) {
       return;
     }
@@ -611,11 +628,10 @@ export class Timeline extends TimelineEventsEmitter {
       if (Math.abs(offset) > 0) {
         // don't allow to move less than zero.
         elements.forEach((element) => {
-          const toSet = element.keyframe.val + offset;
-          isChanged = this._setKeyframePos(element.keyframe, toSet) || isChanged;
-          if (isChanged) {
-            element.val = element.keyframe.val;
-          }
+          const prevVal = element.keyframe.val;
+          const toSet = prevVal + offset;
+          const newValue = this._setKeyframePos(element, toSet, source);
+          isChanged = newValue !== prevVal;
         });
       }
 
@@ -735,16 +751,27 @@ export class Timeline extends TimelineEventsEmitter {
    * Set keyframe value.
    * @param keyframe
    * @param value
+   * @return set value.
    */
-  _setKeyframePos(keyframe: TimelineKeyframe, value: number): boolean {
+  _setKeyframePos(element: TimelineElementDragState, value: number, source: TimelineEventSource = TimelineEventSource.Programmatically): number {
+    if (!element || !element.keyframe) {
+      return value;
+    }
     value = Math.floor(value);
-    if (keyframe && keyframe.val != value) {
-      keyframe.val = value;
+    if (element.keyframe && element.keyframe.val != value) {
+      element.prevVal = element.val;
+      element.val = value;
+      element.keyframe.val = value;
+      const event = this._emitKeyframeChanged(element, source);
+      if (event.isPrevented()) {
+        element.val = event.prevVal;
+        element.keyframe.val = event.prevVal;
+      }
 
-      return true;
+      return value;
     }
 
-    return false;
+    return value;
   }
 
   /**
@@ -2271,7 +2298,12 @@ export class Timeline extends TimelineEventsEmitter {
   public onDoubleClick(callback: (eventArgs: TimelineClickEvent) => void): void {
     this.on(TimelineEvents.DoubleClick, callback);
   }
-
+  /**
+   * Subscribe on keyframe changed event.
+   */
+  public onKeyframeChanged(callback: (eventArgs: TimelineKeyframeChangedEvent) => void): void {
+    this.on(TimelineEvents.KeyframeChanged, callback);
+  }
   /**
    * Subscribe on drag finished event.
    */
@@ -2299,27 +2331,55 @@ export class Timeline extends TimelineEventsEmitter {
     super.emit(TimelineEvents.Scroll, scrollEvent);
     return scrollEvent;
   }
+  _emitKeyframeChanged(element: TimelineElementDragState, source: TimelineEventSource = TimelineEventSource.Programmatically): TimelineKeyframeChangedEvent {
+    const args = new TimelineKeyframeChangedEvent();
+    args.val = element.val;
+    args.prevVal = element.prevVal;
+    args.target = element;
+    args.source = source;
+    this.emit(TimelineEvents.KeyframeChanged, args);
+    return args;
+  }
   _emitDragStartedEvent(): TimelineDragEvent {
     const args = this._getDragEventArgs();
     this.emit(TimelineEvents.DragStarted, args);
+    if (args.isPrevented()) {
+      this._preventDrag(args, this._drag, true);
+    }
     return args;
   }
   _emitDragFinishedEvent(): TimelineDragEvent {
     if (this._drag && this._drag.changed) {
       const args = this._getDragEventArgs();
       this.emit(TimelineEvents.DragFinished, args);
-      return args;
-    }
-  }
-  _emitDragEvent(): TimelineDragEvent {
-    if (this._drag) {
-      const args = this._getDragEventArgs();
-      this.emit(TimelineEvents.Drag, args);
-
+      if (args.isPrevented()) {
+        this._preventDrag(args, this._drag, true);
+      }
       return args;
     }
 
     return null;
+  }
+  _preventDrag(dragArgs: TimelineDragEvent, data: TimelineDraggableData, toStart = false): void {
+    if (dragArgs.elements) {
+      dragArgs.elements.forEach((element) => {
+        const toSet = toStart ? element.startedVal : element.prevVal;
+        this._setKeyframePos(element, toSet);
+      });
+    }
+    data.val = data.prevVal;
+    dragArgs.val = dragArgs.prevVal;
+  }
+  _emitDragEvent(): TimelineDragEvent {
+    if (!this._drag) {
+      return null;
+    }
+    const args = this._getDragEventArgs();
+    this.emit(TimelineEvents.Drag, args);
+    if (args.isPrevented()) {
+      this._preventDrag(args, this._drag, false);
+    }
+    return args;
   }
   _emitKeyframesSelected(state: TimelineSelectionResults): TimelineSelectedEvent {
     const args = new TimelineSelectedEvent();
@@ -2330,13 +2390,15 @@ export class Timeline extends TimelineEventsEmitter {
   }
   _getDragEventArgs(): TimelineDragEvent {
     const draggableArguments = new TimelineDragEvent();
-    if (this._drag) {
-      draggableArguments.val = this._currentPos.val;
-      draggableArguments.pos = this._currentPos;
-      draggableArguments.elements = this._drag.elements;
-      draggableArguments.target = this._drag.target;
+    if (!this._drag) {
+      return draggableArguments;
     }
-
+    draggableArguments.val = this._currentPos.val;
+    draggableArguments.originalVal = this._currentPos.originalVal;
+    draggableArguments.snapVal = this._currentPos.snapVal;
+    draggableArguments.pos = this._currentPos;
+    draggableArguments.elements = this._drag.elements;
+    draggableArguments.target = this._drag.target;
     return draggableArguments;
   }
 }

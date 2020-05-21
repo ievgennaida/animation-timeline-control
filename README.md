@@ -96,11 +96,13 @@ Read only and defined by the interfaces:
 | dragStarted               | emitted on drag started. args type: TimelineDragEvent        |
 | drag                      | emitted when dragging. args type: TimelineDragEvent   	|
 | dragFinished              | emitted when drag finished. args type: TimelineDragEvent     	|
+| KeyframeChanged              | emitted when drag finished. args type: TimelineKeyframeChangedEvent   |
 
+Each event can be prevented by calling args.preventDefault()
 
-Type strict event subscription: 
+Example of the type strict event subscription: 
 ```JavaScript
-this.timeline.onDragStarted((args) => {
+this.timeline.onDragStarted((args:TimelineDragEvent) => {
     if (args) {
     }
 });

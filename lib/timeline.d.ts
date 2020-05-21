@@ -10,7 +10,7 @@ import { TimelineCalculatedRow, TimelineModelCalcResults, TimelineCalculatedKeyf
 import { TimelineInteractionMode } from './enums/timelineInteractionMode';
 import { TimelineScrollEvent } from './utils/events/timelineScrollEvent';
 import { TimelineSelectedEvent } from './utils/events/timelineSelectedEvent';
-import { TimelineDraggableData } from './utils/timelineDraggableData';
+import { TimelineDraggableData, TimelineElementDragState } from './utils/timelineDraggableData';
 import { TimelineClickEvent } from './utils/events/timelineClickEvent';
 import { TimelineDragEvent } from './utils/events/timelineDragEvent';
 import { TimelineEventSource } from './enums/timelineEventSource';
@@ -18,6 +18,7 @@ import { TimelineTimeChangedEvent } from './utils/events/timelineTimeChangedEven
 import { TimelineSelectionMode } from './enums/timelineSelectionMode';
 import { TimelineSelectionResults } from './utils/timelineSelectionResults';
 import { TimelineMouseData } from './utils/timelineMouseData';
+import { TimelineKeyframeChangedEvent } from './utils/events/timelineKeyframeChangedEvent';
 export declare class Timeline extends TimelineEventsEmitter {
     /**
      * component container.
@@ -140,6 +141,7 @@ export declare class Timeline extends TimelineEventsEmitter {
      * @param args
      */
     _handleMouseDownEvent: (args: MouseEvent) => void;
+    _setElementDragState(element: TimelineElement | TimelineElementDragState, val: number): TimelineElementDragState;
     isLeftButtonClicked(args: MouseEvent | TouchEvent | any): boolean;
     _handleMouseMoveEvent: (args: MouseEvent | TouchEvent | any) => void;
     /**
@@ -148,7 +150,7 @@ export declare class Timeline extends TimelineEventsEmitter {
      * @param elements Element to move.
      * @returns real moved value.
      */
-    _moveElements(offset: number, elements: Array<TimelineElement>): number;
+    _moveElements(offset: number, elements: Array<TimelineElementDragState>, source?: TimelineEventSource): number;
     _handleMouseUpEvent: (args: MouseEvent) => void;
     /**
      * client height.
@@ -172,8 +174,9 @@ export declare class Timeline extends TimelineEventsEmitter {
      * Set keyframe value.
      * @param keyframe
      * @param value
+     * @return set value.
      */
-    _setKeyframePos(keyframe: TimelineKeyframe, value: number): boolean;
+    _setKeyframePos(element: TimelineElementDragState, value: number, source?: TimelineEventSource): number;
     /**
      * @param cursor to set.
      */
@@ -372,6 +375,10 @@ export declare class Timeline extends TimelineEventsEmitter {
      */
     onDoubleClick(callback: (eventArgs: TimelineClickEvent) => void): void;
     /**
+     * Subscribe on keyframe changed event.
+     */
+    onKeyframeChanged(callback: (eventArgs: TimelineKeyframeChangedEvent) => void): void;
+    /**
      * Subscribe on drag finished event.
      */
     onMouseDown(callback: (eventArgs: TimelineClickEvent) => void): void;
@@ -381,8 +388,10 @@ export declare class Timeline extends TimelineEventsEmitter {
      */
     onScroll(callback: (eventArgs: TimelineScrollEvent) => void): void;
     _emitScrollEvent(args: MouseEvent | null): TimelineScrollEvent;
+    _emitKeyframeChanged(element: TimelineElementDragState, source?: TimelineEventSource): TimelineKeyframeChangedEvent;
     _emitDragStartedEvent(): TimelineDragEvent;
     _emitDragFinishedEvent(): TimelineDragEvent;
+    _preventDrag(dragArgs: TimelineDragEvent, data: TimelineDraggableData, toStart?: boolean): void;
     _emitDragEvent(): TimelineDragEvent;
     _emitKeyframesSelected(state: TimelineSelectionResults): TimelineSelectedEvent;
     _getDragEventArgs(): TimelineDragEvent;

@@ -9,6 +9,7 @@ import {
   TimelineElement,
   TimelineOptions,
   TimelineRowStyle,
+  TimelineElementDragState,
   TimelineKeyframeStyle,
 } from './../lib/animation-timeline';
 
@@ -562,11 +563,11 @@ describe('Timeline', function () {
         {
           keyframe: model.rows[0].keyframes[1],
           row: model.rows[0],
-        } as TimelineElement,
+        } as TimelineElementDragState,
         {
           keyframe: model.rows[0].keyframes[0],
           row: model.rows[0],
-        } as TimelineElement,
+        } as TimelineElementDragState,
       ]);
 
       chai.expect(movedOffset).equal(move);
@@ -586,11 +587,11 @@ describe('Timeline', function () {
         {
           keyframe: model.rows[0].keyframes[1],
           row: model.rows[0],
-        } as TimelineElement,
+        } as TimelineElementDragState,
         {
           keyframe: model.rows[0].keyframes[0],
           row: model.rows[0],
-        } as TimelineElement,
+        } as TimelineElementDragState,
       ]);
 
       chai.expect(movedOffset).equal(move);
@@ -606,10 +607,10 @@ describe('Timeline', function () {
       const elementsToMove = [
         {
           keyframe: { val: item1 },
-        } as TimelineElement,
+        } as TimelineElementDragState,
         {
           keyframe: { val: item2 },
-        } as TimelineElement,
+        } as TimelineElementDragState,
       ];
       const movedOffset = timeline._moveElements(move, elementsToMove);
 
@@ -627,10 +628,10 @@ describe('Timeline', function () {
       const elementsToMove = [
         {
           keyframe: { val: item1 },
-        } as TimelineElement,
+        } as TimelineElementDragState,
         {
           keyframe: { val: item2 },
-        } as TimelineElement,
+        } as TimelineElementDragState,
       ];
       const movedOffset = timeline._moveElements(move, elementsToMove);
 
@@ -647,10 +648,10 @@ describe('Timeline', function () {
       const elementsToMove = [
         {
           keyframe: { val: item1 },
-        } as TimelineElement,
+        } as TimelineElementDragState,
         {
           keyframe: { val: item2 },
-        } as TimelineElement,
+        } as TimelineElementDragState,
       ];
       const movedOffset = timeline._moveElements(move, elementsToMove);
 
@@ -668,19 +669,19 @@ describe('Timeline', function () {
         {
           keyframe: { val: 100 },
           row: row,
-        } as TimelineElement,
+        } as TimelineElementDragState,
         {
           keyframe: { val: 400 },
           row: row,
-        } as TimelineElement,
+        } as TimelineElementDragState,
         {
           keyframe: { val: 200 },
           row: row2,
-        } as TimelineElement,
+        } as TimelineElementDragState,
         {
           keyframe: { val: 300 },
           row: row2,
-        } as TimelineElement,
+        } as TimelineElementDragState,
       ];
       const movedOffset = timeline._moveElements(move, elementsToMove);
       const moved = move / 2;
@@ -699,10 +700,10 @@ describe('Timeline', function () {
       const elementsToMove = [
         {
           keyframe: { val: item1 },
-        } as TimelineElement,
+        } as TimelineElementDragState,
         {
           keyframe: { val: item2 },
-        } as TimelineElement,
+        } as TimelineElementDragState,
       ];
       const movedOffset = timeline._moveElements(move, elementsToMove);
 
@@ -718,11 +719,11 @@ describe('Timeline', function () {
         {
           keyframe: { val: 25 },
           row: row,
-        } as TimelineElement,
+        } as TimelineElementDragState,
         {
           keyframe: { val: 50 },
           row: row,
-        } as TimelineElement,
+        } as TimelineElementDragState,
       ];
       const movedOffset = timeline._moveElements(move, elementsToMove);
 

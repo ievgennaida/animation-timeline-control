@@ -87,20 +87,25 @@ export class TimelineUtils {
     if (!from || !to) {
       return to;
     }
-    const isFromMinNumber = TimelineUtils.isNumber(from.min);
-    const isToMinNumber = TimelineUtils.isNumber(to.min);
+    const fromMin = Math.min(from.getMin ? from.getMin() : from.min, from.min);
+    const toMin = Math.min(to.getMin ? to.getMin() : to.min, to.min);
+    const isFromMinNumber = TimelineUtils.isNumber(fromMin);
+    const isToMinNumber = TimelineUtils.isNumber(toMin);
     // get absolute min and max bounds:
     if (isFromMinNumber && isToMinNumber) {
-      to.min = shrink ? Math.min(from.min, to.min) : Math.max(from.min, to.min);
+      to.min = shrink ? Math.min(fromMin, toMin) : Math.max(fromMin, toMin);
     } else if (isFromMinNumber) {
-      to.min = from.min;
+      to.min = fromMin;
     }
-    const isFromMaxNumber = TimelineUtils.isNumber(from.max);
-    const isToMaxNumber = TimelineUtils.isNumber(to.max);
+
+    const fromMax = Math.min(from.getMax && from.getMax ? from.getMax() : from.max, from.max);
+    const toMax = Math.min(to.getMax ? to.getMax() : to.max, to.max);
+    const isFromMaxNumber = TimelineUtils.isNumber(fromMax);
+    const isToMaxNumber = TimelineUtils.isNumber(toMax);
     if (isFromMaxNumber && isToMaxNumber) {
-      to.max = shrink ? Math.max(from.max, to.max) : Math.min(from.max, to.max);
+      to.max = shrink ? Math.max(fromMax, toMax) : Math.min(fromMax, toMax);
     } else if (isFromMaxNumber) {
-      to.max = from.max;
+      to.max = fromMax;
     }
 
     return to;

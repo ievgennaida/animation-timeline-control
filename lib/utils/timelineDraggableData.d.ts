@@ -6,13 +6,27 @@ export interface TimelineDraggableData extends TimelineValues {
     /**
      * Drag initial click target.
      */
-    target: TimelineElement;
+    target: TimelineElementDragState;
     /**
      * Elements to be dragged.
      */
-    elements: Array<TimelineElement>;
+    elements: Array<TimelineElementDragState>;
     /**
      * Dragging type.
      */
     type: TimelineElementType;
+    /**
+     * Prev value.
+     */
+    prevVal: number;
+}
+export interface TimelineElementDragState extends TimelineElement {
+    /**
+     * Drag started value.
+     */
+    startedVal: number;
+    /**
+     * Value before change.
+     */
+    prevVal: number;
 }
