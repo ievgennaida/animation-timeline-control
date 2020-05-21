@@ -5,7 +5,7 @@
     "lib": ["es2015", "dom"],
     "target": "es5",
     "allowJs": false,
-    "sourceMap": true,
+    "inlineSourceMap": true,
     "strict": false,
     "declaration": false
   },
