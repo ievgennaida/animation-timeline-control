@@ -98,7 +98,7 @@ Read only and defined by the interfaces:
 | dragFinished              | emitted when drag finished. args type: TimelineDragEvent     	|
 | KeyframeChanged              | emitted when drag finished. args type: TimelineKeyframeChangedEvent   |
 
-Each event can be prevented by calling args.preventDefault()
+Events can be prevented by calling args.preventDefault()
 
 Example of the type strict event subscription: 
 ```JavaScript
