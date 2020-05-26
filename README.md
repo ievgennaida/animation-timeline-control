@@ -16,15 +16,13 @@ Features:
 
 ![gif preview](demo/timeline-demo.gif)
 
-
-
 ![gif preview](demo/zoom-scale.gif)
 
 ## Live Demo
 
-* [Live demo](https://ievgennaida.github.io/animation-timeline-control/)
-* [Run unittests](https://ievgennaida.github.io/animation-timeline-control/tests/unittests)
- 
+- [Live demo](https://ievgennaida.github.io/animation-timeline-control/)
+- [Run unittests](https://ievgennaida.github.io/animation-timeline-control/tests/unittests)
+
 ## Configuration
 
 ## Usage
@@ -79,53 +77,81 @@ See the [live demo](https://ievgennaida.github.io/animation-timeline-control/)
 
 ## Model
 
-Read only and defined by the interfaces: 
+Read only and defined by the interfaces:
 
-* TimelineModel
-* TimelineRow
-* TimelineKeyframe
+- TimelineModel
+- TimelineRow
+- TimelineKeyframe
 
 ### Events
 
-
-| Event name    | description                   |
-| ------------- | ----------------------------- |
-| timeChanged   			| time changed. source can be used to check event sender. args type: TimelineTimeChangedEvent	|
-| selected     				| keyframe is selected. args type: TimelineSelectedEvent							|
-| scroll     				  | On scroll. args type: TimelineScrollEvent |
-| dragStarted               | emitted on drag started. args type: TimelineDragEvent        |
-| drag                      | emitted when dragging. args type: TimelineDragEvent   	|
-| dragFinished              | emitted when drag finished. args type: TimelineDragEvent     	|
-| KeyframeChanged              | emitted when drag finished. args type: TimelineKeyframeChangedEvent   |
+| Event name      | description                                                                                 |
+| --------------- | ------------------------------------------------------------------------------------------- |
+| timeChanged     | time changed. source can be used to check event sender. args type: TimelineTimeChangedEvent |
+| selected        | keyframe is selected. args type: TimelineSelectedEvent                                      |
+| scroll          | On scroll. args type: TimelineScrollEvent                                                   |
+| dragStarted     | emitted on drag started. args type: TimelineDragEvent                                       |
+| drag            | emitted when dragging. args type: TimelineDragEvent                                         |
+| dragFinished    | emitted when drag finished. args type: TimelineDragEvent                                    |
+| KeyframeChanged | emitted when drag finished. args type: TimelineKeyframeChangedEvent                         |
 
 Events can be prevented by calling args.preventDefault()
 
-Example of the type strict event subscription: 
-```JavaScript
-this.timeline.onDragStarted((args:TimelineDragEvent) => {
+Example of the type strict event subscription:
+
+```TypeScript
+this.timeline.onDragStarted((args: TimelineDragEvent) => {
     if (args) {
     }
 });
 ```
 
+### Timeline units and position
+
+Time indicator position can be changed by a method call:
+
+```JavaScript
+timeline.setTime(1000);
+```
+
+Current time can be fetched by a method call or by an event:
+```TypeScript
+let units = timeline.getTime();
+
+timeline.onTimeChanged((event: TimelineTimeChangedEvent) => {
+  if(event.source !== TimelineEventSource.User) {
+    units = event.var;
+  }
+});
+```
+
+Displayed units text can be changed by overriding a method:
+
+```JavaScript
+timeline._formatUnitsText = (val)=> { return val + ' ms'; };
+```
+
 ### Styling
 
-Styles are applied by a global settings and can be overridden by a row or keyframe style. 
+Styles are applied by a global settings and can be overridden by a row or keyframe style.
 
 ## Changes
 
 ## > 2.0
+
 - Migrated to TypeScript, Webpack, Babel.
 - API is refined.
 
 ## < 2.0
 
-Vanilla js implementation. 
+Vanilla js implementation.
 
-## Development 
-### Build 
+## Development
+
+### Build
 
 run once to install development references:
+
 ```bash
   npm install
 ```
@@ -139,19 +165,23 @@ to pack JavaScript as a bundle:
 ### Debug
 
 VSCode can be used to debug the component with the next extensions:
-* Debugger for Chrome 
-* Live HTML PReviewer.
 
-Also embedded chrome debugger can be used when demo page is running. 
+- Debugger for Chrome
+- Live HTML PReviewer.
+
+Also embedded chrome debugger can be used when demo page is running.
 
 ### Build Tests
-To build TypeScript unittests command should be executed: 
+
+To build TypeScript unittests command should be executed:
+
 ```bash
   npm run build-tests
 ```
 
 ### Run Tests
-Tests execution can be started by opening tests/unittests.html. 
+
+Tests execution can be started by opening tests/unittests.html.
 Mocha test libs are hosted on the internet, so connection is required.
 
 ## License

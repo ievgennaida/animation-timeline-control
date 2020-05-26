@@ -1914,7 +1914,13 @@ export class Timeline extends TimelineEventsEmitter {
       return false;
     }
 
-    return this._setTimeInternal(val, TimelineEventSource.SetTimeMethod);
+    const isChanged = this._setTimeInternal(val, TimelineEventSource.SetTimeMethod);
+    if (isChanged) {
+      this.rescale();
+      this.redraw();
+    }
+
+    return isChanged;
   }
 
   public getOptions(): TimelineOptions {
