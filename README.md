@@ -1,6 +1,7 @@
 # animation-timeline-control
 
-[![NPM](https://nodei.co/npm/animation-timeline-js.png)](https://nodei.co/npm/animation-timeline-js/)
+[npm](https://www.npmjs.com/package/animation-timeline-js)
+
 
 Animation timeline is a TypeScript, no-dependency, canvas component designed to visualize and manipulate animation keyframes.
 
