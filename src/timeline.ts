@@ -79,7 +79,7 @@ export class Timeline extends TimelineEventsEmitter {
   /**
    * scroll finished timer reference.
    */
-  _scrollFinishedTimerRef?: number = null;
+  _scrollFinishedTimerRef?: number | null = null;
   _val = 0;
   _pixelRatio = 1;
   _currentZoom = 0;
@@ -267,7 +267,7 @@ export class Timeline extends TimelineEventsEmitter {
   _handleScrollEvent = (args: MouseEvent): void => {
     this._clearScrollFinishedTimer();
     // Set a timeout to run event 'scrolling end'.
-    this._scrollFinishedTimerRef = setTimeout(() => {
+    this._scrollFinishedTimerRef = window.setTimeout(() => {
       if (!this._isPanStarted) {
         if (this._scrollFinishedTimerRef) {
           clearTimeout(this._scrollFinishedTimerRef);
@@ -1033,7 +1033,7 @@ export class Timeline extends TimelineEventsEmitter {
     if (this._consts.autoPanSpeed) {
       if (!this._intervalRef) {
         // Repeat move calls to
-        this._intervalRef = setInterval(() => {
+        this._intervalRef = window.setInterval(() => {
           this._handleMouseMoveEvent(null);
         }, this._consts.autoPanSpeed);
       }

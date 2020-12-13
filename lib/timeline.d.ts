@@ -66,7 +66,7 @@ export declare class Timeline extends TimelineEventsEmitter {
     /**
      * scroll finished timer reference.
      */
-    _scrollFinishedTimerRef?: number;
+    _scrollFinishedTimerRef?: number | null;
     _val: number;
     _pixelRatio: number;
     _currentZoom: number;
