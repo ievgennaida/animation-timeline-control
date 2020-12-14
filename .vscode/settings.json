@@ -23,7 +23,8 @@
     "sourcemap",
     "timechanged",
     "tslib",
-    "unittests"
+    "unittests",
+    "unminimized"
   ],
   "files.exclude": {
     "**/.git": true, // this is a default value
