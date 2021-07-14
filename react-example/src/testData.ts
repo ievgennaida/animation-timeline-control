@@ -110,7 +110,7 @@ export const rows = [
         }, {}, {
             title: 'Max Value',
             max: 4000,
-            keyframes: [,
+            keyframes: [
                 {
                     width: 4,
                     height: 20,

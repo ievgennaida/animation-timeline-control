@@ -1,19 +1,17 @@
-import React, {LegacyRef, useRef, useState} from 'react';
-import './style.css';
-import {Timeline, TimelineInteractionMode, TimelineKeyframeShape, TimelineRow} from '../../../lib/animation-timeline';
+import React from 'react';
+import {Timeline, TimelineInteractionMode, TimelineRow} from '../../../lib/animation-timeline';
 
 type ContainerProps = {
     rows: TimelineRow[];
     outlineContainer: HTMLDivElement | undefined;
     currentTime: HTMLDivElement | undefined;
     outlineScrollContainer: HTMLDivElement | undefined;
-    selectModeButton: HTMLButtonElement | undefined;
-    zoomModeButton: HTMLButtonElement | undefined;
-    timelineContainer: HTMLDivElement | undefined;
+    selectModeButton: HTMLDivElement | undefined;
+    zoomModeButton: HTMLDivElement | undefined;
+    panModeButton: HTMLDivElement | undefined;
 }
 
 function ReactTimelineControl(props: ContainerProps) {
-
     const {
         rows,
         outlineContainer,
@@ -21,9 +19,9 @@ function ReactTimelineControl(props: ContainerProps) {
         outlineScrollContainer,
         selectModeButton,
         zoomModeButton,
-        timelineContainer
+        panModeButton
     } = props;
-    var timeline = new Timeline();
+    const timeline = new Timeline();
     // @ts-ignore
     timeline.initialize({id: 'timeline', headerHeight: 45})
     timeline.setModel({rows});
@@ -44,14 +42,11 @@ function ReactTimelineControl(props: ContainerProps) {
         }
     }
 
-
     var logDraggingMessage = function (object: any, eventName: string) {
         if (object.elements) {
             logMessage('Keyframe value: ' + object.elements[0].val + '. Selected (' + object.elements.length + ').' + eventName);
         }
     }
-
-
     timeline.onTimeChanged(function (event) {
         if (currentTime) {
             currentTime.innerHTML = event.val + "ms source:" + event.source;
@@ -81,7 +76,7 @@ function ReactTimelineControl(props: ContainerProps) {
         logMessage('doubleclick:' + obj.val + '.  elements:' + type, 2);
     });
     timeline.onScroll(function (obj) {
-        var options = timeline.getOptions();
+        const options = timeline.getOptions();
         if (options) {
             if (outlineContainer) {
                 outlineContainer.style.minHeight = obj.scrollHeight + 'px';
@@ -94,13 +89,14 @@ function ReactTimelineControl(props: ContainerProps) {
     });
 
     /* generate outline left nodes */
-    var options = timeline.getOptions();
-    var headerElement = document.getElementById('outline-header');
+    const options = timeline.getOptions();
+    const headerElement = document.getElementById('outline-header');
     if (headerElement && options && options.headerHeight) {
         headerElement.style.maxHeight = headerElement.style.minHeight = options.headerHeight + 'px';
     }
-    // headerElement.style.backgroundColor = options.headerFillColor;
-
+    if (headerElement && options && options.headerFillColor) {
+        headerElement.style.backgroundColor = options.headerFillColor;
+    }
     rows.forEach(function (obj, index) {
         var div = document.createElement('div');
         div.classList.add('outline-node');
@@ -143,15 +139,18 @@ function ReactTimelineControl(props: ContainerProps) {
     }
 
     if (outlineScrollContainer && outlineScrollContainer.onwheel) {
-        outlineScrollContainer.onwheel = outlineMouseWheel
-    }
-    if (zoomModeButton && zoomModeButton.onclick) {
-        zoomModeButton.onclick = zoomMode
-    }
-    if (selectModeButton && selectModeButton.onclick) {
-        selectModeButton.onclick = selectMode
-    }
+        outlineScrollContainer.addEventListener('wheel', outlineMouseWheel)
 
+    }
+    if (zoomModeButton) {
+        zoomModeButton.addEventListener('click', zoomMode)
+    }
+    if (selectModeButton) {
+        selectModeButton.addEventListener('click', selectMode)
+    }
+    if (panModeButton) {
+        panModeButton.addEventListener('click', panMode)
+    }
     return (
         <></>
     );

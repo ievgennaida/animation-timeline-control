@@ -1,4 +1,4 @@
-import React, {LegacyRef, useRef, useState} from 'react';
+import React, {useState} from 'react';
 import './style.css';
 import {TimelineRow} from '../../lib/animation-timeline';
 import ReactTimelineControl from './ReactTimelineControl/ReactTimelineControl';
@@ -10,11 +10,12 @@ type ContainerProps = {
 function ReactTimeline(props: ContainerProps) {
 
     const [outlineScrollContainer, setOutlineScrollContainer] = useState<HTMLDivElement | undefined>();
-    const [selectModeButton, setSelectModeButton] = useState<HTMLButtonElement | undefined>();
-    const [zoomModeButton, setZoomModeButton] = useState<HTMLButtonElement | undefined>();
+    const [selectModeButton, setSelectModeButton] = useState<HTMLDivElement | undefined>();
+    const [zoomModeButton, setZoomModeButton] = useState<HTMLDivElement | undefined>();
     const [timelineContainer, setTimelineContainer] = useState<HTMLDivElement | undefined>();
     const [currentTimeContainer, setCurrentTimeContainer] = useState<HTMLDivElement | undefined>();
     const [outlineContainer, setOutlineContainer] = useState<HTMLDivElement | undefined>();
+    const [panModeButton, setPanModeButton] = useState<HTMLDivElement | undefined>();
 
     return (
         <>
@@ -40,7 +41,10 @@ function ReactTimeline(props: ContainerProps) {
                         // @ts-ignore
                         timelineContainer={timelineContainer}
                         // @ts-ignore
-                        zoomModeButton={zoomModeButton}/>
+                        zoomModeButton={zoomModeButton}
+                        // @ts-ignore
+                        panModeButton={panModeButton}
+                    />
                     : null}
             <div className="app-container">
                 <main>
@@ -59,16 +63,21 @@ function ReactTimeline(props: ContainerProps) {
                     </div>
                 </main>
                 <div className="toolbar">
-                    <button className="button mat-icon material-icons mat-icon-no-color"
+                    <div className="button mat-icon material-icons mat-icon-no-color"
                         // @ts-ignore
-                            ref={setSelectModeButton}
-                    >tab_unselected
-                    </button>
-                    <button className="button mat-icon material-icons mat-icon-no-color"
+                         ref={setSelectModeButton}
+                    >select
+                    </div>
+                    <div className="button mat-icon material-icons mat-icon-no-color"
                         // @ts-ignore
-                            ref={setZoomModeButton}
-                    >search
-                    </button>
+                         ref={setPanModeButton}
+                    >pan
+                    </div>
+                    <div className="button mat-icon material-icons mat-icon-no-color"
+                        // @ts-ignore
+                         ref={setZoomModeButton}
+                    >zoom
+                    </div>
                     <div className="links">
                         <a href="./tests/unittests.html">UnitTests</a>
                         <a className="git-hub-link"
