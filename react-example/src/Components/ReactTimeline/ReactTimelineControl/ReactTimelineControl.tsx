@@ -140,9 +140,11 @@ function ReactTimelineControl() {
     ] as TimelineRow[];
 
     var timeline = new Timeline();
-    // @ts-ignore
-    timeline.initialize({id: 'timeline', headerHeight: 45})
-    timeline.setModel({rows});
+    // setTimeout(()=>{
+        // @ts-ignore
+        timeline.initialize({id: 'timeline', headerHeight: 45})
+        timeline.setModel({rows});
+    // },1000)
 
     // Select all elements on key down
     document.addEventListener('keydown', function (args) {
