@@ -8,7 +8,6 @@ type ContainerProps = {
 }
 
 function ReactTimeline(props: ContainerProps) {
-
     const [outlineScrollContainer, setOutlineScrollContainer] = useState<HTMLDivElement | undefined>();
     const [selectModeButton, setSelectModeButton] = useState<HTMLDivElement | undefined>();
     const [zoomModeButton, setZoomModeButton] = useState<HTMLDivElement | undefined>();
@@ -103,10 +102,8 @@ function ReactTimeline(props: ContainerProps) {
                         // @ts-ignore
                          ref={setTimelineContainer}>
                     </div>
-
                 </footer>
             </div>
-
         </>
     );
 }
