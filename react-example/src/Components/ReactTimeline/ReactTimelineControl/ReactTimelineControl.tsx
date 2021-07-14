@@ -1,150 +1,32 @@
-import React, {useState} from 'react';
+import React, {LegacyRef, useRef, useState} from 'react';
 import './style.css';
 import {Timeline, TimelineInteractionMode, TimelineKeyframeShape, TimelineRow} from '../../../lib/animation-timeline';
 
-// import * as Timeline from '../../../lib/timeline';
+type ContainerProps = {
+    rows: TimelineRow[];
+    outlineContainer: HTMLDivElement | undefined;
+    currentTime: HTMLDivElement | undefined;
+    outlineScrollContainer: HTMLDivElement | undefined;
+    selectModeButton: HTMLButtonElement | undefined;
+    zoomModeButton: HTMLButtonElement | undefined;
+    timelineContainer: HTMLDivElement | undefined;
+}
 
-function ReactTimelineControl() {
-    const outlineContainer = document.getElementById('outline-container');
+function ReactTimelineControl(props: ContainerProps) {
 
-    let rows = [
-        {
-            selected: false,
-            draggable: false,
-
-            keyframes: [
-                {
-                    val: 40,
-                    shape: "rhomb"
-                },
-                {
-                    shape: "rhomb",
-                    val: 3000,
-                    selected: false
-                }
-            ]
-        },
-        {
-            selected: false,
-            hidden: false,
-            keyframes: [
-                {
-                    cursor: "default",
-                    val: 2000,
-                },
-                {
-                    val: 2500
-                },
-                {
-                    val: 2600
-                }
-            ],
-        },
-        {
-            hidden: false,
-            keyframes: [
-                {
-                    val: 1000
-                },
-                {
-                    val: 1500
-                },
-                {
-                    val: 2000
-                }
-            ]
-        },
-        {
-            title: 'Groups (Limited)',
-            keyframes: [
-                {
-                    val: 40,
-                    max: 850,
-                    group: 'a'
-                },
-                {
-                    val: 800,
-                    max: 900,
-                    group: 'a'
-                },
-                {
-                    min: 1000,
-                    max: 3400,
-                    val: 1900,
-                    group: 'b'
-                },
-                {
-                    val: 3000,
-                    max: 3500,
-                    group: 'b'
-                },
-                {
-                    min: 3500,
-                    val: 4000,
-                    group: 'c'
-                }
-            ]
-        },
-        {
-            keyframes: [
-                {
-                    val: 100
-                },
-                {
-                    val: 3410
-                },
-                {
-                    val: 2000
-                }
-            ]
-        },
-        {
-            title: 'Style Customized',
-            groupHeight: 20,
-            keyframesStyle: {
-                shape: "rect",
-                width: 5,
-                height: 20,
-            },
-            keyframes: [
-                {
-                    val: 90
-                },
-                {
-                    val: 3000
-                }
-            ]
-        }, {}, {
-            title: 'Max Value',
-            max: 4000,
-            keyframes: [,
-                {
-                    width: 4,
-                    height: 20,
-                    group: 'block',
-                    shape: "rect",
-                    fillColor: 'Red',
-                    strokeColor: 'Black',
-                    val: 4000,
-                    selectable: false,
-                    draggable: false
-                },
-                {
-                    val: 1500
-                },
-                {
-                    val: 2500
-                },
-            ]
-        }, {}, {}, {}, {}, {}, {}, {}
-    ] as TimelineRow[];
-
+    const {
+        rows,
+        outlineContainer,
+        currentTime,
+        outlineScrollContainer,
+        selectModeButton,
+        zoomModeButton,
+        timelineContainer
+    } = props;
     var timeline = new Timeline();
-    // setTimeout(()=>{
-        // @ts-ignore
-        timeline.initialize({id: 'timeline', headerHeight: 45})
-        timeline.setModel({rows});
-    // },1000)
+    // @ts-ignore
+    timeline.initialize({id: 'timeline', headerHeight: 45})
+    timeline.setModel({rows});
 
     // Select all elements on key down
     document.addEventListener('keydown', function (args) {
@@ -171,7 +53,6 @@ function ReactTimelineControl() {
 
 
     timeline.onTimeChanged(function (event) {
-        const currentTime = document.getElementById("currentTime");
         if (currentTime) {
             currentTime.innerHTML = event.val + "ms source:" + event.source;
         }
@@ -261,45 +142,18 @@ function ReactTimelineControl() {
         }
     }
 
+    if (outlineScrollContainer && outlineScrollContainer.onwheel) {
+        outlineScrollContainer.onwheel = outlineMouseWheel
+    }
+    if (zoomModeButton && zoomModeButton.onclick) {
+        zoomModeButton.onclick = zoomMode
+    }
+    if (selectModeButton && selectModeButton.onclick) {
+        selectModeButton.onclick = selectMode
+    }
+
     return (
-        <div className="app-container">
-
-            <main>
-                <aside>
-                </aside>
-                <div className="content">
-                    <div id="currentTime"></div>
-                    <div className="logs">
-                        <div className="output" id="output1"></div>
-                        <div className="output" id="output2"></div>
-                    </div>
-
-                </div>
-            </main>
-            <div className="toolbar">
-                <button className="button mat-icon material-icons mat-icon-no-color"
-                        onClick={selectMode}>tab_unselected
-                </button>
-                <button className="button mat-icon material-icons mat-icon-no-color" onClick={zoomMode}>search</button>
-                <div className="links">
-                    <a href="./tests/unittests.html">UnitTests</a>
-                    <a className="git-hub-link"
-                       href="https://github.com/ievgennaida/animation-timeline-control">GitHub</a>
-                </div>
-            </div>
-            <footer>
-                <div className="outline">
-                    <div className="outline-header" id="outline-header">
-                    </div>
-                    <div className="outline-scroll-container" id="outline-scroll-container"
-                         onWheel={outlineMouseWheel}>
-                        <div className="outline-items" id="outline-container">
-                        </div>
-                    </div>
-                </div>
-                <div id="timeline"></div>
-            </footer>
-        </div>
+        <></>
     );
 }
 
