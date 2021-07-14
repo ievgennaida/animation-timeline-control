@@ -33,7 +33,7 @@ function ReactTimelineControl(props: ContainerProps) {
             args.preventDefault();
         }
     });
-    var logMessage = function (message: string, log = 1) {
+    const logMessage = function (message: string, log = 1) {
         if (message) {
             let el = document.getElementById("output" + log);
             if (el) {
@@ -42,7 +42,7 @@ function ReactTimelineControl(props: ContainerProps) {
         }
     }
 
-    var logDraggingMessage = function (object: any, eventName: string) {
+    const logDraggingMessage = function (object: any, eventName: string) {
         if (object.elements) {
             logMessage('Keyframe value: ' + object.elements[0].val + '. Selected (' + object.elements.length + ').' + eventName);
         }
@@ -68,11 +68,11 @@ function ReactTimelineControl(props: ContainerProps) {
         logDraggingMessage(obj, 'dragfinished');
     });
     timeline.onMouseDown(function (obj) {
-        var type = (obj.target ? obj.target.type : '');
+        const type = (obj.target ? obj.target.type : '');
         logMessage('mousedown:' + obj.val + '.  elements:' + type, 2);
     });
     timeline.onDoubleClick(function (obj) {
-        var type = (obj.target ? obj.target.type : '');
+        const type = (obj.target ? obj.target.type : '');
         logMessage('doubleclick:' + obj.val + '.  elements:' + type, 2);
     });
     timeline.onScroll(function (obj) {
@@ -98,7 +98,7 @@ function ReactTimelineControl(props: ContainerProps) {
         headerElement.style.backgroundColor = options.headerFillColor;
     }
     rows.forEach(function (obj, index) {
-        var div = document.createElement('div');
+        const div = document.createElement('div');
         div.classList.add('outline-node');
         if (options && options.rowsStyle && options.rowsStyle.marginBottom) {
             div.style.maxHeight = div.style.minHeight = options.rowsStyle.height + 'px';
