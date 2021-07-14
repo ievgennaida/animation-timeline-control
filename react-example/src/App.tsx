@@ -1,11 +1,11 @@
 import React from 'react';
 import './App.css';
-import ReactTimelineControl from './Components/ReactTimelineControl';
+import ReactTimeline from './Components/ReactTimeline/ReactTimeline';
 
 function App() {
   return (
     <div className="App">
-      <ReactTimelineControl></ReactTimelineControl>
+      <ReactTimeline></ReactTimeline>
     </div>
   );
 }

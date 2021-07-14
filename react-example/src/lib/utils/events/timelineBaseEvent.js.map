@@ -1,0 +1,1 @@
+{"version":3,"file":"timelineBaseEvent.js","sourceRoot":"","sources":["../../../src/utils/events/timelineBaseEvent.ts"],"names":[],"mappings":";;;AAAA;IAAA;QACU,eAAU,GAAG,KAAK,CAAC;IAW7B,CAAC;IAVC;;OAEG;IACH,0CAAc,GAAd;QACE,IAAI,CAAC,UAAU,GAAG,IAAI,CAAC;IACzB,CAAC;IAED,uCAAW,GAAX;QACE,OAAO,IAAI,CAAC,UAAU,CAAC;IACzB,CAAC;IACH,wBAAC;AAAD,CAAC,AAZD,IAYC;AAZY,8CAAiB"}

@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import ReactTimelineControl from './ReactTimelineControl';
+import ReactTimeline from './ReactTimeline';
 
 test('renders react timeline control component', () => {
-  render(<ReactTimelineControl />);
+  render(<ReactTimeline />);
 });
