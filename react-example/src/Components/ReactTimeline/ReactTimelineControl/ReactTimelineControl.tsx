@@ -104,7 +104,7 @@ function ReactTimelineControl(props: ContainerProps) {
             div.style.maxHeight = div.style.minHeight = options.rowsStyle.height + 'px';
             div.style.marginBottom = options.rowsStyle.marginBottom + 'px';
         }
-        if (obj && obj.title)
+        if (obj)
             div.innerText = obj.title || "Track " + index;
         if (outlineContainer) {
             outlineContainer.appendChild(div);

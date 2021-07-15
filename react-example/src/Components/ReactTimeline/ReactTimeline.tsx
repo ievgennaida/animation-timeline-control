@@ -62,21 +62,21 @@ function ReactTimeline(props: ContainerProps) {
                     </div>
                 </main>
                 <div className="toolbar">
-                    <div className="button mat-icon material-icons mat-icon-no-color"
+                    <button className="button mat-icon material-icons mat-icon-no-color"
                         // @ts-ignore
                          ref={setSelectModeButton}
-                    >select
-                    </div>
-                    <div className="button mat-icon material-icons mat-icon-no-color"
+                    >tab_unselected
+                    </button>
+                    <button className="button mat-icon material-icons mat-icon-no-color"
                         // @ts-ignore
                          ref={setPanModeButton}
-                    >pan
-                    </div>
-                    <div className="button mat-icon material-icons mat-icon-no-color"
+                    >pan_tool
+                    </button>
+                    <button className="button mat-icon material-icons mat-icon-no-color"
                         // @ts-ignore
                          ref={setZoomModeButton}
-                    >zoom
-                    </div>
+                    >search
+                    </button>
                     <div className="links">
                         <a href="./tests/unittests.html">UnitTests</a>
                         <a className="git-hub-link"
