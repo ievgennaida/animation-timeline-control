@@ -1,7 +1,7 @@
 import React, {useState} from 'react';
 import './style.css';
-import {TimelineRow} from '../../lib/animation-timeline';
 import ReactTimelineControl from './ReactTimelineControl/ReactTimelineControl';
+import {TimelineRow} from 'animation-timeline-js';
 
 type ContainerProps = {
     rows: TimelineRow[];
@@ -64,17 +64,17 @@ function ReactTimeline(props: ContainerProps) {
                 <div className="toolbar">
                     <button className="button mat-icon material-icons mat-icon-no-color"
                         // @ts-ignore
-                         ref={setSelectModeButton}
+                            ref={setSelectModeButton}
                     >tab_unselected
                     </button>
                     <button className="button mat-icon material-icons mat-icon-no-color"
                         // @ts-ignore
-                         ref={setPanModeButton}
+                            ref={setPanModeButton}
                     >pan_tool
                     </button>
                     <button className="button mat-icon material-icons mat-icon-no-color"
                         // @ts-ignore
-                         ref={setZoomModeButton}
+                            ref={setZoomModeButton}
                     >search
                     </button>
                     <div className="links">

@@ -1,5 +1,5 @@
 import React from 'react';
-import {Timeline, TimelineInteractionMode, TimelineRow} from '../../../lib/animation-timeline';
+import {Timeline, TimelineInteractionMode, TimelineRow} from 'animation-timeline-js';
 
 type ContainerProps = {
     rows: TimelineRow[];
@@ -104,8 +104,10 @@ function ReactTimelineControl(props: ContainerProps) {
             div.style.maxHeight = div.style.minHeight = options.rowsStyle.height + 'px';
             div.style.marginBottom = options.rowsStyle.marginBottom + 'px';
         }
-        if (obj)
+        if (obj) {
+            // @ts-ignore
             div.innerText = obj.title || "Track " + index;
+        }
         if (outlineContainer) {
             outlineContainer.appendChild(div);
         }
