@@ -69,6 +69,9 @@ const options = {
 const timeline = new Timeline(options, model);
 ```
 
+### React
+Please see react-demo for a basic implementation example.
+
 ### Outline list
 
 Outline list\tree can implemented as a separate HTML component and synchronized with the timeline.
