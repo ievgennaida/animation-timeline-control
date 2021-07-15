@@ -1,4 +1,4 @@
-import {TimelineRow} from "./lib/timelineRow";
+import {TimelineRow} from 'animation-timeline-js'
 
 export const rows = [
     {
