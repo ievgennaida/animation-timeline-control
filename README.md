@@ -69,6 +69,44 @@ const options = {
 const timeline = new Timeline(options, model);
 ```
 
+### React
+
+```TypeScript
+import React, {useEffect} from 'react';
+import {
+    Timeline,
+    TimelineModel,
+    TimelineOptions,
+    TimelineRow,
+    TimelineRowStyle
+} from 'animation-timeline-js';
+
+function ReactTimeline(props: any) {
+    useEffect(() => {
+        const model = {rows: [] as Array<TimelineRow>} as TimelineModel;
+        const options = {
+            id: "timeline",
+            rowsStyle: {
+                height: 35,
+                marginBottom: 2,
+            } as TimelineRowStyle,
+        } as TimelineOptions;
+        const timeline = new Timeline(options, model);
+    }, [])
+    return (
+        <>
+            <footer>
+                <div id={"timeline"}>
+                </div>
+            </footer>
+        </>
+    );
+}
+
+export default ReactTimeline;
+```
+
+
 ### Outline list
 
 Outline list\tree can implemented as a separate HTML component and synchronized with the timeline.
