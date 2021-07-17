@@ -106,6 +106,9 @@ function ReactTimeline(props: any) {
 export default ReactTimeline;
 ```
 
+For a full working example visit the following
+[Animation Timeline Control React Example](https://github.com/crushingCodes/animation-timeline-control-react-example)
+
 
 ### Outline list
 
