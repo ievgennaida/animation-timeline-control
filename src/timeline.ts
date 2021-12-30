@@ -1,34 +1,52 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { TimelineEventsEmitter } from './timelineEventsEmitter';
-import { TimelineUtils } from './utils/timelineUtils';
-import { TimelineOptions } from './settings/timelineOptions';
-import { TimelineConsts } from './settings/timelineConsts';
-import { TimelineKeyframe } from './timelineKeyframe';
+// bundle entry point
+
 import { TimelineModel } from './timelineModel';
-import { TimelineElement } from './utils/timelineElement';
 import { TimelineRow } from './timelineRow';
-import { TimelineCursorType } from './enums/timelineCursorType';
-import { TimelineKeyframeShape } from './enums/timelineKeyframeShape';
+import { TimelineKeyframe } from './timelineKeyframe';
+import { TimelineEventsEmitter } from './timelineEventsEmitter';
+import { TimelineConsts } from './settings/timelineConsts';
+import { TimelineRanged } from './timelineRanged';
+
+// @public styles
+import { TimelineOptions } from './settings/timelineOptions';
+
 import { TimelineStyleUtils } from './utils/timelineStyleUtils';
-import { TimelineElementType } from './enums/timelineElementType';
-import { TimelineEvents } from './enums/timelineEvents';
+import { TimelineUtils } from './utils/timelineUtils';
+import { TimelineElement } from './utils/timelineElement';
+
+// @private helper containers.
 import { TimelineCutBoundsRectResults } from './utils/timelineCutBoundsRectResults';
-import { TimelineCapShape } from './enums/timelineCapShape';
-import { TimelineCalculatedRow, TimelineModelCalcResults, TimelineCalculatedGroup, TimelineCalculatedKeyframe } from './utils/timelineModelCalcResults';
-import { TimelineInteractionMode } from './enums/timelineInteractionMode';
-import { TimelineScrollEvent } from './utils/events/timelineScrollEvent';
+import { TimelineSelectionResults } from './utils/timelineSelectionResults';
+import { TimelineMouseData } from './utils/timelineMouseData';
+import { TimelineElementDragState } from './utils/TimelineElementDragState';
+import { TimelineDraggableData } from './utils/timelineDraggableData';
+
+// @private virtual model
+import { TimelineModelCalcResults } from './utils/timelineModelCalcResults';
+import { TimelineCalculatedRow } from './utils/timelineCalculatedRow';
+import { TimelineCalculatedGroup } from './utils/timelineCalculatedGroup';
+import { TimelineCalculatedKeyframe } from './utils/timelineCalculatedKeyframe';
+
+// @public events
+import { TimelineKeyframeChangedEvent } from './utils/events/timelineKeyframeChangedEvent';
+import { TimelineTimeChangedEvent } from './utils/events/timelineTimeChangedEvent';
 import { TimelineSelectedEvent } from './utils/events/timelineSelectedEvent';
-import { TimelineDraggableData, TimelineElementDragState } from './utils/timelineDraggableData';
+import { TimelineScrollEvent } from './utils/events/timelineScrollEvent';
 import { TimelineClickEvent } from './utils/events/timelineClickEvent';
 import { TimelineDragEvent } from './utils/events/timelineDragEvent';
-import { defaultTimelineConsts, defaultTimelineOptions } from './settings/defaults';
+
+// @public enums
+import { TimelineKeyframeShape } from './enums/timelineKeyframeShape';
+import { TimelineInteractionMode } from './enums/timelineInteractionMode';
+import { TimelineElementType } from './enums/timelineElementType';
+import { TimelineCursorType } from './enums/timelineCursorType';
+import { TimelineCapShape } from './enums/timelineCapShape';
 import { TimelineEventSource } from './enums/timelineEventSource';
-import { TimelineTimeChangedEvent } from './utils/events/timelineTimeChangedEvent';
 import { TimelineSelectionMode } from './enums/timelineSelectionMode';
-import { TimelineSelectionResults } from './utils/timelineSelectionResults';
-import { TimelineRanged } from './timelineRanged';
-import { TimelineMouseData } from './utils/timelineMouseData';
-import { TimelineKeyframeChangedEvent } from './utils/events/timelineKeyframeChangedEvent';
+import { TimelineEvents } from './enums/timelineEvents';
+// @private defaults are exposed:
+import { defaultTimelineOptions, defaultTimelineConsts } from './settings/defaults';
 
 export class Timeline extends TimelineEventsEmitter {
   /**
@@ -1615,13 +1633,12 @@ export class Timeline extends TimelineEventsEmitter {
     }
     if (height > 0) {
       if (!isNaN(val)) {
-        const toReturn = {
+        return {
           x: Math.floor(this._toScreenPx(val)), // local
           y: Math.floor(y),
           height: height,
           width: width,
         } as DOMRect;
-        return toReturn;
       }
     }
 
@@ -1663,8 +1680,14 @@ export class Timeline extends TimelineEventsEmitter {
 
         const keyframeColor = keyframe.selected ? TimelineStyleUtils.keyframeSelectedFillColor(keyframe, row, this._options) : TimelineStyleUtils.keyframeFillColor(keyframe, row, this._options);
         const border = TimelineStyleUtils.keyframeStrokeThickness(keyframe, row, this._options);
-        const strokeColor =
-          border > 0 ? (keyframe.selected ? TimelineStyleUtils.keyframeSelectedStrokeColor(keyframe, row, this._options) : TimelineStyleUtils.keyframeStrokeColor(keyframe, row, this._options)) : '';
+        let strokeColor = '';
+        if (border > 0) {
+          if (keyframe.selected) {
+            strokeColor = TimelineStyleUtils.keyframeSelectedStrokeColor(keyframe, row, this._options);
+          } else {
+            strokeColor = TimelineStyleUtils.keyframeStrokeColor(keyframe, row, this._options);
+          }
+        }
 
         if (shape == TimelineKeyframeShape.Rhomb) {
           this._ctx.beginPath();
@@ -1707,7 +1730,6 @@ export class Timeline extends TimelineEventsEmitter {
 
         this._ctx.restore();
       }
-      return;
     });
   }
 
@@ -2130,8 +2152,7 @@ export class Timeline extends TimelineEventsEmitter {
       }
       return true;
     });
-
-    const sorted = filteredElements.sort((a, b): number => {
+    const sortDraggable = (a: TimelineElement, b: TimelineElement): number => {
       let prioA = getPriority(a.type);
       let prioB = getPriority(b.type);
       if (prioA === prioB) {
@@ -2149,7 +2170,8 @@ export class Timeline extends TimelineEventsEmitter {
       }
 
       return prioA < prioB ? 1 : -1;
-    });
+    };
+    const sorted = filteredElements.sort(sortDraggable);
     if (sorted.length > 0) {
       return sorted[sorted.length - 1];
     }
@@ -2233,7 +2255,6 @@ export class Timeline extends TimelineEventsEmitter {
             } as TimelineElement);
           }
         }
-        return;
       });
     }
     return toReturn;
@@ -2242,11 +2263,11 @@ export class Timeline extends TimelineEventsEmitter {
   /**
    * Merge options with the defaults.
    */
-  _mergeOptions(from: TimelineOptions): TimelineOptions {
-    from = from || ({} as TimelineOptions);
+  _mergeOptions(fromArg: TimelineOptions): TimelineOptions {
+    fromArg = fromArg || ({} as TimelineOptions);
     // Apply incoming options to default. (override default)
     // Deep clone default options:
-    const to = JSON.parse(JSON.stringify(defaultTimelineOptions));
+    const toArg = JSON.parse(JSON.stringify(defaultTimelineOptions));
     // Merge options with the default.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const mergeOptionsDeep = (to: any, from: any): void => {
@@ -2271,8 +2292,8 @@ export class Timeline extends TimelineEventsEmitter {
       }
     };
 
-    mergeOptionsDeep(to, from);
-    return to;
+    mergeOptionsDeep(toArg, fromArg);
+    return toArg;
   }
   /**
    * Subscribe on time changed.

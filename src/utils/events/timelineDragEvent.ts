@@ -1,6 +1,6 @@
 import { TimelineValues } from '../timelineValues';
 import { TimelineBaseEvent } from './timelineBaseEvent';
-import { TimelineElementDragState } from '../timelineDraggableData';
+import { TimelineElementDragState } from '../timelineElementDragState';
 
 export class TimelineDragEvent extends TimelineBaseEvent implements TimelineValues {
   args: MouseEvent;

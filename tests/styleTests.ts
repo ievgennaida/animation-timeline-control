@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { TimelineStyleUtils, TimelineKeyframeShape, TimelineOptions, TimelineRowStyle, TimelineKeyframeStyle } from './../lib/animation-timeline';
+import { TimelineStyleUtils, TimelineKeyframeShape, TimelineOptions, TimelineRowStyle, TimelineKeyframeStyle } from '../lib/animation-timeline';
 
 describe('TimelineStyleUtils', function () {
   describe('Draggable', function () {

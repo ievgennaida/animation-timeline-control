@@ -7,6 +7,7 @@
     "browserslist",
     "consts",
     "corejs",
+    "deepmerge",
     "devtool",
     "doubleclick",
     "downlevel",

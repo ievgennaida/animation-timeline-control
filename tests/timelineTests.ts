@@ -11,7 +11,7 @@ import {
   TimelineRowStyle,
   TimelineElementDragState,
   TimelineKeyframeStyle,
-} from './../lib/animation-timeline';
+} from '../lib/animation-timeline';
 
 describe('Timeline', function () {
   describe('_findDraggable', function () {

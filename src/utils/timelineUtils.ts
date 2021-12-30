@@ -98,7 +98,7 @@ export class TimelineUtils {
       to.min = fromMin;
     }
 
-    const fromMax = Math.min(from.getMax && from.getMax ? from.getMax() : from.max, from.max);
+    const fromMax = Math.min(from.getMax ? from.getMax() : from.max, from.max);
     const toMax = Math.min(to.getMax ? to.getMax() : to.max, to.max);
     const isFromMaxNumber = TimelineUtils.isNumber(fromMax);
     const isToMaxNumber = TimelineUtils.isNumber(toMax);

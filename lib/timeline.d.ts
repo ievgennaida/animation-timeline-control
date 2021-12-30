@@ -1,24 +1,27 @@
-import { TimelineEventsEmitter } from './timelineEventsEmitter';
-import { TimelineOptions } from './settings/timelineOptions';
-import { TimelineConsts } from './settings/timelineConsts';
-import { TimelineKeyframe } from './timelineKeyframe';
 import { TimelineModel } from './timelineModel';
-import { TimelineElement } from './utils/timelineElement';
 import { TimelineRow } from './timelineRow';
+import { TimelineKeyframe } from './timelineKeyframe';
+import { TimelineEventsEmitter } from './timelineEventsEmitter';
+import { TimelineConsts } from './settings/timelineConsts';
+import { TimelineOptions } from './settings/timelineOptions';
+import { TimelineElement } from './utils/timelineElement';
 import { TimelineCutBoundsRectResults } from './utils/timelineCutBoundsRectResults';
-import { TimelineCalculatedRow, TimelineModelCalcResults, TimelineCalculatedKeyframe } from './utils/timelineModelCalcResults';
-import { TimelineInteractionMode } from './enums/timelineInteractionMode';
-import { TimelineScrollEvent } from './utils/events/timelineScrollEvent';
-import { TimelineSelectedEvent } from './utils/events/timelineSelectedEvent';
-import { TimelineDraggableData, TimelineElementDragState } from './utils/timelineDraggableData';
-import { TimelineClickEvent } from './utils/events/timelineClickEvent';
-import { TimelineDragEvent } from './utils/events/timelineDragEvent';
-import { TimelineEventSource } from './enums/timelineEventSource';
-import { TimelineTimeChangedEvent } from './utils/events/timelineTimeChangedEvent';
-import { TimelineSelectionMode } from './enums/timelineSelectionMode';
 import { TimelineSelectionResults } from './utils/timelineSelectionResults';
 import { TimelineMouseData } from './utils/timelineMouseData';
+import { TimelineElementDragState } from './utils/TimelineElementDragState';
+import { TimelineDraggableData } from './utils/timelineDraggableData';
+import { TimelineModelCalcResults } from './utils/timelineModelCalcResults';
+import { TimelineCalculatedRow } from './utils/timelineCalculatedRow';
+import { TimelineCalculatedKeyframe } from './utils/timelineCalculatedKeyframe';
 import { TimelineKeyframeChangedEvent } from './utils/events/timelineKeyframeChangedEvent';
+import { TimelineTimeChangedEvent } from './utils/events/timelineTimeChangedEvent';
+import { TimelineSelectedEvent } from './utils/events/timelineSelectedEvent';
+import { TimelineScrollEvent } from './utils/events/timelineScrollEvent';
+import { TimelineClickEvent } from './utils/events/timelineClickEvent';
+import { TimelineDragEvent } from './utils/events/timelineDragEvent';
+import { TimelineInteractionMode } from './enums/timelineInteractionMode';
+import { TimelineEventSource } from './enums/timelineEventSource';
+import { TimelineSelectionMode } from './enums/timelineSelectionMode';
 export declare class Timeline extends TimelineEventsEmitter {
     /**
      * component container.
@@ -353,7 +356,7 @@ export declare class Timeline extends TimelineEventsEmitter {
     /**
      * Merge options with the defaults.
      */
-    _mergeOptions(from: TimelineOptions): TimelineOptions;
+    _mergeOptions(fromArg: TimelineOptions): TimelineOptions;
     /**
      * Subscribe on time changed.
      */

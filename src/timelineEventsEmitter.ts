@@ -1,13 +1,14 @@
+/* eslint-disable  @typescript-eslint/no-explicit-any */
 interface Event {
   topic: string;
-  callback: Function;
+  callback: (args: any) => void;
 }
 
 export class TimelineEventsEmitter {
   protected _subscriptions: Array<Event> = [];
 
   // on event.
-  on(topic: string, callback: Function): void {
+  on(topic: string, callback: (args: any) => void): void {
     if (!callback) {
       return;
     }
@@ -20,7 +21,7 @@ export class TimelineEventsEmitter {
   /**
    * Remove an event from the subscriptions list.
    */
-  off(topic: string, callback: Function): void {
+  off(topic: string, callback: (args: any) => void): void {
     this._subscriptions = this._subscriptions.filter((event) => {
       return event && event.callback != callback && event.topic != topic;
     });

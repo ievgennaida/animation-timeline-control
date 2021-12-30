@@ -1,6 +1,6 @@
-import { TimelineElement } from './timelineElement';
 import { TimelineElementType } from '../enums/timelineElementType';
 import { TimelineValues } from './timelineValues';
+import { TimelineElementDragState } from './timelineElementDragState';
 export interface TimelineDraggableData extends TimelineValues {
     changed: boolean;
     /**
@@ -17,16 +17,6 @@ export interface TimelineDraggableData extends TimelineValues {
     type: TimelineElementType;
     /**
      * Prev value.
-     */
-    prevVal: number;
-}
-export interface TimelineElementDragState extends TimelineElement {
-    /**
-     * Drag started value.
-     */
-    startedVal: number;
-    /**
-     * Value before change.
      */
     prevVal: number;
 }
