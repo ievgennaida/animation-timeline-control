@@ -1,0 +1,32 @@
+{
+  "version": "0.1",
+  "words": [
+    "NESW",
+    "NWSE",
+    "Unminified",
+    "Unsubsribe",
+    "browserslist",
+    "consts",
+    "corejs",
+    "deepmerge",
+    "devtool",
+    "doubleclick",
+    "downlevel",
+    "dragfinished",
+    "dragstarted",
+    "esbenp",
+    "esnext",
+    "keyframes",
+    "khtml",
+    "minmax",
+    "pixelated",
+    "prio",
+    "scrollbar",
+    "scrollbars",
+    "sourcemap",
+    "timechanged",
+    "tslib",
+    "unittests",
+    "unminimized"
+  ]
+}

@@ -1,34 +1,6 @@
 {
-  "cSpell.words": [
-    "NESW",
-    "NWSE",
-    "Unminified",
-    "Unsubsribe",
-    "browserslist",
-    "consts",
-    "corejs",
-    "deepmerge",
-    "devtool",
-    "doubleclick",
-    "downlevel",
-    "dragfinished",
-    "dragstarted",
-    "esnext",
-    "keyframes",
-    "khtml",
-    "minmax",
-    "pixelated",
-    "prio",
-    "scrollbar",
-    "scrollbars",
-    "sourcemap",
-    "timechanged",
-    "tslib",
-    "unittests",
-    "unminimized"
-  ],
   "files.exclude": {
     "**/.git": true, // this is a default value
-    "**/.DS_Store": true, // this is a default value
+    "**/.DS_Store": true // this is a default value
   }
 }
