@@ -2,7 +2,6 @@
 
 [npm](https://www.npmjs.com/package/animation-timeline-js)
 
-
 Animation timeline is a TypeScript, no-dependency, canvas component designed to visualize and manipulate animation keyframes.
 
 Features:
@@ -116,6 +115,7 @@ timeline.setTime(1000);
 ```
 
 Current time can be fetched by a method call or by an event:
+
 ```TypeScript
 let units = timeline.getTime();
 
@@ -157,7 +157,7 @@ run once to install development references:
   npm install
 ```
 
-to pack JavaScript as a bundle:
+Run next command to pack JavaScript as a bundle:
 
 ```bash
   npm run build
@@ -165,12 +165,21 @@ to pack JavaScript as a bundle:
 
 ### Debug
 
-VSCode can be used to debug the component with the next extensions:
+VSCode is used as IDE.
 
-- Debugger for Chrome
-- Live HTML PReviewer.
+Recommended extensions:
 
-Also embedded chrome debugger can be used when demo page is running.
+- markdownlint
+- ESLint
+- esbenp.prettier-vscode
+
+Click 'debug start' and ensure that unminified version of the file is used.
+
+### Dev Dependencies
+
+Component has no production dependencies when built.
+To pack and transpile TypeScript Babel + Webpack is used.
+For the testing mocha and chai, as the assertion library are used.
 
 ### Build Tests
 
