@@ -1,6 +1,11 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 const path = require('path');
+const webpack = require('webpack'); //to access built-in plugins
 
+const sourceMapPlugin = new webpack.SourceMapDevToolPlugin({
+  filename: 'sourcemaps/[file].map',
+  fileContext: 'public',
+});
 //  devtool: 'inline-source-map',
 module.exports = [
   {
@@ -30,6 +35,7 @@ module.exports = [
     },
   },
   {
+    // Development unminimized file
     mode: 'production',
     name: 'unminimized',
     entry: {
@@ -57,5 +63,7 @@ module.exports = [
       // eslint-disable-next-line no-undef
       path: path.resolve(__dirname, 'lib'),
     },
+    // Add source maps for the dev instance
+    plugins: [sourceMapPlugin],
   },
 ];
