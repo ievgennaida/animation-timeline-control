@@ -331,11 +331,26 @@
         },
         {},
         {},
-        {},
-        {},
-        {},
-        {},
-        {},
+        {
+          title: 'Custom Height',
+          height: 100,
+          keyframesStyle:{
+            shape: 'rect',
+            width: 4,
+            height: 70,
+          },
+          keyframes: [
+            {
+              val: 40,
+              max: 850,
+              group: 'a',
+            },
+            {
+              val: 8600,
+              group: 'a',
+            }
+          ],
+        }
       ];
 
       var timeline = new timelineModule.Timeline();
@@ -404,12 +419,12 @@
       headerElement.style.maxHeight = headerElement.style.minHeight = options.headerHeight + 'px';
       // headerElement.style.backgroundColor = options.headerFillColor;
 
-      rows.forEach(function (obj, index) {
+      rows.forEach(function (row, index) {
         var div = document.createElement('div');
         div.classList.add('outline-node');
-        div.style.maxHeight = div.style.minHeight = options.rowsStyle.height + 'px';
+        div.style.maxHeight = div.style.minHeight = (row.height || options.rowsStyle.height) + 'px';
         div.style.marginBottom = options.rowsStyle.marginBottom + 'px';
-        div.innerText = obj.title || 'Track ' + index;
+        div.innerText = row.title || 'Track ' + index;
         outlineContainer.appendChild(div);
       });
       /*Handle events from html page*/
