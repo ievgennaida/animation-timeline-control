@@ -77,11 +77,22 @@ See the [live demo](https://ievgennaida.github.io/animation-timeline-control/)
 
 ## Model
 
+Keyframes model is used to pass keyframes and rows to be visualized.
+Component is not changing passed model and it's used only for the visual purpose. It also means that any attached metadata can be passed and it will be preserved (Use case: you can attach additional data for each keyframe).
+
 Read only and defined by the interfaces:
 
 - TimelineModel
 - TimelineRow
 - TimelineKeyframe
+
+Example on how to add a keyframe to existing model:
+
+```JavaScript
+    const existingModel = timeline.getModel();
+    existingModel.rows[0].keyframes.append({ val: 20 });
+    timeline.setModel(existingModel);
+```
 
 ### Events
 
@@ -108,6 +119,8 @@ this.timeline.onDragStarted((args: TimelineDragEvent) => {
 
 ### Timeline units and position
 
+Expected that you have a component or engine that can execute playing a timeline. Ex: SVG has events to run the animations and report current time position. This component is meant only to visualize the position.
+
 Time indicator position can be changed by a method call:
 
 ```JavaScript
@@ -133,6 +146,13 @@ timeline._formatUnitsText = (val)=> { return val + ' ms'; };
 ```
 
 ### Styling
+
+Timeline is rendered as a canvas, so has no HTML elements for the css styling.
+Styles can be applied on a few levels:
+
+- Global control setting (See TypeScript interface  TimelineStyle)
+- row styles (See TypeScript interface TimelineRowStyle)
+- keyframe styles (See TypeScript interface TimelineKeyframeStyle)
 
 Styles are applied by a global settings and can be overridden by a row or keyframe style.
 
