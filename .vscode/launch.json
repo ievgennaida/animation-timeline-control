@@ -5,10 +5,17 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "type": "pwa-chrome",
+      "type": "chrome",
       "request": "launch",
       "name": "Launch Debug File",
       "url": "file:///${workspaceFolder}/index.html",
+      "webRoot": "${workspaceFolder}"
+    },
+    {
+      "type": "chrome",
+      "request": "launch",
+      "name": "Launch Test File",
+      "url": "file:///${workspaceFolder}/tests/unittests.html",
       "webRoot": "${workspaceFolder}"
     }
   ]
