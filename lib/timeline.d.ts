@@ -8,7 +8,7 @@ import { TimelineElement } from './utils/timelineElement';
 import { TimelineCutBoundsRectResults } from './utils/timelineCutBoundsRectResults';
 import { TimelineSelectionResults } from './utils/timelineSelectionResults';
 import { TimelineMouseData } from './utils/timelineMouseData';
-import { TimelineElementDragState } from './utils/TimelineElementDragState';
+import { TimelineElementDragState } from './utils/timelineElementDragState';
 import { TimelineDraggableData } from './utils/timelineDraggableData';
 import { TimelineModelCalcResults } from './utils/timelineModelCalcResults';
 import { TimelineCalculatedRow } from './utils/timelineCalculatedRow';
@@ -28,7 +28,7 @@ export declare class Timeline extends TimelineEventsEmitter {
      */
     _container: HTMLElement | null;
     /**
-     * Dynamically generated event.
+     * Dynamically generated canvas inside of the container.
      */
     _canvas: HTMLCanvasElement | null;
     /**

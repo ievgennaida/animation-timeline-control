@@ -219,10 +219,14 @@ describe('Timeline', function () {
       chai.expect(element.selectionChanged).equal(true);
       let changed = 0;
       model.rows.forEach((row: TimelineRow) => {
-        row.keyframes.forEach((keyframe: TimelineKeyframe) => {
-          chai.expect(keyframe.selected).equal(true);
-          changed++;
-        });
+        const len = row?.keyframes?.length || 0;
+        chai.expect(len > 0).equal(true);
+        if (row && row.keyframes) {
+          row.keyframes.forEach((keyframe: TimelineKeyframe) => {
+            chai.expect(keyframe.selected).equal(true);
+            changed++;
+          });
+        }
       });
 
       chai.expect(element.selected.length).equal(changed);
@@ -235,14 +239,18 @@ describe('Timeline', function () {
       let changed = 0;
       let selectable = 0;
       model.rows.forEach((row: TimelineRow) => {
-        row.keyframes.forEach((keyframe: TimelineKeyframe) => {
-          keyframe.selected = false;
-          keyframe.selectable = changed % 2 === 0;
-          if (keyframe.selectable) {
-            selectable++;
-          }
-          changed++;
-        });
+        const len = row?.keyframes?.length || 0;
+        chai.expect(len > 0).equal(true);
+        if (row.keyframes) {
+          row.keyframes.forEach((keyframe: TimelineKeyframe) => {
+            keyframe.selected = false;
+            keyframe.selectable = changed % 2 === 0;
+            if (keyframe.selectable) {
+              selectable++;
+            }
+            changed++;
+          });
+        }
       });
       const selectionResults = timeline.select(element);
       chai.expect(selectionResults.changed.length).equal(selectable);
@@ -252,19 +260,27 @@ describe('Timeline', function () {
       const timeline = new Timeline();
       timeline._model = model;
       model.rows.forEach((row: TimelineRow) => {
-        row.keyframes.forEach((keyframe: TimelineKeyframe) => {
-          keyframe.selectable = true;
-          keyframe.selected = true;
-        });
+        const len = row?.keyframes?.length || 0;
+        chai.expect(len > 0).equal(true);
+        if (row.keyframes) {
+          row.keyframes.forEach((keyframe: TimelineKeyframe) => {
+            keyframe.selectable = true;
+            keyframe.selected = true;
+          });
+        }
       });
       // deselect all
       const element = timeline.deselectAll();
       chai.expect(element.selectionChanged).equal(true);
       chai.expect(element.selected.length).equal(0);
       model.rows.forEach((row: TimelineRow) => {
-        row.keyframes.forEach((keyframe: TimelineKeyframe) => {
-          chai.expect(keyframe.selected).equal(false);
-        });
+        const len = row?.keyframes?.length || 0;
+        chai.expect(len > 0).equal(true);
+        if (row.keyframes) {
+          row.keyframes.forEach((keyframe: TimelineKeyframe) => {
+            chai.expect(keyframe.selected).equal(false);
+          });
+        }
       });
     });
     it('Select one and deselect other all', function () {
@@ -273,29 +289,42 @@ describe('Timeline', function () {
       let expectedChanged = 0;
       // Select all
       model.rows.forEach((row: TimelineRow) => {
-        row.keyframes.forEach((keyframe: TimelineKeyframe) => {
-          keyframe.selectable = true;
-          keyframe.selected = true;
-          expectedChanged++;
-        });
+        const len = row?.keyframes?.length || 0;
+        chai.expect(len > 0).equal(true);
+        if (row.keyframes) {
+          row.keyframes.forEach((keyframe: TimelineKeyframe) => {
+            keyframe.selectable = true;
+            keyframe.selected = true;
+            expectedChanged++;
+          });
+        }
       });
 
       // select one will deselect other
-      const toSelect = model.rows[1].keyframes[0];
-
+      const rowToSelect = model.rows[1];
+      chai.expect(!!rowToSelect.keyframes).equal(true);
+      if (!rowToSelect.keyframes) {
+        return;
+      }
+      // toggle selection
+      const toSelect = rowToSelect.keyframes[0];
       const element = timeline.select(toSelect);
       chai.expect(element.selectionChanged).equal(true);
       chai.expect(element.selected.length).equal(1);
       chai.expect(element.changed.length).equal(expectedChanged - 1);
 
       model.rows.forEach((row: TimelineRow) => {
-        row.keyframes.forEach((keyframe: TimelineKeyframe) => {
-          if (toSelect == keyframe) {
-            chai.expect(keyframe.selected).equal(true);
-          } else {
-            chai.expect(keyframe.selected).equal(false);
-          }
-        });
+        const len = row?.keyframes?.length || 0;
+        chai.expect(len > 0).equal(true);
+        if (row.keyframes) {
+          row.keyframes.forEach((keyframe: TimelineKeyframe) => {
+            if (toSelect == keyframe) {
+              chai.expect(keyframe.selected).equal(true);
+            } else {
+              chai.expect(keyframe.selected).equal(false);
+            }
+          });
+        }
       });
     });
     it('Revert selection (Toggle)', function () {
@@ -304,15 +333,25 @@ describe('Timeline', function () {
       let totalKeyframes = 0;
       // Select all
       model.rows.forEach((row: TimelineRow) => {
-        row.keyframes.forEach((keyframe: TimelineKeyframe) => {
-          keyframe.selectable = true;
-          keyframe.selected = true;
-          totalKeyframes++;
-        });
+        const len = row?.keyframes?.length || 0;
+        chai.expect(len > 0).equal(true);
+        if (row.keyframes) {
+          row.keyframes.forEach((keyframe: TimelineKeyframe) => {
+            keyframe.selectable = true;
+            keyframe.selected = true;
+            totalKeyframes++;
+          });
+        }
       });
 
+      const rowToSelect = model.rows[1];
+      chai.expect(!!rowToSelect.keyframes).equal(true);
+      if (!rowToSelect.keyframes) {
+        return;
+      }
       // toggle selection
-      const toSelect = model.rows[1].keyframes[0];
+      const toSelect = rowToSelect.keyframes[0];
+
       // item is selected, should be reverted
       const element = timeline.select(toSelect, TimelineSelectionMode.Revert);
       chai.expect(element.selectionChanged).equal(true);
@@ -320,13 +359,16 @@ describe('Timeline', function () {
       chai.expect(element.changed.length).equal(1);
 
       model.rows.forEach((row: TimelineRow) => {
-        row.keyframes.forEach((keyframe: TimelineKeyframe) => {
-          if (toSelect == keyframe) {
-            chai.expect(keyframe.selected).equal(false);
-          } else {
-            chai.expect(keyframe.selected).equal(true);
-          }
-        });
+        chai.expect((row.keyframes?.length || 0) > 0).equal(true);
+        if (row.keyframes) {
+          row.keyframes.forEach((keyframe: TimelineKeyframe) => {
+            if (toSelect == keyframe) {
+              chai.expect(keyframe.selected).equal(false);
+            } else {
+              chai.expect(keyframe.selected).equal(true);
+            }
+          });
+        }
       });
     });
     it('Select full row', function () {
@@ -334,14 +376,22 @@ describe('Timeline', function () {
       timeline._model = model;
       // Deselect all
       model.rows.forEach((row: TimelineRow) => {
-        row.keyframes.forEach((keyframe: TimelineKeyframe) => {
-          keyframe.selectable = true;
-          keyframe.selected = false;
-        });
+        const len = row?.keyframes?.length || 0;
+        chai.expect(len > 0).equal(true);
+        if (row.keyframes) {
+          row.keyframes.forEach((keyframe: TimelineKeyframe) => {
+            keyframe.selectable = true;
+            keyframe.selected = false;
+          });
+        }
       });
 
       // select one will deselect other
       const rowToSelect = model.rows[1];
+      chai.expect(!!rowToSelect.keyframes).equal(true);
+      if (!rowToSelect.keyframes) {
+        return;
+      }
       const element = timeline.select(rowToSelect.keyframes);
       chai.expect(element.selectionChanged).equal(true);
       chai.expect(element.selected.length).equal(rowToSelect.keyframes.length);
@@ -349,13 +399,21 @@ describe('Timeline', function () {
 
       model.rows.forEach((row: TimelineRow) => {
         if (rowToSelect === row) {
-          rowToSelect.keyframes.forEach((keyframe: TimelineKeyframe) => {
-            chai.expect(keyframe.selected).equal(true);
-          });
+          const len = row?.keyframes?.length || 0;
+          chai.expect(len > 0).equal(true);
+          if (rowToSelect.keyframes) {
+            rowToSelect.keyframes.forEach((keyframe: TimelineKeyframe) => {
+              chai.expect(keyframe.selected).equal(true);
+            });
+          }
         } else {
-          row.keyframes.forEach((keyframe: TimelineKeyframe) => {
-            chai.expect(keyframe.selected).equal(false);
-          });
+          const len = row?.keyframes?.length || 0;
+          chai.expect(len > 0).equal(true);
+          if (row.keyframes) {
+            row.keyframes.forEach((keyframe: TimelineKeyframe) => {
+              chai.expect(keyframe.selected).equal(false);
+            });
+          }
         }
       });
     });
@@ -364,34 +422,48 @@ describe('Timeline', function () {
       timeline._model = model;
       // Deselect all
       model.rows.forEach((row: TimelineRow) => {
-        row.keyframes.forEach((keyframe: TimelineKeyframe) => {
-          keyframe.selected = false;
-        });
+        const len = row?.keyframes?.length || 0;
+        chai.expect(len > 0).equal(true);
+        if (row.keyframes) {
+          row.keyframes.forEach((keyframe: TimelineKeyframe) => {
+            keyframe.selected = false;
+          });
+        }
       });
 
       // select one row (array of the keyframes)
       const rowToSelect = model.rows[1];
+      chai.expect(!!rowToSelect.keyframes).equal(true);
+      if (!rowToSelect.keyframes) {
+        return;
+      }
       let results = timeline.select(rowToSelect.keyframes);
       chai.expect(results.selectionChanged).equal(true);
-      chai.expect(results.selected.length).equal(rowToSelect.keyframes.length);
-      chai.expect(results.changed.length).equal(rowToSelect.keyframes.length);
+      chai.expect(results.selected.length).equal(rowToSelect.keyframes?.length);
+      chai.expect(results.changed.length).equal(rowToSelect.keyframes?.length);
 
       // (array of the keyframes)
       const rowToSelect2 = model.rows[2];
-      results = timeline.select(rowToSelect2.keyframes, TimelineSelectionMode.Append);
+      results = timeline.select(rowToSelect2?.keyframes || [], TimelineSelectionMode.Append);
       chai.expect(results.selectionChanged).equal(true);
-      chai.expect(results.selected.length).equal(rowToSelect.keyframes.length + rowToSelect2.keyframes.length);
-      chai.expect(results.changed.length).equal(rowToSelect2.keyframes.length);
+      chai.expect(results.selected.length).equal((rowToSelect?.keyframes?.length || 0) + (rowToSelect2?.keyframes?.length || 0));
+      chai.expect(results.changed.length).equal(rowToSelect2?.keyframes?.length);
 
       model.rows.forEach((row: TimelineRow) => {
         if (rowToSelect === row || rowToSelect2 === row) {
-          rowToSelect.keyframes.forEach((keyframe: TimelineKeyframe) => {
-            chai.expect(keyframe.selected).equal(true);
-          });
+          chai.expect((rowToSelect.keyframes?.length || 0) > 0).equal(true);
+          if (rowToSelect.keyframes) {
+            rowToSelect.keyframes.forEach((keyframe: TimelineKeyframe) => {
+              chai.expect(keyframe.selected).equal(true);
+            });
+          }
         } else {
-          row.keyframes.forEach((keyframe: TimelineKeyframe) => {
-            chai.expect(keyframe.selected).equal(false);
-          });
+          chai.expect((row.keyframes?.length || 0) > 0).equal(true);
+          if (row.keyframes) {
+            row.keyframes.forEach((keyframe: TimelineKeyframe) => {
+              chai.expect(keyframe.selected).equal(false);
+            });
+          }
         }
       });
     });
@@ -559,20 +631,30 @@ describe('Timeline', function () {
       } as TimelineModel;
       timeline._model = model;
       const move = -50;
+      const row = model.rows[0];
+      chai.expect(!!row).equal(true);
+      if (!row) {
+        return;
+      }
+      const keyframes = row.keyframes;
+      chai.expect(!!keyframes).equal(true);
+      if (!keyframes) {
+        return;
+      }
       const movedOffset = timeline._moveElements(move, [
         {
-          keyframe: model.rows[0].keyframes[1],
-          row: model.rows[0],
+          keyframe: keyframes[1],
+          row: row,
         } as TimelineElementDragState,
         {
-          keyframe: model.rows[0].keyframes[0],
-          row: model.rows[0],
+          keyframe: keyframes[0],
+          row: row,
         } as TimelineElementDragState,
       ]);
 
       chai.expect(movedOffset).equal(move);
-      chai.expect(model.rows[0].keyframes[0].val).equal(item1 + move);
-      chai.expect(model.rows[0].keyframes[1].val).equal(item2 + move);
+      chai.expect(keyframes[0]?.val).equal(item1 + move);
+      chai.expect(keyframes[1]?.val).equal(item2 + move);
     });
     it('move right', function () {
       const timeline = new Timeline();
@@ -583,20 +665,30 @@ describe('Timeline', function () {
       } as TimelineModel;
       timeline._model = model;
       const move = 100;
+      const row = model.rows[0];
+      chai.expect(!!row).equal(true);
+      if (!row) {
+        return;
+      }
+      const keyframes = row.keyframes;
+      chai.expect(!!keyframes).equal(true);
+      if (!keyframes) {
+        return;
+      }
       const movedOffset = timeline._moveElements(move, [
         {
-          keyframe: model.rows[0].keyframes[1],
-          row: model.rows[0],
+          keyframe: keyframes[1],
+          row: row,
         } as TimelineElementDragState,
         {
-          keyframe: model.rows[0].keyframes[0],
-          row: model.rows[0],
+          keyframe: keyframes[0],
+          row: row,
         } as TimelineElementDragState,
       ]);
 
       chai.expect(movedOffset).equal(move);
-      chai.expect(model.rows[0].keyframes[0].val).equal(item1 + move);
-      chai.expect(model.rows[0].keyframes[1].val).equal(item2 + move);
+      chai.expect(keyframes[0]?.val).equal(item1 + move);
+      chai.expect(keyframes[1]?.val).equal(item2 + move);
     });
     it('move left limited by min', function () {
       const timeline = new Timeline();
@@ -615,8 +707,8 @@ describe('Timeline', function () {
       const movedOffset = timeline._moveElements(move, elementsToMove);
 
       chai.expect(movedOffset).equal(move / 2);
-      chai.expect(elementsToMove[0].keyframe.val).equal(0);
-      chai.expect(elementsToMove[1].keyframe.val).equal(25);
+      chai.expect(elementsToMove[0].keyframe?.val).equal(0);
+      chai.expect(elementsToMove[1].keyframe?.val).equal(25);
     });
 
     it('move right limited by max', function () {
@@ -636,8 +728,8 @@ describe('Timeline', function () {
       const movedOffset = timeline._moveElements(move, elementsToMove);
 
       chai.expect(movedOffset).equal(move / 2);
-      chai.expect(elementsToMove[0].keyframe.val).equal(item1 + 50);
-      chai.expect(elementsToMove[1].keyframe.val).equal(item2 + 50);
+      chai.expect(elementsToMove[0].keyframe?.val).equal(item1 + 50);
+      chai.expect(elementsToMove[1].keyframe?.val).equal(item2 + 50);
     });
     it('move right limited by max negative', function () {
       const timeline = new Timeline();
@@ -656,8 +748,8 @@ describe('Timeline', function () {
       const movedOffset = timeline._moveElements(move, elementsToMove);
 
       chai.expect(movedOffset).equal(25);
-      chai.expect(elementsToMove[0].keyframe.val).equal(item1 + 25);
-      chai.expect(elementsToMove[1].keyframe.val).equal(item2 + 25);
+      chai.expect(elementsToMove[0].keyframe?.val).equal(item1 + 25);
+      chai.expect(elementsToMove[1].keyframe?.val).equal(item2 + 25);
     });
     it('move right limited by max negative when other row out of the bounds', function () {
       const timeline = new Timeline();
@@ -686,10 +778,10 @@ describe('Timeline', function () {
       const movedOffset = timeline._moveElements(move, elementsToMove);
       const moved = move / 2;
       chai.expect(movedOffset).equal(moved);
-      chai.expect(elementsToMove[0].keyframe.val).equal(100 + moved);
-      chai.expect(elementsToMove[1].keyframe.val).equal(400 + moved);
-      chai.expect(elementsToMove[2].keyframe.val).equal(200 + moved);
-      chai.expect(elementsToMove[3].keyframe.val).equal(300 + moved);
+      chai.expect(elementsToMove[0].keyframe?.val).equal(100 + moved);
+      chai.expect(elementsToMove[1].keyframe?.val).equal(400 + moved);
+      chai.expect(elementsToMove[2].keyframe?.val).equal(200 + moved);
+      chai.expect(elementsToMove[3].keyframe?.val).equal(300 + moved);
     });
     it('move left limited by min negative', function () {
       const timeline = new Timeline();
@@ -708,8 +800,8 @@ describe('Timeline', function () {
       const movedOffset = timeline._moveElements(move, elementsToMove);
 
       chai.expect(movedOffset).equal(move / 2);
-      chai.expect(elementsToMove[0].keyframe.val).equal(item1 - 50);
-      chai.expect(elementsToMove[1].keyframe.val).equal(item2 - 50);
+      chai.expect(elementsToMove[0].keyframe?.val).equal(item1 - 50);
+      chai.expect(elementsToMove[1].keyframe?.val).equal(item2 - 50);
     });
     it('move left only one keyframe is limited', function () {
       const timeline = new Timeline();
@@ -728,8 +820,8 @@ describe('Timeline', function () {
       const movedOffset = timeline._moveElements(move, elementsToMove);
 
       chai.expect(movedOffset).equal(move / 2);
-      chai.expect(elementsToMove[0].keyframe.val).equal(25 + 50);
-      chai.expect(elementsToMove[1].keyframe.val).equal(50 + 50);
+      chai.expect(elementsToMove[0].keyframe?.val).equal(25 + 50);
+      chai.expect(elementsToMove[1].keyframe?.val).equal(50 + 50);
     });
   });
 });

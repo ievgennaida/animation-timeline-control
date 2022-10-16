@@ -131,7 +131,9 @@ See the [live demo](https://ievgennaida.github.io/animation-timeline-control/)
 ## Model
 
 Keyframes model is used to pass keyframes and rows to be visualized.
-Component is not changing passed model and it's used only for the visual purpose. It also means that any attached metadata can be passed and it will be preserved (Use case: you can attach additional data for each keyframe).
+Component is using passed model for the visualization purpose and has no method to manage tracks or keyframes.
+It also means that any attached metadata can be passed and it will be preserved
+(Use case: you can attach additional data for each keyframe).
 
 Read only and defined by the interfaces:
 
@@ -209,13 +211,11 @@ Styles can be applied on a few levels:
 
 Styles are applied by a global settings and can be overridden by a row or keyframe style.
 
-## Debug component
-
-VsCode configuration is included to the configuration,
-so you can navigate to the debug window and click 'Launch Debug File'.
-Put breakpoint in any typescript file and trigger function from the browser.
-
 ## Changes
+
+## 2.2.1
+
+ TypeScript fixes, updated build packages.
 
 ## > 2.0
 
@@ -244,15 +244,22 @@ Run next command to pack JavaScript as a bundle:
 
 ### Debug
 
-VSCode is used as IDE.
+VSCode is used as IDE and configuration is included to the project sources.
+
+To debug project you should run command once files are changed:
+
+```cmd
+npm run build
+```
+
+Then navigate to the debug window and click 'Launch Debug File'.
+Put breakpoint in any typescript file and trigger function from the browser.
 
 Recommended extensions:
 
 - markdownlint
 - ESLint
 - esbenp.prettier-vscode
-
-Click 'debug start' and ensure that unminified version of the file is used.
 
 ### Dev Dependencies
 

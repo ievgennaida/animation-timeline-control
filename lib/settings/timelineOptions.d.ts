@@ -21,7 +21,7 @@ export interface TimelineOptions extends TimelineRanged {
     /**
      * Number of points that should fit into the one stepPx.
      */
-    stepVal: number;
+    stepVal?: number;
     stepSmallPx?: number;
     /**
      * Snap step in units. from 0 to stepVal

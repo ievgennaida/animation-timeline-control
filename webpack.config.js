@@ -12,7 +12,7 @@ module.exports = [
     mode: 'production',
     name: 'minimized-prod',
     entry: {
-      'animation-timeline': './src/timeline.ts',
+      'animation-timeline': './src/animation-timeline.ts',
     },
     module: {
       rules: [
@@ -39,7 +39,7 @@ module.exports = [
     mode: 'production',
     name: 'unminimized',
     entry: {
-      'animation-timeline': './src/timeline.ts',
+      'animation-timeline': './src/animation-timeline.ts',
     },
     module: {
       rules: [

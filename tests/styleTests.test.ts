@@ -141,7 +141,7 @@ describe('TimelineStyleUtils', function () {
       } as TimelineOptions;
 
       const rowsStyle = {} as TimelineRowStyle;
-      chai.expect(TimelineStyleUtils.getRowHeight(rowsStyle, globalStyle)).equal(globalStyle.rowsStyle.height);
+      chai.expect(TimelineStyleUtils.getRowHeight(rowsStyle, globalStyle)).equal(globalStyle.rowsStyle?.height);
     });
     it('Margin bottom is taken from global settings', function () {
       const globalStyle = {
@@ -153,7 +153,7 @@ describe('TimelineStyleUtils', function () {
       } as TimelineOptions;
 
       const rowsStyle = {} as TimelineRowStyle;
-      chai.expect(TimelineStyleUtils.getRowMarginBottom(rowsStyle, globalStyle)).equal(globalStyle.rowsStyle.marginBottom);
+      chai.expect(TimelineStyleUtils.getRowMarginBottom(rowsStyle, globalStyle)).equal(globalStyle.rowsStyle?.marginBottom);
     });
     it('Margin bottom is taken from row settings', function () {
       const globalStyle = {

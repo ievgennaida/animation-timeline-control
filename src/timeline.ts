@@ -19,7 +19,7 @@ import { TimelineElement } from './utils/timelineElement';
 import { TimelineCutBoundsRectResults } from './utils/timelineCutBoundsRectResults';
 import { TimelineSelectionResults } from './utils/timelineSelectionResults';
 import { TimelineMouseData } from './utils/timelineMouseData';
-import { TimelineElementDragState } from './utils/TimelineElementDragState';
+import { TimelineElementDragState } from './utils/timelineElementDragState';
 import { TimelineDraggableData } from './utils/timelineDraggableData';
 
 // @private virtual model
@@ -54,7 +54,7 @@ export class Timeline extends TimelineEventsEmitter {
    */
   _container: HTMLElement | null = null;
   /**
-   * Dynamically generated event.
+   * Dynamically generated canvas inside of the container.
    */
   _canvas: HTMLCanvasElement | null = null;
   /**
@@ -1176,7 +1176,7 @@ export class Timeline extends TimelineEventsEmitter {
       min = 0;
     }
     min *= this._currentZoom || 1;
-    const steps = this._options.stepVal * this._currentZoom || 1;
+    const steps = (this._options.stepVal || 0) * this._currentZoom || 1;
     const val = min + (px / this._options.stepPx) * steps;
     return val;
   }
@@ -1205,7 +1205,7 @@ export class Timeline extends TimelineEventsEmitter {
       min = 0;
     }
     min *= this._currentZoom || 1;
-    const steps = this._options.stepVal * this._currentZoom || 1;
+    const steps = (this._options.stepVal || 0) * this._currentZoom || 1;
     return (-min + val) * (this._options.stepPx / steps);
   }
 
@@ -1981,7 +1981,7 @@ export class Timeline extends TimelineEventsEmitter {
   _setOptions(toSet: TimelineOptions): TimelineOptions {
     this._options = this._mergeOptions(toSet);
     // Normalize and validate spans per value.
-    this._options.snapStep = TimelineUtils.keepInBounds(this._options.snapStep, 0, this._options.stepVal);
+    this._options.snapStep = TimelineUtils.keepInBounds(this._options.snapStep, 0, this._options.stepVal || 0);
     this._currentZoom = this._setZoom(this._options.zoom, this._options.zoomMin, this._options.zoomMax);
     this._options.min = TimelineUtils.isNumber(this._options.min) ? this._options.min : 0;
     this._options.max = TimelineUtils.isNumber(this._options.max) ? this._options.max : Number.MAX_VALUE;
@@ -2046,8 +2046,8 @@ export class Timeline extends TimelineEventsEmitter {
    * Apply container div size to the container on changes detected.
    */
   _updateCanvasScale(): boolean {
-    if (!this._scrollContainer || !this._ctx) {
-      console.log('control should be initialized first');
+    if (!this._scrollContainer || !this._container || !this._ctx) {
+      console.log('Component should be initialized first');
       return;
     }
     let changed = false;

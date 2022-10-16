@@ -10,3 +10,4 @@ tests/src
 tests/tests/
 tests/*.js
 tests/*.js.map
+karma.conf.js

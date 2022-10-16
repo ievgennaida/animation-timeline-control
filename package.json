@@ -19,7 +19,7 @@
     "eslint": "8.25.0",
     "eslint-config-prettier": "8.5.0",
     "eslint-plugin-prettier": "4.2.1",
-    "mocha": "10.0.0",
+    "mocha": "10.1.0",
     "prettier": "2.7.1",
     "ts-loader": "9.4.1",
     "typescript": "4.8.4",
@@ -27,7 +27,8 @@
     "webpack-cli": "4.10.0"
   },
   "scripts": {
-    "test": "echo \"Run tests/unittest.html explicitly to execute tests\" && exit 1",
+    "start": "echo \"Run index.html in your browser. Build after files are changed.\" && exit 1",
+    "test": "echo \"Run tests/unittest.html explicitly to execute tests. Build after files are changed.\" && exit 1",
     "build-ts-def": "tsc -emitDeclarationOnly",
     "build": "webpack && npm run build-tests && npm run build-ts-def",
     "lint": "eslint --ext .ts,.html src --ignore-path .gitignore && prettier \"src/*.ts\" --check --ignore-path .gitignore",
