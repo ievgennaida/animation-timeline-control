@@ -156,6 +156,7 @@ Example on how to add a keyframe to existing model:
 | timeChanged     | time changed. source can be used to check event sender. args type: TimelineTimeChangedEvent |
 | selected        | keyframe is selected. args type: TimelineSelectedEvent                                      |
 | scroll          | On scroll. args type: TimelineScrollEvent                                                   |
+| scrollFinished  | On scroll finished. args type:  TimelineScrollEvent |
 | dragStarted     | emitted on drag started. args type: TimelineDragEvent                                       |
 | drag            | emitted when dragging. args type: TimelineDragEvent                                         |
 | dragFinished    | emitted when drag finished. args type: TimelineDragEvent                                    |
@@ -213,12 +214,11 @@ Keyframes can be marked as selectable = false to prevent interaction.
 
 Selection - allow to select one or group of the keyframes.
 
-- 'selection'- Keyframe selection tool selecting single or group of keyframes.
-- 'singleSelection' - Keyframe selection tool without selector rectangle.
-- 'pan' - Pan tool with the possibility to select keyframes.
-- 'nonInteractivePan', Allow only pan without any keyframes interaction. Timeline still can be moved and controlled by option  'timelineInteractive'.
-- 'zoom - zoom tool
-- 'none' -  No iteraction, except moving a timeline. Timeline still can be moved and controlled by option 'timelineInteractive'.
+- **selection** - Keyframe selection tool selecting single or group of keyframes.
+- **pan** - Pan tool with the possibility to select keyframes.
+- **nonInteractivePan** - Allow only pan without any keyframes interaction. Timeline still can be moved and controlled by option  'timelineInteractive'.
+- **zoom** - zoom tool
+- **none** -  No iteraction, except moving a timeline. Timeline still can be moved and controlled by option 'timelineInteractive'.
 
 Example:
 
@@ -268,6 +268,14 @@ Styles can be applied on a few levels:
 Styles are applied by a global settings and can be overridden by a row or keyframe style.
 
 ## Changes
+
+## 2.2.3
+
+- Small fixes.
+- Dispose method will remove also scroll container event handlers.
+- Fixed demo nonInteractivePan.
+- Fixed timeline player demo.
+- Added scrollFinished event.
 
 ## 2.2.2
 

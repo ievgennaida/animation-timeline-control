@@ -23,6 +23,8 @@ import { TimelineInteractionMode } from './enums/timelineInteractionMode';
 import { TimelineElementType } from './enums/timelineElementType';
 import { TimelineEventSource } from './enums/timelineEventSource';
 import { TimelineSelectionMode } from './enums/timelineSelectionMode';
+import { TimelineEvents } from './enums/timelineEvents';
+import { TimelineScrollSource } from './enums/timelineScrollSource';
 export declare class Timeline extends TimelineEventsEmitter {
     /**
      * component container.
@@ -38,6 +40,7 @@ export declare class Timeline extends TimelineEventsEmitter {
     _scrollContainer: HTMLElement | null;
     /**
      * Dynamically generated virtual scroll content.
+     * While canvas has no real size, this element is used to create virtual scroll on the parent element.
      */
     _scrollContent: HTMLElement | null;
     /**
@@ -56,30 +59,66 @@ export declare class Timeline extends TimelineEventsEmitter {
      * Drag scroll started position.
      */
     _scrollStartPos: DOMPoint | null;
+    /**
+     * Private. Current mouse position that is used to track values between mouse up/down events.
+     * Can be null, use public methods and properties instead.
+     */
     _currentPos: TimelineMouseData | null;
+    /**
+     * Private. Current active mouse area selection rectangle displayed during the mouse up/down drag events.
+     */
     _selectionRect: DOMRect | null;
+    /**
+     * Private. Whether selection rectangle is displayed.
+     */
     _selectionRectEnabled: boolean;
+    /**
+     * Private. Information in regard of current active drag state.
+     */
     _drag: TimelineDraggableData | null;
     _startedDragWithCtrl: boolean;
     _startedDragWithShiftKey: boolean;
+    _scrollProgrammatically: boolean;
     _clickTimeout?: number;
     _lastClickTime: number;
     _lastClickPoint: DOMPoint | null;
     _consts: TimelineConsts;
+    /**
+     * Private. whether click is allowed.
+     */
     _clickAllowed: boolean;
     /**
-     * scroll finished timer reference.
+     * Private. scroll finished timer reference.
      */
     _scrollFinishedTimerRef?: number | null;
+    /**
+     * Private.Current timeline position.
+     * Please use public get\set methods to properly change the timeline position.
+     */
     _val: number;
     _pixelRatio: number;
+    /**
+     * Private. Current zoom level. Please use publicly available properties to set zoom levels.
+     */
     _currentZoom: number;
+    /**
+     * Private. Ref for the auto pan scroll interval.
+     */
     _intervalRef?: number | null;
     _autoPanLastActionDate: number;
     _isPanStarted: boolean;
+    /**
+     * Private.
+     * Component interaction mode. Please use publicly available methods.
+     */
     _interactionMode: TimelineInteractionMode;
     _lastUsedArgs: MouseEvent | TouchEvent | null;
     _model: TimelineModel | null;
+    /**
+     * Private.
+     * Indication when scroll are drag or click is started.
+     */
+    _scrollAreaClickOrDragStarted: boolean;
     /**
      * Create Timeline instance
      * @param options Timeline settings.
@@ -99,8 +138,16 @@ export declare class Timeline extends TimelineEventsEmitter {
     _generateContainers(id: string | HTMLElement): void;
     /**
      * Subscribe current component on the related events.
+     * Private. Use initialize method instead.
      */
-    _subscribeOnEvents(): void;
+    _subscribeComponentEvents(): void;
+    /**
+     * Private. Use dispose method instead.
+     */
+    _unsubscribeComponentEvents(): void;
+    /**
+     * Dispose current component: unsubscribe component and user events.
+     */
     dispose(): void;
     _handleKeyUp: (event: KeyboardEvent) => void;
     _handleKeyDown: (event: KeyboardEvent) => void;
@@ -108,6 +155,7 @@ export declare class Timeline extends TimelineEventsEmitter {
     _handleBlurEvent: () => void;
     _handleWindowResizeEvent: () => void;
     _clearScrollFinishedTimer(): void;
+    _handleScrollMouseDownEvent: () => void;
     _handleScrollEvent: (args: MouseEvent) => void;
     _controlKeyPressed(e: MouseEvent | KeyboardEvent | TouchEvent): boolean;
     _handleWheelEvent: (event: WheelEvent) => void;
@@ -186,8 +234,7 @@ export declare class Timeline extends TimelineEventsEmitter {
      */
     _setCursor(cursor: string): void;
     /**
-     * Set pan mode
-     * @param isPan
+     * Set component interaction mode.
      */
     setInteractionMode(mode: TimelineInteractionMode): void;
     /**
@@ -359,8 +406,12 @@ export declare class Timeline extends TimelineEventsEmitter {
     /**
      * Rescale and update size of the container.
      */
-    rescale(): void;
-    _rescaleInternal(newWidth?: number | null, newHeight?: number | null, scrollMode?: string): void;
+    rescale(): boolean;
+    /**
+     * This method is used to draw additional space when after there are no keyframes.
+     * When scrolled we should allow to indefinitely scroll right, so space should be extended to drag keyframes outside of the current size bounds.
+     */
+    _rescaleInternal(newWidth?: number | null, newHeight?: number | null, scrollMode?: TimelineScrollSource): boolean;
     /**
      * Filter and sort draggable elements by the priority to get first draggable element.
      * Filtration is done based on the timeline styles and options.
@@ -369,7 +420,7 @@ export declare class Timeline extends TimelineEventsEmitter {
      */
     _filterDraggableElements(elements: TimelineElement[], val?: number | null): TimelineElement;
     /**
-     * get all clickable elements by a screen point.
+     * get all clickable elements by the given local screen coordinate.
      */
     elementFromPoint(pos: DOMPoint, clickRadius?: number, onlyTypes?: TimelineElementType[] | null): TimelineElement[];
     _cloneOptions(previousOptions: TimelineOptions): TimelineOptions;
@@ -378,39 +429,43 @@ export declare class Timeline extends TimelineEventsEmitter {
      */
     _mergeOptions(previousOptions: TimelineOptions, newOptions: TimelineOptions): TimelineOptions;
     /**
-     * Subscribe on time changed.
+     * Subscribe user callback on time changed.
      */
     onTimeChanged(callback: (eventArgs: TimelineTimeChangedEvent) => void): void;
     /**
-     * Subscribe on drag started event.
+     * Subscribe user callback on drag started event.
      */
     onDragStarted(callback: (eventArgs: TimelineDragEvent) => void): void;
     /**
-     * Subscribe on drag event.
+     * Subscribe user callback on drag event.
      */
     onDrag(callback: (eventArgs: TimelineDragEvent) => void): void;
     /**
-     * Subscribe on drag finished event.
+     * Subscribe user callback on drag finished event.
      */
     onDragFinished(callback: (eventArgs: TimelineDragEvent) => void): void;
     /**
-     * Subscribe on double click.
+     * Subscribe user callback on double click.
      */
     onDoubleClick(callback: (eventArgs: TimelineClickEvent) => void): void;
     /**
-     * Subscribe on keyframe changed event.
+     * Subscribe user callback on keyframe changed event.
      */
     onKeyframeChanged(callback: (eventArgs: TimelineKeyframeChangedEvent) => void): void;
     /**
-     * Subscribe on drag finished event.
+     * Subscribe user callback on drag finished event.
      */
     onMouseDown(callback: (eventArgs: TimelineClickEvent) => void): void;
+    /**
+     * Subscribe user callback on selected.
+     */
     onSelected(callback: (eventArgs: TimelineSelectedEvent) => void): void;
     /**
-     * Subscribe on scroll event
+     * Subscribe user callback on scroll event
      */
     onScroll(callback: (eventArgs: TimelineScrollEvent) => void): void;
-    _emitScrollEvent(args: MouseEvent | null): TimelineScrollEvent;
+    onScrollFinished(callback: (eventArgs: TimelineScrollEvent) => void): void;
+    _emitScrollEvent(args: MouseEvent | null, scrollProgrammatically: boolean, eventType?: TimelineEvents): TimelineScrollEvent;
     _emitKeyframeChanged(element: TimelineElementDragState, source?: TimelineEventSource): TimelineKeyframeChangedEvent;
     _emitDragStartedEvent(): TimelineDragEvent;
     /**

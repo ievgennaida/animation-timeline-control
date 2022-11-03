@@ -32,6 +32,7 @@ export * from './utils/events/timelineClickEvent';
 export * from './utils/events/timelineDragEvent';
 export * from './enums/timelineKeyframeShape';
 export * from './enums/timelineInteractionMode';
+export * from './enums/timelineScrollSource';
 export * from './enums/timelineElementType';
 export * from './enums/timelineCursorType';
 export * from './enums/timelineCapShape';

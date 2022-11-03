@@ -402,11 +402,15 @@
     });
     function showActivePositionInformation() {
       if (timeline) {
-        const fromPx = timeline.getScrollLeft() - timeline._leftMargin();
-        const toPx = timeline.getScrollLeft() + timeline.getClientWidth() - timeline._leftMargin();
-        const fromMs = timeline.pxToVal(fromPx);
-        const toMs = timeline.pxToVal(toPx);
-        document.getElementById('currentTime').innerHTML = 'Timeline: ' + timeline.getTime() + 'ms. Displayed from:' + fromMs + ' To:' + toMs;
+        const fromPx = timeline.getScrollLeft();
+        const toPx = timeline.getScrollLeft() + timeline.getClientWidth();
+        const fromMs = timeline.pxToVal(fromPx - timeline._leftMargin());
+        const toMs = timeline.pxToVal(toPx - timeline._leftMargin());
+        let positionInPixels = timeline.valToPx(timeline.getTime()) + timeline._leftMargin();
+        let message = 'Timeline in ms: ' + timeline.getTime() + 'ms. Displayed from:' + fromMs.toFixed() + 'ms to: ' + toMs.toFixed() + "ms.";
+        message += "<br>";
+        message += "Timeline in px: " + positionInPixels + 'px. Displayed from: ' + fromPx + 'px to: ' + toPx + "px";
+        document.getElementById('currentTime').innerHTML = message;
       }
     }
     timeline.onSelected(function (obj) {
@@ -432,6 +436,7 @@
       var type = obj.target ? obj.target.type : '';
       logMessage('doubleclick:' + obj.val + '.  elements:' + type, 2);
     });
+
     timeline.onScroll(function (obj) {
       var options = timeline.getOptions();
       if (options) {
@@ -442,6 +447,10 @@
         }
       }
       showActivePositionInformation();
+    });
+    timeline.onScrollFinished(function (obj) {
+      // Stop move component screen to the timeline when user start manually scrolling.
+      logMessage('on scroll finished', 2);
     });
     generateHTMLOutlineListNodes(rows);
 
@@ -509,7 +518,7 @@
     }
     function panMode(interactive) {
       if (timeline) {
-        timeline.setInteractionMode(interactive ? 'pan' : "NonInteractivePan");
+        timeline.setInteractionMode(interactive ? 'pan' : "nonInteractivePan");
       }
     }
     // Set scroll back to timeline when mouse scroll over the outline
@@ -520,14 +529,18 @@
     }
     playing = false;
     playStep = 50;
+    // Automatic tracking should be turned off when user interaction happened.
+    trackTimelineMovement = false;
     function onPlayClick(event) {
       playing = true;
+      trackTimelineMovement = true;
       if (timeline) {
+        this.moveTimelineIntoTheBounds();
+        // Don't allow to manipulate timeline during playing (optional).
         timeline.setOptions({ timelineInteractive: false });
       }
     }
     function onPauseClick(event) {
-      moveTimelineIntoTheBounds();
       playing = false;
       if (timeline) {
         timeline.setOptions({ timelineInteractive: true });
@@ -536,13 +549,16 @@
 
     function moveTimelineIntoTheBounds() {
       if (timeline) {
+        if (timeline._startPos || timeline._scrollAreaClickOrDragStarted) {
+          // User is manipulating items, don't move screen in this case.
+          return;
+        }
         const fromPx = timeline.getScrollLeft();
         const toPx = timeline.getScrollLeft() + timeline.getClientWidth();
 
-        let positionInPixels = timeline.valToPx(timeline.getTime());
+        let positionInPixels = timeline.valToPx(timeline.getTime()) + timeline._leftMargin();
         // Scroll to timeline position if timeline is out of the bounds:
-        if (positionInPixels < fromPx || positionInPixels > toPx) {
-          console.log('px timeline pos:' + positionInPixels + 'from: ' + fromPx + 'px. to:' + toPx + 'px.');
+        if (positionInPixels <= fromPx || positionInPixels >= toPx) {
           this.timeline.setScrollLeft(positionInPixels);
         }
       }

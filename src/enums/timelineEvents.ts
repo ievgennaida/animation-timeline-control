@@ -6,6 +6,7 @@ export enum TimelineEvents {
   Drag = 'drag',
   DragFinished = 'dragFinished',
   Scroll = 'scroll',
+  ScrollFinished = 'scrollFinished',
   DoubleClick = 'doubleClick',
   MouseDown = 'mouseDown',
 }
