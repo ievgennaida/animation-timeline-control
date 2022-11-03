@@ -134,6 +134,10 @@ export const defaultTimelineOptions = {
    * keyframes group is draggable.
    */
   keyframesDraggable: true,
+  /**
+   * Timeline can be dragged or position can be changed by user interaction. Default: true
+   */
+  timelineInteractive: true,
   min: 0,
   max: Number.MAX_VALUE,
 } as TimelineOptions;

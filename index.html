@@ -176,10 +176,21 @@
     <div class="toolbar">
       <button class="button mat-icon material-icons mat-icon-no-color" title="Timeline selection mode"
         onclick="selectMode()">tab_unselected</button>
-      <button class="button mat-icon material-icons mat-icon-no-color" title="Timeline pan mode"
-        onclick="panMode()">pan_tool</button>
+      <button class="button mat-icon material-icons mat-icon-no-color"
+        title="Timeline pan mode with the keyframe selection." onclick="panMode(true)">pan_tool_alt</button>
+      <button class="button mat-icon material-icons mat-icon-no-color" title="Timeline pan mode non interactive"
+        onclick="panMode(false)">pan_tool</button>
       <button class="button mat-icon material-icons mat-icon-no-color"
         title="Timeline zoom mode. Also ctrl + scroll can be used." onclick="zoomMode()">search</button>
+      <button class="button mat-icon material-icons mat-icon-no-color" title="Only view mode."
+        onclick="noneMode()">visibility</button>
+      <div style="width: 1px; background:gray; height: 100%;"></div>
+      <button class="button mat-icon material-icons mat-icon-no-color"
+        title="Use external player to play\stop the timeline. For the demo simple setInterval is used."
+        onclick="onPlayClick()">play_arrow</button>
+      <button class="button mat-icon material-icons mat-icon-no-color"
+        title="Use external player to play\stop the timeline. For the demo simple setInterval is used."
+        onclick="onPauseClick()">pause</button>
       <div style="flex:1"></div>
       <button class="flex-left button mat-icon material-icons mat-icon-no-color" title="Remove selected keyframe"
         onclick="removeKeyframe()">close</button>
@@ -387,8 +398,17 @@
     };
 
     timeline.onTimeChanged(function (event) {
-      document.getElementById('currentTime').innerHTML = event.val + 'ms source:' + event.source;
+      showActivePositionInformation();
     });
+    function showActivePositionInformation() {
+      if (timeline) {
+        const fromPx = timeline.getScrollLeft() - timeline._leftMargin();
+        const toPx = timeline.getScrollLeft() + timeline.getClientWidth() - timeline._leftMargin();
+        const fromMs = timeline.pxToVal(fromPx);
+        const toMs = timeline.pxToVal(toPx);
+        document.getElementById('currentTime').innerHTML = 'Timeline: ' + timeline.getTime() + 'ms. Displayed from:' + fromMs + ' To:' + toMs;
+      }
+    }
     timeline.onSelected(function (obj) {
       logMessage('selected :' + obj.selected.length + '. changed :' + obj.changed.length, 2);
     });
@@ -415,11 +435,13 @@
     timeline.onScroll(function (obj) {
       var options = timeline.getOptions();
       if (options) {
+        // Synchronize component scroll renderer with HTML list of the nodes.
         if (outlineContainer) {
           outlineContainer.style.minHeight = obj.scrollHeight + 'px';
           document.getElementById('outline-scroll-container').scrollTop = obj.scrollTop;
         }
       }
+      showActivePositionInformation();
     });
     generateHTMLOutlineListNodes(rows);
 
@@ -453,6 +475,11 @@
         timeline.setInteractionMode('zoom');
       }
     }
+    function noneMode() {
+      if (timeline) {
+        timeline.setInteractionMode('none');
+      }
+    }
 
     function removeKeyframe() {
       if (timeline) {
@@ -480,9 +507,9 @@
         generateHTMLOutlineListNodes(currentModel.rows);
       }
     }
-    function panMode() {
+    function panMode(interactive) {
       if (timeline) {
-        timeline.setInteractionMode('pan');
+        timeline.setInteractionMode(interactive ? 'pan' : "NonInteractivePan");
       }
     }
     // Set scroll back to timeline when mouse scroll over the outline
@@ -491,6 +518,50 @@
         this.timeline._handleWheelEvent(event);
       }
     }
+    playing = false;
+    playStep = 50;
+    function onPlayClick(event) {
+      playing = true;
+      if (timeline) {
+        timeline.setOptions({ timelineInteractive: false });
+      }
+    }
+    function onPauseClick(event) {
+      moveTimelineIntoTheBounds();
+      playing = false;
+      if (timeline) {
+        timeline.setOptions({ timelineInteractive: true });
+      }
+    }
+
+    function moveTimelineIntoTheBounds() {
+      if (timeline) {
+        const fromPx = timeline.getScrollLeft();
+        const toPx = timeline.getScrollLeft() + timeline.getClientWidth();
+
+        let positionInPixels = timeline.valToPx(timeline.getTime());
+        // Scroll to timeline position if timeline is out of the bounds:
+        if (positionInPixels < fromPx || positionInPixels > toPx) {
+          console.log('px timeline pos:' + positionInPixels + 'from: ' + fromPx + 'px. to:' + toPx + 'px.');
+          this.timeline.setScrollLeft(positionInPixels);
+        }
+      }
+    }
+    function initPlayer() {
+      setInterval(() => {
+        if (playing) {
+          if (timeline) {
+            timeline.setTime(timeline.getTime() + playStep);
+            moveTimelineIntoTheBounds();
+          }
+        }
+      }, playStep);
+    }
+    // Note: this can be any other player: audio, video, svg and etc. 
+    // In this case you have to synchronize events of the component and player.
+    initPlayer();
+    showActivePositionInformation();
+    window.onresize = showActivePositionInformation;
   </script>
 </body>
 

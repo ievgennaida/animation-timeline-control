@@ -149,7 +149,7 @@ Example on how to add a keyframe to existing model:
     timeline.setModel(existingModel);
 ```
 
-### Events
+### Events/Methods and options
 
 | Event name      | description                                                                                 |
 | --------------- | ------------------------------------------------------------------------------------------- |
@@ -172,6 +172,62 @@ this.timeline.onDragStarted((args: TimelineDragEvent) => {
 });
 ```
 
+### Methods
+
+| Method name      | description                                                                                                              |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| setTime         | set current active time. Returns bool to indicate whether time was set. Ex: cannot be changed when dragged. Also timeline interactions can be disabled. |
+| getTime         | get current position of the timeline.                                                       |
+| dispose     | Call to unsubscribe from all the events. Important when UI component is unmounted or page is closed. |
+| setOptions  | Set timeline properties                                                                                           |
+| getOptions        | Get current options of the timeline.                                     |
+| getAllKeyframes          | Get array of all keyframes from the current active model.                                              |
+
+### Options
+
+Options can be passed when timeline is created or by calling setOptions method.
+See all options in the TimelineOptions interface.
+
+Main options:
+| Property      | description                                                                                                              |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| groupsDraggable         |  keyframes group is draggable. Default: true |
+| keyframesDraggable         | keyframes group is draggable. Default: true                                                      |
+| timelineInteractive     | Timeline can be dragged or position can be changed by user interaction. Default True |
+
+### Keyboard shortcuts
+
+#### Selection Mode
+
+- Click - select single keyframe.
+- Ctrl + Click - add new keyframe, toggle existing keyframe.
+
+Keyframes can be marked as selectable = false to prevent interaction.
+
+#### Zoom Mode
+
+- Ctrl - reverse zoom in/zoom out.
+- Ctrl + Mouse wheel - zoom to the current active cursor. (Same logic for the pan mode)
+
+### Interaction Modes
+
+Selection - allow to select one or group of the keyframes.
+
+- 'selection'- Keyframe selection tool selecting single or group of keyframes.
+- 'singleSelection' - Keyframe selection tool without selector rectangle.
+- 'pan' - Pan tool with the possibility to select keyframes.
+- 'nonInteractivePan', Allow only pan without any keyframes interaction. Timeline still can be moved and controlled by option  'timelineInteractive'.
+- 'zoom - zoom tool
+- 'none' -  No iteraction, except moving a timeline. Timeline still can be moved and controlled by option 'timelineInteractive'.
+
+Example:
+
+```TypeScript
+  timeline.setInteractionMode('none');
+```
+
+For the TypeScript TimelineInteractionMode enum is used.
+
 ### Timeline units and position
 
 Expected that you have a component or engine that can execute playing a timeline. Ex: SVG has events to run the animations and report current time position. This component is meant only to visualize the position.
@@ -185,11 +241,11 @@ timeline.setTime(1000);
 Current time can be fetched by a method call or by an event:
 
 ```TypeScript
-let units = timeline.getTime();
+let value = timeline.getTime();
 
 timeline.onTimeChanged((event: TimelineTimeChangedEvent) => {
   if(event.source !== TimelineEventSource.User) {
-    units = event.var;
+    value = event.val;
   }
 });
 ```
@@ -212,6 +268,17 @@ Styles can be applied on a few levels:
 Styles are applied by a global settings and can be overridden by a row or keyframe style.
 
 ## Changes
+
+## 2.2.2
+
+- Added new option timelineInteractive = true/false to control possibility for user to move timeline position.
+- Added 'nonInteractivePan' interaction mode that is allowing only to pan and change position of the timeline without changing the keyframes position.
+- Added 'none' interaction mode where no interactions are allowed.
+- Added 'play' demo to the index.html
+- Private property _findDraggable is renamed to_filterDraggableElements
+- Options are appended to the current active options, not to default.
+- Fixed order of the build (definitions and tests only after the definitions.)
+- updated build packages.
 
 ## 2.2.1
 

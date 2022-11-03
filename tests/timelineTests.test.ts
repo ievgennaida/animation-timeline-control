@@ -14,7 +14,7 @@ import {
 } from '../lib/animation-timeline';
 
 describe('Timeline', function () {
-  describe('_findDraggable', function () {
+  describe('_filterDraggableElements', function () {
     it('Keyframe should be selected', function () {
       const timeline = new Timeline();
       const elements = [
@@ -27,7 +27,7 @@ describe('Timeline', function () {
           val: 5,
         } as TimelineElement,
       ];
-      const element = timeline._findDraggable(elements, 5);
+      const element = timeline._filterDraggableElements(elements, 5);
       if (!element) {
         throw new Error('element cannot be empty');
       }
@@ -45,7 +45,7 @@ describe('Timeline', function () {
           val: 5,
         } as TimelineElement,
       ];
-      const element = timeline._findDraggable(elements, 5);
+      const element = timeline._filterDraggableElements(elements, 5);
       if (!element) {
         throw new Error('element cannot be empty');
       }
@@ -71,7 +71,7 @@ describe('Timeline', function () {
           val: 5,
         } as TimelineElement,
       ];
-      const element = timeline._findDraggable(elements, 5);
+      const element = timeline._filterDraggableElements(elements, 5);
       if (!element) {
         throw new Error('element cannot be empty');
       }
@@ -87,7 +87,7 @@ describe('Timeline', function () {
           val: 5,
         } as TimelineElement,
       ];
-      const element = timeline._findDraggable(elements, 5);
+      const element = timeline._filterDraggableElements(elements, 5);
       if (!element) {
         throw new Error('element cannot be empty');
       }
@@ -109,7 +109,7 @@ describe('Timeline', function () {
           val: 9,
         } as TimelineElement,
       ];
-      const element = timeline._findDraggable(elements, 5);
+      const element = timeline._filterDraggableElements(elements, 5);
       chai.expect(element.val).equal(elements[1].val);
     });
     it('Keyframes are not draggable by global settings', function () {
@@ -136,7 +136,7 @@ describe('Timeline', function () {
           } as TimelineKeyframeStyle,
         } as TimelineRowStyle,
       } as TimelineOptions;
-      const element = timeline._findDraggable(elements, 5);
+      const element = timeline._filterDraggableElements(elements, 5);
       chai.expect(element.type).equal(TimelineElementType.Group, 'Group should be selected');
     });
     it('Keyframes are not draggable by row settings', function () {
@@ -162,7 +162,7 @@ describe('Timeline', function () {
         } as TimelineElement,
       ];
       // Apply global options::
-      const element = timeline._findDraggable(elements, 4);
+      const element = timeline._filterDraggableElements(elements, 4);
 
       // Keyframe with value 5 should be selected as draggable
       chai.expect(element.val).equal(5);
@@ -197,7 +197,7 @@ describe('Timeline', function () {
         } as TimelineElement,
       ];
       // Apply global options::
-      const element = timeline._findDraggable(elements, 4);
+      const element = timeline._filterDraggableElements(elements, 4);
 
       // Keyframe with value 5 should be selected as draggable
       chai.expect(element.val).equal(5);

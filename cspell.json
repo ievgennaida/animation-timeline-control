@@ -1,10 +1,6 @@
 {
   "version": "0.2",
   "words": [
-    "NESW",
-    "NWSE",
-    "Unminified",
-    "Unsubsribe",
     "browserslist",
     "consts",
     "corejs",
@@ -16,9 +12,12 @@
     "dragstarted",
     "esbenp",
     "esnext",
+    "iteraction",
     "keyframes",
     "khtml",
     "minmax",
+    "NESW",
+    "NWSE",
     "pixelated",
     "prio",
     "scrollbar",
@@ -27,6 +26,8 @@
     "timechanged",
     "tslib",
     "unittests",
-    "unminimized"
+    "Unminified",
+    "unminimized",
+    "Unsubsribe"
   ]
 }
