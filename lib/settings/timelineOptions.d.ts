@@ -90,11 +90,15 @@ export interface TimelineOptions extends TimelineRanged {
      */
     scrollContainerClass?: string;
     /**
-     * keyframes group is draggable.
+     * keyframes group is draggable. Default: true
      */
     groupsDraggable?: boolean;
     /**
-     * keyframes group is draggable.
+     * keyframes group is draggable. Default: true
      */
     keyframesDraggable?: boolean;
+    /**
+     * Timeline can be dragged or position can be changed by user interaction. Default: true
+     */
+    timelineInteractive?: boolean;
 }

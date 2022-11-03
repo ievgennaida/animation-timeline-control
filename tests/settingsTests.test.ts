@@ -6,7 +6,7 @@ describe('_mergeOptions', function () {
     const timeline = new Timeline();
     const defOptions = defaultTimelineOptions as TimelineOptions;
     const options = { id: 'new id', snapStep: 10, snapEnabled: true } as TimelineOptions;
-    const merged = timeline._mergeOptions(options);
+    const merged = timeline._mergeOptions(defOptions, options);
     chai.expect(merged.id).equal(options.id);
     chai.expect(merged.snapEnabled).equal(options.snapEnabled);
     chai.expect(merged.snapStep).equal(options.snapStep);
@@ -20,7 +20,7 @@ describe('_mergeOptions', function () {
   it('Default styles are merged', function () {
     const timeline = new Timeline();
     const options = { id: 'new id', snapStep: 10, snapEnabled: true } as TimelineOptions;
-    const merged = timeline._mergeOptions(options);
+    const merged = timeline._mergeOptions(defaultTimelineOptions as TimelineOptions, options);
     chai.expect(merged.id).equal(options.id);
     chai.expect(!!merged.rowsStyle).equal(true, 'Row style cannot be null');
     chai.expect(!!merged.rowsStyle?.keyframesStyle).equal(true, 'Keyframes style cannot be null');
@@ -41,7 +41,7 @@ describe('_mergeOptions', function () {
         } as TimelineKeyframeStyle,
       } as TimelineRowStyle,
     } as TimelineOptions;
-    const merged = timeline._mergeOptions(options);
+    const merged = timeline._mergeOptions(defaultTimelineOptions as TimelineOptions, options);
     chai.expect(merged.id).equal('new id');
     chai.expect(merged.headerHeight).equal(44);
     chai.expect(merged.rowsStyle?.height).equal(100);
@@ -56,7 +56,7 @@ describe('_mergeOptions', function () {
       id: 'new id',
       snapStep: 10,
     } as TimelineOptions;
-    const merged = timeline._mergeOptions(options);
+    const merged = timeline._mergeOptions(defaultTimelineOptions as TimelineOptions, options);
     chai.expect(merged.id, 'new id');
     chai.expect(merged.snapStep).equal(10);
     chai.expect(options.headerHeight === undefined).equal(true);

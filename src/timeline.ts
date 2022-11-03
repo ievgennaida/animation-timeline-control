@@ -114,9 +114,12 @@ export class Timeline extends TimelineEventsEmitter {
    */
   constructor(options: TimelineOptions | null = null, model: TimelineModel | null = null) {
     super();
+    this._options = this._cloneOptions(defaultTimelineOptions);
     // Allow to create instance without an error to perform tests.
     if (options || model) {
       this.initialize(options, model);
+    } else {
+      console.log('No HTML element is attached to the timeline. initialize method should be called with id.');
     }
   }
 
@@ -132,7 +135,10 @@ export class Timeline extends TimelineEventsEmitter {
     }
 
     this._generateContainers(options.id);
-    this._options = this._setOptions(options);
+    this._options = this._cloneOptions(defaultTimelineOptions);
+    if (options) {
+      this._options = this._setOptions(options);
+    }
     this._subscribeOnEvents();
     this.rescale();
     this.redraw();
@@ -184,8 +190,8 @@ export class Timeline extends TimelineEventsEmitter {
       'user-drag: none;' +
       'padding: inherit';
 
+    // Those styles are hardcoded and required for the proper scrolling.
     this._scrollContainer.style.cssText = 'overflow: scroll;' + 'position: absolute;' + 'width:  100%;' + 'height:  100%;';
-
     this._scrollContent.style.width = this._scrollContent.style.height = '100%';
 
     // add the text node to the created div
@@ -284,7 +290,7 @@ export class Timeline extends TimelineEventsEmitter {
   }
   _handleScrollEvent = (args: MouseEvent): void => {
     this._clearScrollFinishedTimer();
-    // Set a timeout to run event 'scrolling end'.
+    // Set a timeout to run event 'scrolling end'. Auto scroll is used to repeat scroll when drag element outside of the area.
     this._scrollFinishedTimerRef = window.setTimeout(() => {
       if (!this._isPanStarted) {
         if (this._scrollFinishedTimerRef) {
@@ -427,8 +433,14 @@ export class Timeline extends TimelineEventsEmitter {
       y: this._scrollContainer.scrollTop,
     } as DOMPoint;
     this._clickAllowed = true;
-    const elements = this.elementFromPoint(this._startPos, Math.max(2, this._startPos.radius));
-    const target = this._findDraggable(elements, this._startPos.val);
+    let onlyElements: TimelineElementType[] | null = null;
+    if (this._interactionMode === TimelineInteractionMode.NonInteractivePan || this._interactionMode === TimelineInteractionMode.None) {
+      // Allow to select only timeline. Timeline position can be disabled/enabled by properties.
+      onlyElements = [TimelineElementType.Timeline];
+    }
+    const elements = this.elementFromPoint(this._startPos, Math.max(2, this._startPos.radius), onlyElements);
+
+    const target = this._filterDraggableElements(elements, this._startPos.val);
     const event = new TimelineClickEvent();
     event.pos = this._startPos;
     event.val = this._startPos.val;
@@ -522,14 +534,20 @@ export class Timeline extends TimelineEventsEmitter {
     this._currentPos = this._trackMousePos(this._canvas, args);
     if (!this._isPanStarted && this._selectionRect && this._clickTimeoutIsOver()) {
       // TODO: implement selection by rect
-      this._selectionRectEnabled = this._interactionMode !== TimelineInteractionMode.Zoom;
+      if (this._interactionMode === TimelineInteractionMode.None || this._interactionMode === TimelineInteractionMode.Zoom || this._interactionMode === TimelineInteractionMode.NonInteractivePan) {
+        this._selectionRectEnabled = false;
+      } else {
+        this._selectionRectEnabled = true;
+      }
     } else {
       this._selectionRectEnabled = false;
     }
 
     args = args as MouseEvent;
     const isLeftClicked = this.isLeftButtonClicked(args);
+    // On dragging is started.
     if (this._startPos) {
+      // On left button is on hold by the user
       if (isLeftClicked || isTouch) {
         if (this._drag && !this._startedDragWithCtrl) {
           const convertedVal = this._currentPos.val;
@@ -557,14 +575,16 @@ export class Timeline extends TimelineEventsEmitter {
           }
         }
 
-        if (this._interactionMode === TimelineInteractionMode.Pan && !this._drag) {
+        if ((this._interactionMode === TimelineInteractionMode.Pan || this._interactionMode === TimelineInteractionMode.NonInteractivePan) && !this._drag) {
           this._isPanStarted = true;
           this._setCursor(TimelineCursorType.Grabbing);
           // Track scroll by drag.
           this._scrollByPan(this._startPos, this._currentPos, this._scrollStartPos);
         } else {
-          // Track scroll by mouse or touch out of the area.
-          this._scrollBySelectionOutOfBounds(this._currentPos);
+          if (this._interactionMode !== TimelineInteractionMode.None) {
+            // Track scroll by mouse or touch out of the area.
+            this._scrollBySelectionOutOfBounds(this._currentPos);
+          }
         }
 
         this.redraw();
@@ -574,9 +594,16 @@ export class Timeline extends TimelineEventsEmitter {
         this.redraw();
       }
     } else if (!isTouch) {
-      const elements = this.elementFromPoint(this._currentPos, Math.max(2, this._currentPos.radius));
-      const target = this._findDraggable(elements, this._currentPos.val);
-      if (this._isPanStarted || this._interactionMode === TimelineInteractionMode.Pan) {
+      // Set mouse over cursors
+      let onlyElements: TimelineElementType[] | null = null;
+      if (this._interactionMode === TimelineInteractionMode.NonInteractivePan || this._interactionMode === TimelineInteractionMode.None) {
+        // Allow to select only timeline. Timeline position can be disabled/enabled by properties.
+        onlyElements = [TimelineElementType.Timeline];
+      }
+
+      const elements = this.elementFromPoint(this._currentPos, Math.max(2, this._currentPos.radius), onlyElements);
+      const target = this._filterDraggableElements(elements, this._currentPos.val);
+      if (this._isPanStarted || this._interactionMode === TimelineInteractionMode.Pan || this._interactionMode === TimelineInteractionMode.NonInteractivePan) {
         if (isLeftClicked) {
           this._setCursor(TimelineCursorType.Grabbing);
         } else {
@@ -679,7 +706,7 @@ export class Timeline extends TimelineEventsEmitter {
           if (this._selectionRect.width > 20) {
             // TODO: implement zoom by screen rect.
           }
-        } else {
+        } else if (this._interactionMode !== TimelineInteractionMode.None) {
           const keyframes = this._getKeyframesByRectangle(this._selectionRect);
           const selectionMode = args.shiftKey ? TimelineSelectionMode.Append : TimelineSelectionMode.Normal;
           this.select(keyframes, selectionMode);
@@ -702,7 +729,7 @@ export class Timeline extends TimelineEventsEmitter {
   }
 
   /**
-   * Client width;
+   * Client canvas width;
    */
   _width(): number {
     if (this._canvas) {
@@ -742,15 +769,17 @@ export class Timeline extends TimelineEventsEmitter {
     let isChanged = false;
     if (drag && drag.type === TimelineElementType.Keyframe) {
       let mode = TimelineSelectionMode.Normal;
-      if ((this._startedDragWithCtrl && this._controlKeyPressed(pos.args)) || (this._startedDragWithShiftKey && pos.args.shiftKey)) {
+      if (this._startedDragWithCtrl && this._controlKeyPressed(pos.args)) {
         if (this._controlKeyPressed(pos.args)) {
           mode = TimelineSelectionMode.Revert;
         }
+      } else if (this._startedDragWithShiftKey && pos.args.shiftKey) {
+        mode = TimelineSelectionMode.Append;
       }
       // Reverse selected keyframe selection by a click:
       isChanged = this._selectInternal(this._drag.target.keyframe, mode).selectionChanged || isChanged;
 
-      if (pos.args.shiftKey) {
+      if (pos.args.shiftKey && this._options?.timelineInteractive !== false) {
         // Set current timeline position if it's not a drag or selection rect small or fast click.
         isChanged = this._setTimeInternal(pos.val, TimelineEventSource.User) || isChanged;
       }
@@ -758,9 +787,11 @@ export class Timeline extends TimelineEventsEmitter {
       // deselect keyframes if any:
       isChanged = this._selectInternal(null).selectionChanged || isChanged;
 
-      // change timeline pos:
-      // Set current timeline position if it's not a drag or selection rect small or fast click.
-      isChanged = this._setTimeInternal(pos.val, TimelineEventSource.User) || isChanged;
+      if (this._options?.timelineInteractive !== false) {
+        // change timeline pos:
+        // Set current timeline position if it's not a drag or selection rect small or fast click.
+        isChanged = this._setTimeInternal(pos.val, TimelineEventSource.User) || isChanged;
+      }
     }
 
     return isChanged;
@@ -843,13 +874,16 @@ export class Timeline extends TimelineEventsEmitter {
 
     return selected;
   }
-  public getAllKeyframes(): Array<TimelineKeyframe> {
-    const selected: Array<TimelineKeyframe> = [];
+  /**
+   * Get all keyframe models available in the model.
+   */
+  public getAllKeyframes(): TimelineKeyframe[] {
+    const keyframes: TimelineKeyframe[] = [];
     this._forEachKeyframe((keyframe): void => {
-      selected.push(keyframe.model);
+      keyframes.push(keyframe.model);
     });
 
-    return selected;
+    return keyframes;
   }
 
   public selectAllKeyframes(): TimelineSelectionResults {
@@ -900,7 +934,6 @@ export class Timeline extends TimelineEventsEmitter {
     } as TimelineSelectionResults;
     const nodesArray = nodes as TimelineKeyframe[];
     //const state = this.selectedSubject.getValue();
-    this.getSelectedElements();
     if (nodesArray && mode === TimelineSelectionMode.Append) {
       nodes.forEach((node) => {
         const changed = this._changeNodeState(state, node, true);
@@ -1018,8 +1051,20 @@ export class Timeline extends TimelineEventsEmitter {
     return pos;
   }
 
-  _cleanUpSelection(): void {
-    this._emitDragFinishedEvent();
+  /**
+   * Get scroll container client width.
+   */
+  getClientWidth(): number {
+    return this._scrollContainer?.clientWidth || 0;
+  }
+  /**
+   * Get scroll container client height.
+   */
+  getClientHeight(): number {
+    return this._scrollContainer?.clientHeight || 0;
+  }
+  _cleanUpSelection(forcePrevent = false): void {
+    this._emitDragFinishedEvent(forcePrevent);
     this._startPos = null;
     this._drag = null;
     this._startedDragWithCtrl = false;
@@ -1083,6 +1128,9 @@ export class Timeline extends TimelineEventsEmitter {
     return false;
   }
 
+  /**
+   * Scroll virtual canvas when pan mode is enabled.
+   */
   _scrollByPan(start: TimelineMouseData, pos: TimelineMouseData, scrollStartPos: DOMPoint): void {
     if (!start || !pos) {
       return;
@@ -1968,7 +2016,7 @@ export class Timeline extends TimelineEventsEmitter {
 
   /**
    * Set options and render the component.
-   * Options will be merged with the defaults and control invalidated
+   * Note: Options will be merged\appended with the defaults and component will be invalidated/rendered again.
    */
   public setOptions(toSet: TimelineOptions): TimelineOptions {
     this._options = this._setOptions(toSet);
@@ -1978,20 +2026,35 @@ export class Timeline extends TimelineEventsEmitter {
     return this._options;
   }
 
+  /**
+   * Private. Apply html container styles from options if any is set.
+   */
+  _applyContainersStyles(): void {
+    if (this._scrollContainer && this._options) {
+      const classList = this._scrollContainer.classList;
+      if (this._options.scrollContainerClass && !classList.contains(this._options.scrollContainerClass)) {
+        classList.add(this._options.scrollContainerClass);
+      }
+      if (this._options.fillColor) {
+        this._scrollContainer.style.background = this._options.fillColor;
+      }
+    }
+  }
   _setOptions(toSet: TimelineOptions): TimelineOptions {
-    this._options = this._mergeOptions(toSet);
+    if (!toSet) {
+      return this._options;
+    }
+    this._options = this._mergeOptions(this._options, toSet);
     // Normalize and validate spans per value.
     this._options.snapStep = TimelineUtils.keepInBounds(this._options.snapStep, 0, this._options.stepVal || 0);
     this._currentZoom = this._setZoom(this._options.zoom, this._options.zoomMin, this._options.zoomMax);
     this._options.min = TimelineUtils.isNumber(this._options.min) ? this._options.min : 0;
     this._options.max = TimelineUtils.isNumber(this._options.max) ? this._options.max : Number.MAX_VALUE;
-    if (this._scrollContainer) {
-      const classList = this._scrollContainer.classList;
-      if (this._options.scrollContainerClass && classList.contains(this._options.scrollContainerClass)) {
-        classList.add(this._options.scrollContainerClass);
-      }
-      if (this._options.fillColor) {
-        this._scrollContainer.style.background = this._options.fillColor;
+    this._applyContainersStyles();
+    // Prevent current active dragging of the timeline, while it's set that it's not allowed anymore.
+    if (toSet.timelineInteractive === false) {
+      if (this._drag && this._drag.type === TimelineElementType.Timeline) {
+        this._cleanUpSelection();
       }
     }
     return this._options;
@@ -2118,12 +2181,12 @@ export class Timeline extends TimelineEventsEmitter {
   }
 
   /**
-   * get draggable element.
-   * Filter elements and get first element by a priority.
-   * @param Array
-   * @param val current mouse value
+   * Filter and sort draggable elements by the priority to get first draggable element.
+   * Filtration is done based on the timeline styles and options.
+   * @param elements to filter and sort.
+   * @param val current mouse value to find best match.
    */
-  _findDraggable(elements: Array<TimelineElement>, val: number | null = null): TimelineElement {
+  _filterDraggableElements(elements: TimelineElement[], val: number | null = null): TimelineElement {
     // filter and sort: Timeline, individual keyframes, groups (distance).
     const getPriority = (type: TimelineElementType): number => {
       if (type === TimelineElementType.Timeline) {
@@ -2145,6 +2208,10 @@ export class Timeline extends TimelineEventsEmitter {
         }
       } else if (element.type === TimelineElementType.Group) {
         if (!TimelineStyleUtils.groupDraggable(element.row, this._options)) {
+          return false;
+        }
+      } else if (element.type === TimelineElementType.Timeline) {
+        if (this._options?.timelineInteractive === false) {
           return false;
         }
       } else if (element.type === TimelineElementType.Row) {
@@ -2182,9 +2249,9 @@ export class Timeline extends TimelineEventsEmitter {
   /**
    * get all clickable elements by a screen point.
    */
-  public elementFromPoint(pos: DOMPoint, clickRadius = 2): Array<TimelineElement> {
+  public elementFromPoint(pos: DOMPoint, clickRadius = 2, onlyTypes?: TimelineElementType[] | null): TimelineElement[] {
     clickRadius = Math.max(clickRadius, 1);
-    const toReturn: Array<TimelineElement> = [];
+    const toReturn: TimelineElement[] = [];
 
     if (!pos) {
       return toReturn;
@@ -2257,17 +2324,25 @@ export class Timeline extends TimelineEventsEmitter {
         }
       });
     }
-    return toReturn;
+
+    if (!onlyTypes || onlyTypes.length === 0) {
+      return toReturn;
+    } else {
+      return toReturn.filter((p) => onlyTypes && onlyTypes.includes(p.type));
+    }
   }
 
+  _cloneOptions(previousOptions: TimelineOptions): TimelineOptions {
+    return JSON.parse(JSON.stringify(previousOptions));
+  }
   /**
-   * Merge options with the defaults.
+   * Merge options. New keys will be added.
    */
-  _mergeOptions(fromArg: TimelineOptions): TimelineOptions {
-    fromArg = fromArg || ({} as TimelineOptions);
+  _mergeOptions(previousOptions: TimelineOptions, newOptions: TimelineOptions): TimelineOptions {
+    newOptions = newOptions || ({} as TimelineOptions);
     // Apply incoming options to default. (override default)
     // Deep clone default options:
-    const toArg = JSON.parse(JSON.stringify(defaultTimelineOptions));
+    const toArg = this._cloneOptions(previousOptions);
     // Merge options with the default.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const mergeOptionsDeep = (to: any, from: any): void => {
@@ -2292,7 +2367,7 @@ export class Timeline extends TimelineEventsEmitter {
       }
     };
 
-    mergeOptionsDeep(toArg, fromArg);
+    mergeOptionsDeep(toArg, newOptions);
     return toArg;
   }
   /**
@@ -2375,9 +2450,17 @@ export class Timeline extends TimelineEventsEmitter {
     }
     return args;
   }
-  _emitDragFinishedEvent(): TimelineDragEvent {
+  /**
+   * Private emit timeline event that dragging element is finished.
+   * @param forcePrevent - needed when during dragging components set to the state when they cannot be dragged anymore. (used only as recovery state).
+   * @returns
+   */
+  _emitDragFinishedEvent(forcePrevent = false): TimelineDragEvent {
     if (this._drag && this._drag.changed) {
       const args = this._getDragEventArgs();
+      if (forcePrevent) {
+        args.preventDefault();
+      }
       this.emit(TimelineEvents.DragFinished, args);
       if (args.isPrevented()) {
         this._preventDrag(args, this._drag, true);

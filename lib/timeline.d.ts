@@ -20,6 +20,7 @@ import { TimelineScrollEvent } from './utils/events/timelineScrollEvent';
 import { TimelineClickEvent } from './utils/events/timelineClickEvent';
 import { TimelineDragEvent } from './utils/events/timelineDragEvent';
 import { TimelineInteractionMode } from './enums/timelineInteractionMode';
+import { TimelineElementType } from './enums/timelineElementType';
 import { TimelineEventSource } from './enums/timelineEventSource';
 import { TimelineSelectionMode } from './enums/timelineSelectionMode';
 export declare class Timeline extends TimelineEventsEmitter {
@@ -160,7 +161,7 @@ export declare class Timeline extends TimelineEventsEmitter {
      */
     _height(): number;
     /**
-     * Client width;
+     * Client canvas width;
      */
     _width(): number;
     /**
@@ -196,7 +197,10 @@ export declare class Timeline extends TimelineEventsEmitter {
     _convertToElement(row: TimelineRow, keyframe: TimelineKeyframe): TimelineElement;
     getSelectedKeyframes(): Array<TimelineKeyframe>;
     getSelectedElements(): Array<TimelineElement>;
-    getAllKeyframes(): Array<TimelineKeyframe>;
+    /**
+     * Get all keyframe models available in the model.
+     */
+    getAllKeyframes(): TimelineKeyframe[];
     selectAllKeyframes(): TimelineSelectionResults;
     deselectAll(): TimelineSelectionResults;
     private _changeNodeState;
@@ -212,7 +216,15 @@ export declare class Timeline extends TimelineEventsEmitter {
      */
     _forEachKeyframe(callback: (keyframe: TimelineCalculatedKeyframe, index?: number, newRow?: boolean) => void): void;
     _trackMousePos(canvas: HTMLCanvasElement, mouseArgs: MouseEvent | TouchEvent): TimelineMouseData;
-    _cleanUpSelection(): void;
+    /**
+     * Get scroll container client width.
+     */
+    getClientWidth(): number;
+    /**
+     * Get scroll container client height.
+     */
+    getClientHeight(): number;
+    _cleanUpSelection(forcePrevent?: boolean): void;
     /**
      * Check whether click timeout is over.
      */
@@ -229,6 +241,9 @@ export declare class Timeline extends TimelineEventsEmitter {
      * Check whether auto pan should be slowed down a bit.
      */
     _checkUpdateSpeedTooFast(): boolean;
+    /**
+     * Scroll virtual canvas when pan mode is enabled.
+     */
     _scrollByPan(start: TimelineMouseData, pos: TimelineMouseData, scrollStartPos: DOMPoint): void;
     _scrollBySelectionOutOfBounds(pos: DOMPoint): boolean;
     /**
@@ -322,9 +337,13 @@ export declare class Timeline extends TimelineEventsEmitter {
     getScrollTop(): number;
     /**
      * Set options and render the component.
-     * Options will be merged with the defaults and control invalidated
+     * Note: Options will be merged\appended with the defaults and component will be invalidated/rendered again.
      */
     setOptions(toSet: TimelineOptions): TimelineOptions;
+    /**
+     * Private. Apply html container styles from options if any is set.
+     */
+    _applyContainersStyles(): void;
     _setOptions(toSet: TimelineOptions): TimelineOptions;
     getModel(): TimelineModel;
     /**
@@ -343,20 +362,21 @@ export declare class Timeline extends TimelineEventsEmitter {
     rescale(): void;
     _rescaleInternal(newWidth?: number | null, newHeight?: number | null, scrollMode?: string): void;
     /**
-     * get draggable element.
-     * Filter elements and get first element by a priority.
-     * @param Array
-     * @param val current mouse value
+     * Filter and sort draggable elements by the priority to get first draggable element.
+     * Filtration is done based on the timeline styles and options.
+     * @param elements to filter and sort.
+     * @param val current mouse value to find best match.
      */
-    _findDraggable(elements: Array<TimelineElement>, val?: number | null): TimelineElement;
+    _filterDraggableElements(elements: TimelineElement[], val?: number | null): TimelineElement;
     /**
      * get all clickable elements by a screen point.
      */
-    elementFromPoint(pos: DOMPoint, clickRadius?: number): Array<TimelineElement>;
+    elementFromPoint(pos: DOMPoint, clickRadius?: number, onlyTypes?: TimelineElementType[] | null): TimelineElement[];
+    _cloneOptions(previousOptions: TimelineOptions): TimelineOptions;
     /**
-     * Merge options with the defaults.
+     * Merge options. New keys will be added.
      */
-    _mergeOptions(fromArg: TimelineOptions): TimelineOptions;
+    _mergeOptions(previousOptions: TimelineOptions, newOptions: TimelineOptions): TimelineOptions;
     /**
      * Subscribe on time changed.
      */
@@ -393,7 +413,12 @@ export declare class Timeline extends TimelineEventsEmitter {
     _emitScrollEvent(args: MouseEvent | null): TimelineScrollEvent;
     _emitKeyframeChanged(element: TimelineElementDragState, source?: TimelineEventSource): TimelineKeyframeChangedEvent;
     _emitDragStartedEvent(): TimelineDragEvent;
-    _emitDragFinishedEvent(): TimelineDragEvent;
+    /**
+     * Private emit timeline event that dragging element is finished.
+     * @param forcePrevent - needed when during dragging components set to the state when they cannot be dragged anymore. (used only as recovery state).
+     * @returns
+     */
+    _emitDragFinishedEvent(forcePrevent?: boolean): TimelineDragEvent;
     _preventDrag(dragArgs: TimelineDragEvent, data: TimelineDraggableData, toStart?: boolean): void;
     _emitDragEvent(): TimelineDragEvent;
     _emitKeyframesSelected(state: TimelineSelectionResults): TimelineSelectedEvent;
