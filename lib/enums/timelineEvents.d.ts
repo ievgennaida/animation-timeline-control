@@ -1,3 +1,6 @@
+/**
+ * Event names of the component.
+ */
 export declare enum TimelineEvents {
     Selected = "selected",
     TimeChanged = "timechanged",

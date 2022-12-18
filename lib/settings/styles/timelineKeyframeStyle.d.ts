@@ -1,9 +1,14 @@
+import { TimelineCursorType } from '../../enums/timelineCursorType';
 import { TimelineKeyframeShape } from '../../enums/timelineKeyframeShape';
 export interface TimelineKeyframeStyle {
-    cursor?: string;
+    /**
+     * Timeline cursor style.
+     */
+    cursor?: TimelineCursorType;
+    /**
+     * Timeline keyframe shape
+     */
     shape?: TimelineKeyframeShape;
-    draggable?: boolean;
-    hidden?: boolean;
     /**
      * keyframe size, number or text 'auto'
      */
@@ -17,10 +22,19 @@ export interface TimelineKeyframeStyle {
      */
     fillColor?: string | null;
     /**
-     * Keyframe selected  fill color.
+     * Keyframe selected fill color.
      */
     selectedFillColor?: string | null;
+    /**
+     * Keyframe stroke color.
+     */
     strokeColor?: string | null;
+    /**
+     * Keyframe selected stroke color.
+     */
     selectedStrokeColor?: string | null;
+    /**
+     * Keyframe stroke Thickness.
+     */
     strokeThickness?: number | null;
 }

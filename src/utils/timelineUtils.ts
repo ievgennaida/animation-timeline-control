@@ -1,4 +1,5 @@
-import { TimelineRanged } from '../timelineRanged';
+import { TimelineRanged } from '../models/timelineRanged';
+import { TimelineOptions } from '../settings/timelineOptions';
 
 const denominators = [1, 2, 5, 10];
 export class TimelineUtils {
@@ -9,8 +10,8 @@ export class TimelineUtils {
   /**
    * Check is valid number.
    */
-  static isNumber(val?: number): boolean {
-    if (typeof val === 'number' && !isNaN(val) && Number.isFinite(val)) {
+  static isNumber(val?: number | null): boolean {
+    if (typeof val === 'number' && (val || val === 0) && !isNaN(val) && Number.isFinite(val)) {
       return true;
     }
 
@@ -25,7 +26,7 @@ export class TimelineUtils {
   }
 
   /**
-   * Check rectangle overlap.
+   * Check rectangle overlap x,y
    */
   static isOverlap(x: number, y: number, rectangle: DOMRect): boolean {
     if (!rectangle) {
@@ -71,37 +72,36 @@ export class TimelineUtils {
   /**
    * Keep value in min, max bounds.
    */
-  static keepInBounds(value: number, min: number | undefined = null, max: number | undefined = null): number {
+  static keepInBounds(value: number, min: number | null | undefined = null, max: number | null | undefined = null): number {
     if (TimelineUtils.isNumber(value)) {
-      if (TimelineUtils.isNumber(min)) {
+      if (TimelineUtils.isNumber(min) && (min || min === 0)) {
         value = Math.max(value, min);
       }
-      if (TimelineUtils.isNumber(max)) {
+      if (TimelineUtils.isNumber(max) && (max || max === 0)) {
         value = Math.min(value, max);
       }
     }
 
     return value;
   }
-  static setMinMax(to: TimelineRanged, from: TimelineRanged, shrink = false): TimelineRanged {
+  static setMinMax(to: TimelineRanged, from: TimelineRanged | null, shrink = false): TimelineRanged {
     if (!from || !to) {
       return to;
     }
-    const fromMin = Math.min(from.getMin ? from.getMin() : from.min, from.min);
-    const toMin = Math.min(to.getMin ? to.getMin() : to.min, to.min);
-    const isFromMinNumber = TimelineUtils.isNumber(fromMin);
-    const isToMinNumber = TimelineUtils.isNumber(toMin);
+    const fromMin = from ? from.min : Number.NaN;
+    const toMin = to.min;
+    const isFromMinNumber = (fromMin || fromMin === 0) && TimelineUtils.isNumber(fromMin);
+    const isToMinNumber = (toMin || toMin === 0) && TimelineUtils.isNumber(toMin);
     // get absolute min and max bounds:
     if (isFromMinNumber && isToMinNumber) {
       to.min = shrink ? Math.min(fromMin, toMin) : Math.max(fromMin, toMin);
     } else if (isFromMinNumber) {
       to.min = fromMin;
     }
-
-    const fromMax = Math.min(from.getMax ? from.getMax() : from.max, from.max);
-    const toMax = Math.min(to.getMax ? to.getMax() : to.max, to.max);
-    const isFromMaxNumber = TimelineUtils.isNumber(fromMax);
-    const isToMaxNumber = TimelineUtils.isNumber(toMax);
+    const fromMax = from ? from.max : Number.NaN;
+    const toMax = to.max;
+    const isFromMaxNumber = (fromMax || fromMax === 0) && TimelineUtils.isNumber(fromMax);
+    const isToMaxNumber = (toMax || toMax === 0) && TimelineUtils.isNumber(toMax);
     if (isFromMaxNumber && isToMaxNumber) {
       to.max = shrink ? Math.max(fromMax, toMax) : Math.min(fromMax, toMax);
     } else if (isFromMaxNumber) {
@@ -110,22 +110,57 @@ export class TimelineUtils {
 
     return to;
   }
-  static isRectOverlap(rect: DOMRect, rect2: DOMRect): boolean {
+  static shrinkSelf(rect: DOMRect, value: number): DOMRect {
+    if (!rect) {
+      return rect;
+    }
+    rect.x -= value;
+    rect.y -= value;
+    rect.width += value;
+    rect.height += value;
+    return rect;
+  }
+  /**
+   * Check whether rectangle intersects another rectangle
+   */
+  static isRectIntersects(rect: DOMRect, rect2: DOMRect, touch = false): boolean {
     if (!rect || !rect2) {
       console.log('Rectangles cannot be empty');
       return false;
     }
-
-    // If one rectangle is on left side of other
-    if (rect.x > rect2.x + rect2.width || rect2.x > rect.x + rect.width) {
-      return true;
+    const right = rect2.x + rect2.width;
+    const bottom = rect2.y + rect2.height;
+    if (touch) {
+      if (
+        // Left
+        rect.x <= right &&
+        // Right
+        rect2.x <= rect.x + rect.width &&
+        // Top
+        rect.y <= bottom &&
+        // Bottom
+        rect2.y <= rect.y + rect.height
+      ) {
+        return true;
+      } else {
+        return false;
+      }
+    } else {
+      if (
+        // Left
+        rect.x < right &&
+        // Right
+        rect2.x < rect.x + rect.width &&
+        // Top
+        rect.y < bottom &&
+        // Bottom
+        rect2.y < rect.y + rect.height
+      ) {
+        return true;
+      } else {
+        return false;
+      }
     }
-
-    // If one rectangle is above other
-    if (rect.y < rect2.y + rect2.height || rect2.y < rect.y + rect.height) {
-      return true;
-    }
-    return false;
   }
 
   static getDistance(x1: number, y1: number, x2?: number, y2?: number): number {
@@ -135,16 +170,26 @@ export class TimelineUtils {
       return Math.abs(x1 - y1);
     }
   }
+
+  /**
+   * Get sign of the number. 1 or -1.
+   */
   static sign(p: number): number {
     return p >= 0 ? 1 : -1;
   }
 
+  /**
+   * Clear browser text selection.
+   */
   static clearBrowserSelection(): void {
     if (!window) {
       return;
     }
     if (window.getSelection) {
-      window.getSelection().removeAllRanges();
+      const selection = window.getSelection();
+      if (selection) {
+        selection.removeAllRanges();
+      }
     } else {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const doc: any = window.document;
@@ -183,5 +228,61 @@ export class TimelineUtils {
     } else {
       return 1;
     }
+  }
+
+  static deepClone = <T>(previousOptions: T): T => {
+    return JSON.parse(JSON.stringify(previousOptions)) as T;
+  };
+
+  static cloneOptions = (previousOptions: TimelineOptions): TimelineOptions => {
+    const clonedValue = JSON.parse(
+      JSON.stringify(previousOptions, (key, value) => {
+        // No need to clone HTML element passed as ID.
+        return key === 'id' ? undefined : value;
+      }),
+    );
+    clonedValue.id = previousOptions.id;
+    return clonedValue;
+  };
+  /**
+   * Merge options. New keys will be added.
+   */
+  static mergeOptions(previousOptions: TimelineOptions, newOptions: TimelineOptions): TimelineOptions {
+    newOptions = newOptions || ({} as TimelineOptions);
+    // Apply incoming options to default. (override default)
+    // Deep clone default options:
+    const toArg = TimelineUtils.cloneOptions(previousOptions);
+    // Merge options with the default.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const mergeOptionsDeep = (to: any, from: any): void => {
+      if (!to || !from) {
+        return;
+      }
+      // eslint-disable-next-line prefer-const
+      for (let key in from) {
+        if (Object.prototype.hasOwnProperty.call(from, key)) {
+          if (from[key] !== undefined) {
+            if (typeof from[key] === 'object') {
+              if (key === 'id') {
+                if (from[key] && from[key] !== to[key]) {
+                  to[key] = from[key];
+                }
+              } else {
+                if (!to[key]) {
+                  to[key] = from[key];
+                } else {
+                  mergeOptionsDeep(to[key], from[key]);
+                }
+              }
+            } else {
+              to[key] = from[key];
+            }
+          }
+        }
+      }
+    };
+
+    mergeOptionsDeep(toArg, newOptions);
+    return toArg;
   }
 }

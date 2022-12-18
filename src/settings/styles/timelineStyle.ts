@@ -1,18 +1,33 @@
-import { TimelineCapShape } from '../../enums/timelineCapShape';
+import { TimelineCursorType } from '../../enums/timelineCursorType';
+import { TimelineCapStyle } from './timelineCapStyle';
 
 /**
- * Timeline indicator style
+ * Timeline active/current value indicator style.
  */
 export interface TimelineStyle {
   width?: number;
-  marginTop?: number;
-  capWidth?: number;
-  capHeight?: number;
   /**
-   * Cap type
+   * Margin top in pixels.
    */
-  capType?: TimelineCapShape;
-  timelineColor?: string;
-  strokeColor: string;
-  fillColor: string;
+  marginTop?: number;
+  /**
+   * Margin bottom in pixels.
+   */
+  marginBottom?: number;
+  /**
+   * Timeline top cap style.
+   */
+  capStyle?: TimelineCapStyle;
+  /**
+   * Timeline indicator stroke color.
+   */
+  strokeColor?: string;
+  /**
+   * Timeline fill color.
+   */
+  fillColor?: string;
+  /**
+   * Timeline cursor.
+   */
+  cursor?: TimelineCursorType;
 }

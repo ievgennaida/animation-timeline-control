@@ -11,11 +11,13 @@ import {
   TimelineRowStyle,
   TimelineElementDragState,
   TimelineKeyframeStyle,
+  TimelineUtils,
+  TimelineKeyframeShape,
 } from '../lib/animation-timeline';
 
-describe('Timeline', function () {
-  describe('_filterDraggableElements', function () {
-    it('Keyframe should be selected', function () {
+describe('Timeline', () => {
+  describe('_findDraggableElement', () => {
+    it('Keyframe should be selected', () => {
       const timeline = new Timeline();
       const elements = [
         {
@@ -27,13 +29,14 @@ describe('Timeline', function () {
           val: 5,
         } as TimelineElement,
       ];
-      const element = timeline._filterDraggableElements(elements, 5);
+      const element = timeline._findDraggableElement(elements, 5);
       if (!element) {
         throw new Error('element cannot be empty');
       }
+
       chai.expect(element.type).equal(TimelineElementType.Keyframe, TimelineElementType.Keyframe + ' should be selected');
     });
-    it('Timeline should be selected', function () {
+    it('Timeline should be selected', () => {
       const timeline = new Timeline();
       const elements = [
         {
@@ -45,13 +48,13 @@ describe('Timeline', function () {
           val: 5,
         } as TimelineElement,
       ];
-      const element = timeline._filterDraggableElements(elements, 5);
+      const element = timeline._findDraggableElement(elements, 5);
       if (!element) {
         throw new Error('element cannot be empty');
       }
       chai.expect(element.type).equal(TimelineElementType.Timeline, TimelineElementType.Timeline + ' should be selected');
     });
-    it('Timeline should taken first', function () {
+    it('Timeline should taken first', () => {
       const timeline = new Timeline();
       const elements = [
         {
@@ -71,7 +74,7 @@ describe('Timeline', function () {
           val: 5,
         } as TimelineElement,
       ];
-      const element = timeline._filterDraggableElements(elements, 5);
+      const element = timeline._findDraggableElement(elements, 5);
       if (!element) {
         throw new Error('element cannot be empty');
       }
@@ -79,21 +82,22 @@ describe('Timeline', function () {
       // Keyframe with value 5 should be selected
       chai.expect(element.val).equal(5);
     });
-    it('Group should be selected', function () {
+
+    it('Group should be found under the value', () => {
       const timeline = new Timeline();
-      const elements: Array<TimelineElement> = [
+      const elements: TimelineElement[] = [
         {
           type: TimelineElementType.Group,
           val: 5,
         } as TimelineElement,
       ];
-      const element = timeline._filterDraggableElements(elements, 5);
+      const element = timeline._findDraggableElement(elements, 5);
       if (!element) {
         throw new Error('element cannot be empty');
       }
       chai.expect(element.type).equal(TimelineElementType.Group, TimelineElementType.Group + ' should be selected');
     });
-    it('closest keyframe should be returned', function () {
+    it('closest keyframe should be returned', () => {
       const timeline = new Timeline();
       const elements = [
         {
@@ -109,10 +113,11 @@ describe('Timeline', function () {
           val: 9,
         } as TimelineElement,
       ];
-      const element = timeline._filterDraggableElements(elements, 5);
+      const element = timeline._findDraggableElement(elements, 5);
+      chai.assert(element);
       chai.expect(element.val).equal(elements[1].val);
     });
-    it('Keyframes are not draggable by global settings', function () {
+    it('Keyframes are not draggable by global settings', () => {
       const timeline = new Timeline();
       const elements: Array<TimelineElement> = [
         {
@@ -130,45 +135,43 @@ describe('Timeline', function () {
       ];
       // Apply global options::
       timeline._options = {
+        keyframesDraggable: false,
         rowsStyle: {
           keyframesStyle: {
-            draggable: false,
+            shape: TimelineKeyframeShape.Rect,
           } as TimelineKeyframeStyle,
         } as TimelineRowStyle,
       } as TimelineOptions;
-      const element = timeline._filterDraggableElements(elements, 5);
+      const element = timeline._findDraggableElement(elements, 5);
+      chai.assert(element);
       chai.expect(element.type).equal(TimelineElementType.Group, 'Group should be selected');
     });
-    it('Keyframes are not draggable by row settings', function () {
+    it('Timeline. Keyframes are not draggable by row settings', () => {
       const timeline = new Timeline();
       const elements: Array<TimelineElement> = [
         {
           type: TimelineElementType.Keyframe,
           val: 4,
           row: {
-            keyframesStyle: {
-              draggable: false,
-            } as TimelineRowStyle,
+            keyframesDraggable: false,
           } as TimelineRow,
         },
         {
           type: TimelineElementType.Keyframe,
           val: 5,
           row: {
-            keyframesStyle: {
-              draggable: true,
-            } as TimelineRowStyle,
+            keyframesDraggable: true,
           } as TimelineRow,
         } as TimelineElement,
       ];
       // Apply global options::
-      const element = timeline._filterDraggableElements(elements, 4);
-
+      const element = timeline._findDraggableElement(elements, 4);
+      chai.assert(element);
       // Keyframe with value 5 should be selected as draggable
       chai.expect(element.val).equal(5);
     });
 
-    it('Keyframes are draggable', function () {
+    it('Keyframes are draggable', () => {
       const timeline = new Timeline();
       const elements: Array<TimelineElement> = [
         {
@@ -178,8 +181,9 @@ describe('Timeline', function () {
             val: 0,
           } as TimelineKeyframe,
           row: {
+            keyframesDraggable: false,
             keyframesStyle: {
-              draggable: false,
+              shape: TimelineKeyframeShape.Rect,
             } as TimelineRowStyle,
           } as TimelineRow,
         } as TimelineElement,
@@ -191,19 +195,19 @@ describe('Timeline', function () {
           } as TimelineKeyframe,
           row: {
             keyframesStyle: {
-              keyframesStyle: {} as TimelineKeyframeStyle,
+              keyframesStyle: { shape: TimelineKeyframeShape.Rect } as TimelineKeyframeStyle,
             } as TimelineRowStyle,
           } as TimelineRow,
         } as TimelineElement,
       ];
       // Apply global options::
-      const element = timeline._filterDraggableElements(elements, 4);
-
+      const element = timeline._findDraggableElement(elements, 4);
+      chai.assert(element);
       // Keyframe with value 5 should be selected as draggable
       chai.expect(element.val).equal(5);
     });
   });
-  describe('select', function () {
+  describe('select', () => {
     const model: TimelineModel = {
       rows: [
         { val: 0, keyframes: [{ val: 0 }, { val: 0 }] } as TimelineRow,
@@ -212,7 +216,7 @@ describe('Timeline', function () {
         { val: 0, keyframes: [{ val: 0 }] } as TimelineRow,
       ] as Array<TimelineRow>,
     } as TimelineModel;
-    it('Select all', function () {
+    it('Select all', () => {
       const timeline = new Timeline();
       timeline._model = model;
       const element = timeline.selectAllKeyframes();
@@ -231,7 +235,7 @@ describe('Timeline', function () {
 
       chai.expect(element.selected.length).equal(changed);
     });
-    it('Select all selectable', function () {
+    it('Select all selectable', () => {
       const timeline = new Timeline();
       timeline._model = model;
       const element = timeline.getAllKeyframes();
@@ -256,7 +260,7 @@ describe('Timeline', function () {
       chai.expect(selectionResults.changed.length).equal(selectable);
       chai.expect(selectionResults.selected.length).equal(selectable);
     });
-    it('Deselect all', function () {
+    it('Deselect all', () => {
       const timeline = new Timeline();
       timeline._model = model;
       model.rows.forEach((row: TimelineRow) => {
@@ -283,7 +287,7 @@ describe('Timeline', function () {
         }
       });
     });
-    it('Select one and deselect other all', function () {
+    it('Select one and deselect other all', () => {
       const timeline = new Timeline();
       timeline._model = model;
       let expectedChanged = 0;
@@ -327,7 +331,7 @@ describe('Timeline', function () {
         }
       });
     });
-    it('Revert selection (Toggle)', function () {
+    it('Revert selection (Toggle)', () => {
       const timeline = new Timeline();
       timeline._model = model;
       let totalKeyframes = 0;
@@ -371,7 +375,7 @@ describe('Timeline', function () {
         }
       });
     });
-    it('Select full row', function () {
+    it('Select full row', () => {
       const timeline = new Timeline();
       timeline._model = model;
       // Deselect all
@@ -417,7 +421,7 @@ describe('Timeline', function () {
         }
       });
     });
-    it('Append select', function () {
+    it('Append select', () => {
       const timeline = new Timeline();
       timeline._model = model;
       // Deselect all
@@ -468,8 +472,8 @@ describe('Timeline', function () {
       });
     });
   });
-  describe('Coordinates', function () {
-    it('Coordinates', function () {
+  describe('Coordinates', () => {
+    it('Coordinates', () => {
       const timeline = new Timeline();
       timeline._setOptions({
         stepVal: 100,
@@ -485,7 +489,7 @@ describe('Timeline', function () {
       chai.expect(timeline.pxToVal(50)).equal(100);
       chai.expect(timeline.pxToVal(100)).equal(200);
     });
-    it('Coordinates. min is negative', function () {
+    it('Coordinates. min is negative', () => {
       const timeline = new Timeline();
       timeline._setOptions({
         stepVal: 100,
@@ -506,7 +510,7 @@ describe('Timeline', function () {
       chai.expect(timeline.pxToVal(75)).equal(50);
       chai.expect(timeline.pxToVal(100)).equal(100);
     });
-    it('Coordinates. min is positive', function () {
+    it('Coordinates. min is positive', () => {
       const timeline = new Timeline();
       timeline._setOptions({
         stepVal: 100,
@@ -521,7 +525,7 @@ describe('Timeline', function () {
       chai.expect(timeline.pxToVal(0)).equal(100);
       chai.expect(timeline.pxToVal(25)).equal(150);
     });
-    it('Zoom is respected', function () {
+    it('Zoom is respected', () => {
       const timeline = new Timeline();
       timeline._setOptions({
         stepVal: 100,
@@ -542,8 +546,8 @@ describe('Timeline', function () {
       chai.expect(timeline.pxToVal(50)).equal(200);
     });
   });
-  describe('Snapping', function () {
-    it('Snapping', function () {
+  describe('Snapping', () => {
+    it('Snapping', () => {
       const timeline = new Timeline();
       timeline._setOptions({
         stepVal: 100,
@@ -558,7 +562,7 @@ describe('Timeline', function () {
       chai.expect(timeline.snapVal(48)).equal(50);
       chai.expect(timeline.snapVal(58)).equal(50);
     });
-    it('Snapping. min is defined', function () {
+    it('Snapping. min is defined', () => {
       const timeline = new Timeline();
       timeline._setOptions({
         stepVal: 100,
@@ -577,7 +581,7 @@ describe('Timeline', function () {
       // Don't overlap the limit.
       chai.expect(timeline.snapVal(-100)).equal(5);
     });
-    it('Snapping. negative min is defined', function () {
+    it('Snapping. negative min is defined', () => {
       const timeline = new Timeline();
       timeline._setOptions({
         stepVal: 100,
@@ -602,7 +606,54 @@ describe('Timeline', function () {
       // Don't overlap the limit.
       chai.expect(timeline.snapVal(-100)).equal(-55);
     });
-    it('Snapping. negative min (-25) is defined', function () {
+    it('TimelineUtils.isNumber', () => {
+      chai.expect(TimelineUtils.isNumber(0)).equal(true);
+      chai.expect(TimelineUtils.isNumber(-1)).equal(true);
+      chai.expect(TimelineUtils.isNumber(1)).equal(true);
+      chai.expect(TimelineUtils.isNumber(null)).equal(false);
+      chai.expect(TimelineUtils.isNumber(undefined)).equal(false);
+      chai.expect(TimelineUtils.isNumber(Number.NEGATIVE_INFINITY)).equal(false);
+      chai.expect(TimelineUtils.isNumber(Number.NaN)).equal(false);
+    });
+    it('TimelineUtils.keepInBounds', () => {
+      chai.expect(TimelineUtils.keepInBounds(0, -1, 2)).equal(0);
+      chai.expect(TimelineUtils.keepInBounds(0, 1, 2)).equal(1);
+      chai.expect(TimelineUtils.keepInBounds(0, 1, null)).equal(1);
+      chai.expect(TimelineUtils.keepInBounds(10, null, 2)).equal(2);
+      chai.expect(TimelineUtils.keepInBounds(-10, -1, 2)).equal(-1);
+      chai.expect(TimelineUtils.keepInBounds(-10, 2, 2)).equal(2);
+      chai.expect(TimelineUtils.keepInBounds(10, 1, 2)).equal(2);
+    });
+    it('TimelineUtils.cutBounds', () => {
+      const cutInformation = new Timeline()._cutBoundsWhenOverlap(
+        {
+          x: 0,
+          y: 0,
+          width: 100,
+          height: 100,
+          bottom: 0,
+          left: 0,
+          right: 0,
+          top: 0,
+          toJSON: () => {
+            return '';
+          },
+        },
+        10,
+        50,
+        10,
+        50,
+      );
+      chai.assert(cutInformation);
+      const rect = cutInformation.rect;
+      chai.assert(rect);
+      chai.expect(rect.x).equal(10);
+      chai.expect(rect.y).equal(10);
+      chai.expect(rect.width).equal(90);
+      chai.expect(rect.height).equal(90);
+    });
+
+    it('Snapping. negative min (-25) is defined', () => {
       const timeline = new Timeline();
       timeline._setOptions({
         stepVal: 100,
@@ -620,10 +671,10 @@ describe('Timeline', function () {
       chai.expect(timeline.snapVal(-58)).equal(-25);
     });
   });
-  describe('Move Keyframes', function () {
-    it('move left', function () {
+  describe('Move Keyframes', () => {
+    it('move left', () => {
       const timeline = new Timeline();
-      timeline._options = null;
+      timeline._options = {};
       const item1 = 25;
       const item2 = 50;
       const model = {
@@ -656,12 +707,13 @@ describe('Timeline', function () {
       chai.expect(keyframes[0]?.val).equal(item1 + move);
       chai.expect(keyframes[1]?.val).equal(item2 + move);
     });
-    it('move right', function () {
+    it('move right', () => {
       const timeline = new Timeline();
       const item1 = 25;
       const item2 = 50;
+      const keyframesModels = [{ val: item1 }, { val: item2 }] as TimelineKeyframe[];
       const model = {
-        rows: [{ val: 0, keyframes: [{ val: item1 }, { val: item2 }] } as TimelineRow] as Array<TimelineRow>,
+        rows: [{ keyframes: keyframesModels }] as TimelineRow[],
       } as TimelineModel;
       timeline._model = model;
       const move = 100;
@@ -690,7 +742,7 @@ describe('Timeline', function () {
       chai.expect(keyframes[0]?.val).equal(item1 + move);
       chai.expect(keyframes[1]?.val).equal(item2 + move);
     });
-    it('move left limited by min', function () {
+    it('move left limited by min', () => {
       const timeline = new Timeline();
       const item1 = 25;
       const item2 = 50;
@@ -711,7 +763,7 @@ describe('Timeline', function () {
       chai.expect(elementsToMove[1].keyframe?.val).equal(25);
     });
 
-    it('move right limited by max', function () {
+    it('move right limited by max', () => {
       const timeline = new Timeline();
       const item1 = 25;
       const item2 = 50;
@@ -731,7 +783,7 @@ describe('Timeline', function () {
       chai.expect(elementsToMove[0].keyframe?.val).equal(item1 + 50);
       chai.expect(elementsToMove[1].keyframe?.val).equal(item2 + 50);
     });
-    it('move right limited by max negative', function () {
+    it('move right limited by max negative', () => {
       const timeline = new Timeline();
       const item1 = -125;
       const item2 = -150;
@@ -751,7 +803,7 @@ describe('Timeline', function () {
       chai.expect(elementsToMove[0].keyframe?.val).equal(item1 + 25);
       chai.expect(elementsToMove[1].keyframe?.val).equal(item2 + 25);
     });
-    it('move right limited by max negative when other row out of the bounds', function () {
+    it('move right limited by max negative when other row out of the bounds', () => {
       const timeline = new Timeline();
       timeline._options = { min: 0, max: 600 } as TimelineOptions;
       const move = 200;
@@ -783,7 +835,7 @@ describe('Timeline', function () {
       chai.expect(elementsToMove[2].keyframe?.val).equal(200 + moved);
       chai.expect(elementsToMove[3].keyframe?.val).equal(300 + moved);
     });
-    it('move left limited by min negative', function () {
+    it('move left limited by min negative', () => {
       const timeline = new Timeline();
       const item1 = -125;
       const item2 = -150;
@@ -803,7 +855,7 @@ describe('Timeline', function () {
       chai.expect(elementsToMove[0].keyframe?.val).equal(item1 - 50);
       chai.expect(elementsToMove[1].keyframe?.val).equal(item2 - 50);
     });
-    it('move left only one keyframe is limited', function () {
+    it('move left only one keyframe is limited', () => {
       const timeline = new Timeline();
       const move = 100;
       const row = { min: 0, max: 100 } as TimelineRow;
@@ -822,6 +874,25 @@ describe('Timeline', function () {
       chai.expect(movedOffset).equal(move / 2);
       chai.expect(elementsToMove[0].keyframe?.val).equal(25 + 50);
       chai.expect(elementsToMove[1].keyframe?.val).equal(50 + 50);
+    });
+    it('move left only one keyframe has min bounds', () => {
+      const timeline = new Timeline();
+      const move = -100;
+      const row = { min: 0, max: 100 } as TimelineRow;
+      const elementsToMove = [
+        {
+          keyframe: { val: 25, min: 5 },
+          row: row,
+        } as TimelineElementDragState,
+        {
+          keyframe: { val: 50, min: 25 },
+          row: row,
+        } as TimelineElementDragState,
+      ];
+      const movedOffset = timeline._moveElements(move, elementsToMove);
+      chai.expect(movedOffset).equal(-20);
+      chai.expect(elementsToMove[0].keyframe?.val).equal(5);
+      chai.expect(elementsToMove[1].keyframe?.val).equal(30);
     });
   });
 });

@@ -3,11 +3,11 @@
  */
 export interface TimelineValues {
     /**
-     * Value to be used.
+     * Value used for the visualization.
      */
     val: number;
     /**
-     * Snapped value.
+     * Snapped value (val property will be snapped if snapping was enabled)
      */
     snapVal?: number;
     /**

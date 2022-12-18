@@ -1,13 +1,13 @@
-import { TimelineKeyframe } from '../timelineKeyframe';
+import { TimelineKeyframe } from '../models/timelineKeyframe';
 export interface TimelineSelectionResults {
     /**
      * Changed nodes.
      */
-    changed: Array<TimelineKeyframe>;
+    changed: TimelineKeyframe[];
     /**
      * Selected nodes.
      */
-    selected: Array<TimelineKeyframe>;
+    selected: TimelineKeyframe[];
     /**
      * Whether data was changed.
      */

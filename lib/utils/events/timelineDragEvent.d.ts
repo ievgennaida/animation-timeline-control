@@ -1,34 +1,23 @@
-import { TimelineValues } from '../timelineValues';
+import { TimelinePoint } from '../timelinePoint';
 import { TimelineBaseEvent } from './timelineBaseEvent';
 import { TimelineElementDragState } from '../timelineElementDragState';
-export declare class TimelineDragEvent extends TimelineBaseEvent implements TimelineValues {
-    args: MouseEvent;
-    /**
-     * Clicked screen position.
-     */
-    pos: DOMPoint;
+export declare class TimelineDragEvent extends TimelineBaseEvent {
+    args: MouseEvent | TouchEvent | null;
+    get pos(): DOMPoint | null;
     /**
      * Elements to be dragged as a group.
      */
-    elements: Array<TimelineElementDragState>;
+    elements: TimelineElementDragState[] | null;
     /**
      * Target element
      */
-    target: TimelineElementDragState;
+    target: TimelineElementDragState | null;
     /**
-     * Value to be used.
+     * Timeline current active drag position.
      */
-    val: number;
+    point: TimelinePoint | null;
     /**
-     * prev value.
+     * Timeline previous drag position.
      */
-    prevVal: number;
-    /**
-     * Snapped value.
-     */
-    snapVal: number;
-    /**
-     * Unsnapped original value.
-     */
-    originalVal: number;
+    prevPoint: TimelinePoint | null;
 }

@@ -194,7 +194,7 @@ Main options:
 | --------------- | ------------------------------------------------------------------------------------------------------------------------- |
 | groupsDraggable         |  keyframes group is draggable. Default: true |
 | keyframesDraggable         | keyframes group is draggable. Default: true                                                      |
-| timelineInteractive     | Timeline can be dragged or position can be changed by user interaction. Default True |
+| timelineDraggable     | Timeline can be dragged or position can be changed by user interaction. Default True |
 
 ### Keyboard shortcuts
 
@@ -216,9 +216,9 @@ Selection - allow to select one or group of the keyframes.
 
 - **selection** - Keyframe selection tool selecting single or group of keyframes.
 - **pan** - Pan tool with the possibility to select keyframes.
-- **nonInteractivePan** - Allow only pan without any keyframes interaction. Timeline still can be moved and controlled by option  'timelineInteractive'.
+- **nonInteractivePan** - Allow only pan without any keyframes interaction. Timeline still can be moved and controlled by option  'timelineDraggable'.
 - **zoom** - zoom tool
-- **none** -  No iteraction, except moving a timeline. Timeline still can be moved and controlled by option 'timelineInteractive'.
+- **none** -  No iteraction, except moving a timeline. Timeline still can be moved and controlled by option 'timelineDraggable'.
 
 Example:
 
@@ -258,48 +258,23 @@ timeline._formatUnitsText = (val)=> { return val + ' ms'; };
 
 ### Styling
 
-Timeline is rendered as a canvas, so has no HTML elements for the css styling.
-Styles can be applied on a few levels:
+The timeline component is rendered as a canvas and has no HTML elements for CSS styling.
+Styles are applied as a part of the keyframes model and can be applied in a cascade order from bottom to the top:
 
 - Global control setting (See TypeScript interface  TimelineStyle)
 - row styles (See TypeScript interface TimelineRowStyle)
+- Keyframe group styles with the underlying keyframe styles. (TimelineGroupStyle)
 - keyframe styles (See TypeScript interface TimelineKeyframeStyle)
 
-Styles are applied by a global settings and can be overridden by a row or keyframe style.
+Separate global styles for the timeline indicator are used:
+
+- TimelineOptions - global component properties and styles.
+  - TimelineStyle timeline indicator styles
+    - TimelineCapStyle - cap of the timeline style.
 
 ## Changes
 
-## 2.2.3
-
-- Small fixes.
-- Dispose method will remove also scroll container event handlers.
-- Fixed demo nonInteractivePan.
-- Fixed timeline player demo.
-- Added scrollFinished event.
-
-## 2.2.2
-
-- Added new option timelineInteractive = true/false to control possibility for user to move timeline position.
-- Added 'nonInteractivePan' interaction mode that is allowing only to pan and change position of the timeline without changing the keyframes position.
-- Added 'none' interaction mode where no interactions are allowed.
-- Added 'play' demo to the index.html
-- Private property _findDraggable is renamed to_filterDraggableElements
-- Options are appended to the current active options, not to default.
-- Fixed order of the build (definitions and tests only after the definitions.)
-- updated build packages.
-
-## 2.2.1
-
- TypeScript fixes, updated build packages.
-
-## > 2.0
-
-- Migrated to TypeScript, Webpack, Babel.
-- API is refined.
-
-## < 2.0
-
-Vanilla js implementation.
+See Changelog [here](./CHANGELOG.md)
 
 ## Development
 

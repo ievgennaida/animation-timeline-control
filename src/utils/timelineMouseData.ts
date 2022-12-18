@@ -1,12 +1,15 @@
-import { TimelineValues } from './timelineValues';
+import { TimelinePoint } from './timelinePoint';
 
 /**
  * Mouse data helper container.
  */
-export interface TimelineMouseData extends TimelineValues, DOMPoint {
+export interface TimelineMouseData extends TimelinePoint {
   /**
-   * Click radius
+   * Originated event args.
+   */
+  args: TouchEvent | MouseEvent;
+  /**
+   * Click radius.
    */
   radius?: number;
-  args?: TouchEvent | MouseEvent;
 }

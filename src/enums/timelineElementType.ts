@@ -1,3 +1,6 @@
+/**
+ * Internal element type.
+ */
 export enum TimelineElementType {
   /**
    * Timeline
@@ -8,11 +11,12 @@ export enum TimelineElementType {
    */
   Keyframe = 'keyframe',
   /**
-   * Keyframes group
+   * Keyframes connected and presenting one group.
    */
   Group = 'group',
   /**
-   * Row
+   * Timeline row.
    */
   Row = 'row',
+  None = 'none',
 }

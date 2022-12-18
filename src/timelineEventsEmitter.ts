@@ -1,44 +1,62 @@
 /* eslint-disable  @typescript-eslint/no-explicit-any */
-interface Event {
+interface TimelineEvent {
   topic: string;
   callback: (args: any) => void;
 }
 
+/**
+ * Timeline events emitter.
+ */
 export class TimelineEventsEmitter {
-  protected _subscriptions: Array<Event> = [];
+  /**
+   * Active events subscriptions.
+   */
+  _subscriptions: TimelineEvent[] = [];
 
-  // on event.
-  on(topic: string, callback: (args: any) => void): void {
+  /**
+   * Subscribe event.
+   * @param topic event name.
+   * @param callback callback to be added.
+   */
+  on<T>(topic: string, callback: (args: T) => void): boolean {
     if (!callback) {
-      return;
+      return false;
     }
 
     this._subscriptions.push({
       topic: topic,
       callback: callback,
-    });
+    } as TimelineEvent);
+    return true;
   }
   /**
    * Remove an event from the subscriptions list.
    */
-  off(topic: string, callback: (args: any) => void): void {
+  off<T>(topic: string, callback: (args: T) => void): boolean {
+    const before = this._subscriptions.length;
     this._subscriptions = this._subscriptions.filter((event) => {
       return event && event.callback != callback && event.topic != topic;
     });
+    return before !== this._subscriptions.length;
   }
 
   /**
    * Unsubscribe all
    */
   offAll(): void {
+    // Remove all callbacks from array.
     this._subscriptions.length = 0;
   }
 
-  // emit event.
+  /**
+   * Emit event.
+   * @param topic Event name.
+   * @param args Event arguments.
+   */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  emit(topic: string, args: any): void {
+  emit<T>(topic: string, args: T): void {
     this._subscriptions.forEach((event) => {
-      if (event && event.topic == topic && event.callback) {
+      if (event?.topic === topic && event?.callback) {
         event.callback(args);
       }
     });

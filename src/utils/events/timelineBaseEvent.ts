@@ -1,3 +1,6 @@
+/**
+ * Timeline base preventable event.
+ */
 export class TimelineBaseEvent {
   private _prevented = false;
   /**

@@ -1,23 +1,33 @@
 import { TimelineElementType } from '../enums/timelineElementType';
-import { TimelineValues } from './timelineValues';
 import { TimelineElementDragState } from './timelineElementDragState';
 
-export interface TimelineDraggableData extends TimelineValues {
-  changed: boolean;
+/**
+ * Information about current drag state.
+ */
+export class TimelineDraggableData {
+  /**
+   * Whether position was changed.
+   */
+  changed = false;
   /**
    * Drag initial click target.
    */
-  target: TimelineElementDragState;
+  target!: TimelineElementDragState;
   /**
    * Elements to be dragged.
+   * Can be multiple elements, but drag will be started with target.
    */
-  elements: Array<TimelineElementDragState>;
+  elements!: TimelineElementDragState[];
   /**
    * Dragging type.
    */
-  type: TimelineElementType;
+  type: TimelineElementType = TimelineElementType.None;
   /**
    * Prev value.
    */
-  prevVal: number;
+  val!: number;
+  /**
+   * Prev value.
+   */
+  prevVal!: number;
 }

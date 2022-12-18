@@ -184,14 +184,18 @@
         title="Timeline zoom mode. Also ctrl + scroll can be used." onclick="zoomMode()">search</button>
       <button class="button mat-icon material-icons mat-icon-no-color" title="Only view mode."
         onclick="noneMode()">visibility</button>
-      <div style="width: 1px; background:gray; height: 100%;"></div>
+      <div style="width: 1px; background: gray; height: 100%"></div>
       <button class="button mat-icon material-icons mat-icon-no-color"
         title="Use external player to play\stop the timeline. For the demo simple setInterval is used."
-        onclick="onPlayClick()">play_arrow</button>
+        onclick="onPlayClick()">
+        play_arrow
+      </button>
       <button class="button mat-icon material-icons mat-icon-no-color"
         title="Use external player to play\stop the timeline. For the demo simple setInterval is used."
-        onclick="onPauseClick()">pause</button>
-      <div style="flex:1"></div>
+        onclick="onPauseClick()">
+        pause
+      </button>
+      <div style="flex: 1"></div>
       <button class="flex-left button mat-icon material-icons mat-icon-no-color" title="Remove selected keyframe"
         onclick="removeKeyframe()">close</button>
       <button class="flex-left button mat-icon material-icons mat-icon-no-color" title="Add new track with the keyframe"
@@ -214,6 +218,20 @@
     var outlineContainer = document.getElementById('outline-container');
 
     function generateModel() {
+      const groupA = {
+        style: {
+          fillColor: '#6B9080',
+          marginTop: 4,
+        },
+        keyframesStyle: {
+          shape: "rect"
+        }
+      };
+      const groupB = {
+        style: {
+          marginTop: 6,
+        },
+      };
       let rows = [
         {
           selected: false,
@@ -233,10 +251,11 @@
         },
         {
           selected: false,
-          hidden: false,
           keyframes: [
             {
-              cursor: 'default',
+              style:{
+                cursor: 'default',
+              },
               val: 2000,
             },
             {
@@ -248,7 +267,6 @@
           ],
         },
         {
-          hidden: false,
           keyframes: [
             {
               val: 1000,
@@ -293,6 +311,31 @@
           ],
         },
         {
+          title: 'Groups Different Styles',
+          keyframes: [
+            {
+              val: 100,
+              max: 850,
+              group: groupA,
+            },
+            {
+              val: 500,
+              max: 900,
+              group: groupA,
+            },
+            {
+              min: 900,
+              max: 3400,
+              val: 1900,
+              group: groupB,
+            },
+            {
+              val: 4000,
+              group: groupB,
+            },
+          ],
+        },
+        {
           keyframes: [
             {
               val: 100,
@@ -306,12 +349,17 @@
           ],
         },
         {
-          title: 'Style Customized',
-          groupHeight: 20,
-          keyframesStyle: {
-            shape: 'rect',
-            width: 5,
-            height: 20,
+          title: 'Keyframe Style Customized',
+          style: {
+            groupsStyle: {
+              height: 5,
+              marginTop: "auto"
+            },
+            keyframesStyle: {
+              shape: 'rect',
+              width: 5,
+              height: 20,
+            }
           },
           keyframes: [
             {
@@ -324,17 +372,18 @@
         },
         {},
         {
-          title: 'Max Value',
+          title: 'Max Value (Not Draggable)',
           max: 4000,
           keyframes: [
-            ,
             {
-              width: 4,
-              height: 20,
-              group: 'block',
-              shape: 'rect',
-              fillColor: 'Red',
-              strokeColor: 'Black',
+              style: {
+                width: 4,
+                height: 20,
+                group: 'block',
+                shape: 'rect',
+                fillColor: 'Red',
+                strokeColor: 'Black',
+              },
               val: 4000,
               selectable: false,
               draggable: false,
@@ -351,12 +400,15 @@
         {},
         {
           title: 'Custom Height',
-          height: 100,
-          keyframesStyle: {
-            shape: 'rect',
-            width: 4,
-            height: 70,
+          style: {
+            height: 100,
+            keyframesStyle: {
+              shape: 'rect',
+              width: 4,
+              height: 70,
+            },
           },
+
           keyframes: [
             {
               val: 40,
@@ -366,9 +418,9 @@
             {
               val: 8600,
               group: 'a',
-            }
+            },
           ],
-        }
+        },
       ];
       return rows;
     }
@@ -384,9 +436,9 @@
         args.preventDefault();
       }
     });
-    var logMessage = function (message, log = 1) {
+    var logMessage = function (message, logPanel = 1) {
       if (message) {
-        let el = document.getElementById('output' + log);
+        let el = document.getElementById('output' + logPanel);
         el.innerHTML = message + '<br/>' + el.innerHTML;
       }
     };
@@ -402,19 +454,19 @@
     });
     function showActivePositionInformation() {
       if (timeline) {
-        const fromPx = timeline.getScrollLeft();
-        const toPx = timeline.getScrollLeft() + timeline.getClientWidth();
+        const fromPx = timeline.scrollLeft;
+        const toPx = timeline.scrollLeft + timeline.getClientWidth();
         const fromMs = timeline.pxToVal(fromPx - timeline._leftMargin());
         const toMs = timeline.pxToVal(toPx - timeline._leftMargin());
         let positionInPixels = timeline.valToPx(timeline.getTime()) + timeline._leftMargin();
-        let message = 'Timeline in ms: ' + timeline.getTime() + 'ms. Displayed from:' + fromMs.toFixed() + 'ms to: ' + toMs.toFixed() + "ms.";
-        message += "<br>";
-        message += "Timeline in px: " + positionInPixels + 'px. Displayed from: ' + fromPx + 'px to: ' + toPx + "px";
+        let message = 'Timeline in ms: ' + timeline.getTime() + 'ms. Displayed from:' + fromMs.toFixed() + 'ms to: ' + toMs.toFixed() + 'ms.';
+        message += '<br>';
+        message += 'Timeline in px: ' + positionInPixels + 'px. Displayed from: ' + fromPx + 'px to: ' + toPx + 'px';
         document.getElementById('currentTime').innerHTML = message;
       }
     }
     timeline.onSelected(function (obj) {
-      logMessage('selected :' + obj.selected.length + '. changed :' + obj.changed.length, 2);
+      logMessage('Selected Event: (' + obj.selected.length + '). changed selection :' + obj.changed.length, 2);
     });
     timeline.onDragStarted(function (obj) {
       logDraggingMessage(obj, 'dragstarted');
@@ -430,11 +482,11 @@
     });
     timeline.onMouseDown(function (obj) {
       var type = obj.target ? obj.target.type : '';
-      logMessage('mousedown:' + obj.val + '.  elements:' + type, 2);
+      logMessage('mousedown:' + obj.val + '.  target:' + type + '. ' + Math.floor(obj.pos.x) + 'x' + Math.floor(obj.pos.y), 2);
     });
     timeline.onDoubleClick(function (obj) {
       var type = obj.target ? obj.target.type : '';
-      logMessage('doubleclick:' + obj.val + '.  elements:' + type, 2);
+      logMessage('doubleclick:' + obj.val + '.  target:' + type + '. ' + Math.floor(obj.pos.x) + 'x' + Math.floor(obj.pos.y), 2);
     });
 
     timeline.onScroll(function (obj) {
@@ -462,11 +514,12 @@
       var headerElement = document.getElementById('outline-header');
       headerElement.style.maxHeight = headerElement.style.minHeight = options.headerHeight + 'px';
       // headerElement.style.backgroundColor = options.headerFillColor;
-      outlineContainer.innerHTML = "";
+      outlineContainer.innerHTML = '';
       rows.forEach(function (row, index) {
         var div = document.createElement('div');
         div.classList.add('outline-node');
-        div.style.maxHeight = div.style.minHeight = (row.height || options.rowsStyle.height) + 'px';
+        const h = (row.style ? row.style.height : 0) || options.rowsStyle.height;
+        div.style.maxHeight = div.style.minHeight = h + 'px';
         div.style.marginBottom = options.rowsStyle.marginBottom + 'px';
         div.innerText = row.title || 'Track ' + index;
         outlineContainer.appendChild(div);
@@ -497,7 +550,7 @@
         if (currentModel && currentModel.rows) {
           currentModel.rows.forEach((row) => {
             if (row.keyframes) {
-              row.keyframes = row.keyframes.filter(p => !p.selected);
+              row.keyframes = row.keyframes.filter((p) => !p.selected);
             }
           });
         }
@@ -518,7 +571,7 @@
     }
     function panMode(interactive) {
       if (timeline) {
-        timeline.setInteractionMode(interactive ? 'pan' : "nonInteractivePan");
+        timeline.setInteractionMode(interactive ? 'pan' : 'nonInteractivePan');
       }
     }
     // Set scroll back to timeline when mouse scroll over the outline
@@ -537,13 +590,13 @@
       if (timeline) {
         this.moveTimelineIntoTheBounds();
         // Don't allow to manipulate timeline during playing (optional).
-        timeline.setOptions({ timelineInteractive: false });
+        timeline.setOptions({ timelineDraggable: false });
       }
     }
     function onPauseClick(event) {
       playing = false;
       if (timeline) {
-        timeline.setOptions({ timelineInteractive: true });
+        timeline.setOptions({ timelineDraggable: true });
       }
     }
 
@@ -553,13 +606,13 @@
           // User is manipulating items, don't move screen in this case.
           return;
         }
-        const fromPx = timeline.getScrollLeft();
-        const toPx = timeline.getScrollLeft() + timeline.getClientWidth();
+        const fromPx = timeline.scrollLeft;
+        const toPx = timeline.scrollLeft + timeline.getClientWidth();
 
         let positionInPixels = timeline.valToPx(timeline.getTime()) + timeline._leftMargin();
         // Scroll to timeline position if timeline is out of the bounds:
         if (positionInPixels <= fromPx || positionInPixels >= toPx) {
-          this.timeline.setScrollLeft(positionInPixels);
+          this.timeline.scrollLeft = positionInPixels;
         }
       }
     }
@@ -573,7 +626,7 @@
         }
       }, playStep);
     }
-    // Note: this can be any other player: audio, video, svg and etc. 
+    // Note: this can be any other player: audio, video, svg and etc.
     // In this case you have to synchronize events of the component and player.
     initPlayer();
     showActivePositionInformation();

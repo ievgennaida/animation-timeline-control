@@ -1,6 +1,6 @@
 import { TimelineRowStyle } from './styles/timelineRowStyle';
 import { TimelineStyle } from './styles/timelineStyle';
-import { TimelineRanged } from '../timelineRanged';
+import { TimelineRanged } from '../models/timelineRanged';
 
 export interface TimelineOptions extends TimelineRanged {
   /**
@@ -12,11 +12,11 @@ export interface TimelineOptions extends TimelineRanged {
    */
   snapEnabled?: boolean;
   /**
-   *  Snap all selected keyframes as a bundle during the drag.
+   *  Snap all selected keyframes as one bundle during the drag.
    */
   snapAllKeyframesOnMove?: boolean;
   /**
-   * approximate step for the timeline in pixels for 1 second
+   * Approximate step for the timeline in pixels for 1 second
    */
   stepPx?: number;
   /**
@@ -40,6 +40,9 @@ export interface TimelineOptions extends TimelineRanged {
    * Component background color.
    */
   fillColor?: string;
+  /**
+   * Header labels color.
+   */
   labelsColor?: string;
   /**
    * Header gauge tick color.
@@ -50,15 +53,6 @@ export interface TimelineOptions extends TimelineRanged {
    */
   selectionColor?: string;
 
-  /**
-   * Default rows style.
-   * Can be overridden by setting style individually for each row.
-   */
-  rowsStyle?: TimelineRowStyle;
-  /**
-   * Timeline indicator style.
-   */
-  timelineStyle?: TimelineStyle;
   /**
    * Header height in pixels
    */
@@ -92,6 +86,16 @@ export interface TimelineOptions extends TimelineRanged {
    */
   scrollContainerClass?: string;
   /**
+   * Default rows style.
+   * Can be overridden by setting style individually for each row.
+   */
+  rowsStyle?: TimelineRowStyle;
+  /**
+   * Timeline indicator style.
+   */
+  timelineStyle?: TimelineStyle;
+
+  /**
    * keyframes group is draggable. Default: true
    */
   groupsDraggable?: boolean;
@@ -102,5 +106,5 @@ export interface TimelineOptions extends TimelineRanged {
   /**
    * Timeline can be dragged or position can be changed by user interaction. Default: true
    */
-  timelineInteractive?: boolean;
+  timelineDraggable?: boolean;
 }

@@ -8,5 +8,5 @@ export interface TimelineCalculated extends TimelineRanged {
     /**
      * model keyframes.
      */
-    keyframes: Array<TimelineCalculatedKeyframe>;
+    keyframes: TimelineCalculatedKeyframe[];
 }

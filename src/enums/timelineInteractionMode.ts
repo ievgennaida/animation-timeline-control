@@ -9,7 +9,7 @@ export enum TimelineInteractionMode {
   Pan = 'pan',
   /**
    * Allow only pan without any keyframes interaction.
-   * Timeline still can be moved and controlled by option 'timelineInteractive'.
+   * Timeline still can be moved and controlled by option 'timelineDraggable'.
    */
   NonInteractivePan = 'nonInteractivePan',
   /**
@@ -19,7 +19,7 @@ export enum TimelineInteractionMode {
 
   /**
    * No iteraction, except moving a timeline.
-   * Timeline still can be moved and controlled by option 'timelineInteractive'.
+   * Timeline still can be moved and controlled by option 'timelineDraggable'.
    */
   None = 'none',
 }

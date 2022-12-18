@@ -1,25 +1,29 @@
+import { TimelineGroupStyle } from './timelineGroupStyle';
 import { TimelineKeyframeStyle } from './timelineKeyframeStyle';
+
+/**
+ * Style of the row.
+ */
 export interface TimelineRowStyle {
   /**
-   * Size of the row in pixels, can be set to 'auto'
+   * Size of the row in pixels.
    */
-  height?: string | number;
-  hidden?: boolean;
-  color?: string;
-  selectedColor?: string;
+  height?: number;
+  /**
+   * Track fill color.
+   */
+  fillColor?: string;
+  /**
+   * Row margin bottom in pixels between tracks/rows.
+   */
   marginBottom?: number;
   /**
-   * Keyframes bounds group height.
-   * 'auto' to automatically calculate.
-   * number in pixels.
-   */
-  groupHeight?: number | string;
-  /**
-   * Keyframes bounds group color. Default is used when undefined.
-   */
-  groupFillColor?: string;
-  /**
-   * Style of all keyframes in a current row.
+   * Style for the all keyframes in a current row.
+   * Individual keyframe can have own style.
    */
   keyframesStyle?: TimelineKeyframeStyle;
+  /**
+   * Style of the groups. Keyframe groups can be also styles separately.
+   */
+  groupsStyle?: TimelineGroupStyle;
 }

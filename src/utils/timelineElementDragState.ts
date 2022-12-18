@@ -2,7 +2,7 @@ import { TimelineElement } from './timelineElement';
 
 export interface TimelineElementDragState extends TimelineElement {
   /**
-   * Drag started value.
+   * Value that preserved before dragging is started.
    */
   startedVal: number;
   /**

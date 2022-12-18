@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { TimelineKeyframe } from '../timelineKeyframe';
+import { TimelineKeyframe } from '../models/timelineKeyframe';
 import { TimelineElementType } from '../enums/timelineElementType';
-import { TimelineRow } from '../timelineRow';
+import { TimelineRow } from '../models/timelineRow';
+import { TimelineGroup } from '../models/timelineGroup';
 /**
  * Timeline clickable element.
  */
@@ -25,9 +26,9 @@ export interface TimelineElement {
   /**
    * Current group.
    */
-  group?: any;
+  group?: string | TimelineGroup;
   /**
    * List of the selected, grouped, row keyframes.
    */
-  keyframes?: Array<TimelineKeyframe>;
+  keyframes?: TimelineKeyframe[];
 }

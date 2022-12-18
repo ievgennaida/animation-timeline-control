@@ -8,7 +8,7 @@
     "target": "es5",
     "allowJs": false,
     "sourceMap": true,
-    "strict": false,
+    "strict": true,
     "declaration": true
   },
   "include": ["src"],

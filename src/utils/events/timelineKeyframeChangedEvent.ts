@@ -6,17 +6,17 @@ export class TimelineKeyframeChangedEvent extends TimelineBaseEvent {
   /**
    * Value to be used.
    */
-  val: number;
+  val!: number;
   /**
    * Previous value.
    */
-  prevVal: number;
+  prevVal!: number;
   /**
    * Target element
    */
-  target: TimelineElement;
+  target!: TimelineElement;
   /**
    * Event source.
    */
-  source: TimelineEventSource;
+  source!: TimelineEventSource;
 }
