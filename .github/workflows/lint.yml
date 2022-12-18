@@ -4,10 +4,12 @@ on: [push, pull_request]
 
 jobs:
   lint:
+    name: Run ESLint
     runs-on: ubuntu-latest  
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
       - run: npm ci
+      - run: npm install @microsoft/eslint-formatter-sarif@2.1.7 
       - run: >-
           npm run lint
