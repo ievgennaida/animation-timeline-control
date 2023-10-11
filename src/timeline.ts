@@ -1493,11 +1493,11 @@ export class Timeline extends TimelineEventsEmitter {
     }
 
     if (minutes) {
-      str += minutes + ':';
+      str += hours ? TimelineUtils.timePadZero(minutes) : minutes + ':';
     }
 
     if (!isNaN(seconds)) {
-      str += seconds;
+      str += minutes ? TimelineUtils.timePadZero(seconds) : seconds;
     }
 
     return sign + str;
