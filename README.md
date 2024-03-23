@@ -74,8 +74,8 @@ const timeline = new Timeline(options, model);
 ### React
 
 ```TypeScript
-import React, { useEffect, useRef, useState } from 'react';
-import { Timeline, TimelineModel } from 'animation-timeline-js';
+import { useEffect, useRef, useState } from 'react';
+import { Timeline, TimelineModel } from 'video-editor-timeline';
 type Props = {
   time: number;
   model: TimelineModel;
@@ -87,9 +87,9 @@ function TimelineComponent(props: Props) {
   const [timeline, setTimeline] = useState<Timeline>();
 
   useEffect(() => {
-    let newTimeline: Timeline | null = null;
+    let newTimeline: Timeline | null = null
     // On component init
-    if (timelineElRef.current) {
+    if (timelineElRef.current && !newTimeline) {
       newTimeline = new Timeline({ id: timelineElRef.current });
       // Here you can subscribe on timeline component events
       setTimeline(newTimeline);
@@ -97,7 +97,7 @@ function TimelineComponent(props: Props) {
 
     // cleanup on component unmounted.
     return () => {
-      timeline?.dispose();
+      newTimeline?.dispose();
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
