@@ -86,19 +86,18 @@ function TimelineComponent(props: Props) {
   const timelineElRef = useRef<HTMLDivElement>(null);
   const [timeline, setTimeline] = useState<Timeline>();
 
-  const newTimeline = useRef<Timeline | null>(null)
-
   useEffect(() => {
+    let newTimeline: Timeline | null = null
     // On component init
-    if (timelineElRef.current && !newTimeline.current) {
-      newTimeline.current = new Timeline({ id: timelineElRef.current });
+    if (timelineElRef.current && !newTimeline) {
+      newTimeline = new Timeline({ id: timelineElRef.current });
       // Here you can subscribe on timeline component events
-      setTimeline(newTimeline.current);
+      setTimeline(newTimeline);
     }
 
     // cleanup on component unmounted.
     return () => {
-      timeline?.dispose();
+      newTimeline?.dispose();
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
