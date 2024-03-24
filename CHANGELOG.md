@@ -7,6 +7,7 @@
 ### Changed
 
 - Fixed dispose function. Added svelte example
+- Added time pad for the timeline format.
 
 ## [2.3.0] - 11.06.2022 (Breakings changes)
 
