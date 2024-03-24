@@ -285,4 +285,17 @@ export class TimelineUtils {
     mergeOptionsDeep(toArg, newOptions);
     return toArg;
   }
+  /**
+   * Format numbers with len
+   */
+  static timePadZero(num: number, len = 2): string {
+    let str = String(num);
+    const threshold = Math.pow(10, len - 1);
+    if (num < threshold) {
+      while (String(threshold).length > str.length) {
+        str = `0${num}`;
+      }
+    }
+    return str;
+  }
 }
