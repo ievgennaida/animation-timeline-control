@@ -7,10 +7,9 @@
     "allowJs": false,
     "inlineSourceMap": true,
     "strict": false,
-    "declaration": false
+    "declaration": false,
+    "forceConsistentCasingInFileNames": true
   },
-  "include": [
-    "./tests/*"
-],
+  "include": ["./tests/*"],
   "exclude": ["node_modules", "lib", "tests/js", "src", "src/*", "dist", "*.json", "*.js"]
 }

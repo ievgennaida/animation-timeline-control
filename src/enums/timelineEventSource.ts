@@ -7,5 +7,8 @@ export enum TimelineEventSource {
    * Changed programmatically.
    */
   Programmatically = 'programmatically',
+  /**
+   * Changed by the set time function.
+   */
   SetTimeMethod = 'setTimeMethod',
 }

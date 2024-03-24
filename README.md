@@ -23,9 +23,11 @@ Features:
 - [Live demo](https://ievgennaida.github.io/animation-timeline-control/)
 - [Run unittests](https://ievgennaida.github.io/animation-timeline-control/tests/unittests)
 
-## Configuration
-
 ## Usage
+
+```bash
+npm i animation-timeline-js
+```
 
 ### HTML/JavaScript
 
@@ -74,10 +76,10 @@ const timeline = new Timeline(options, model);
 ### React
 
 ```TypeScript
-import React, { useEffect, useRef, useState } from 'react';
-import { Timeline, TimelineModel } from 'animation-timeline-js';
+import React, { useEffect, useRef, useState } from "react";
+import { Timeline, TimelineModel } from "animation-timeline-js";
 type Props = {
-  time: number;
+  time?: number;
   model: TimelineModel;
 };
 
@@ -96,29 +98,113 @@ function TimelineComponent(props: Props) {
     }
 
     // cleanup on component unmounted.
-    return () => {
-      timeline?.dispose();
-    };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    return () => newTimeline?.dispose();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [timelineElRef.current]);
 
   // Example to subscribe and pass model or time update:
   useEffect(() => {
-    if (timeline) {
-      timeline.setModel(model);
-    }
+    timeline?.setModel(model);
   }, [model, timeline]);
 
   // Example to subscribe and pass model or time update:
   useEffect(() => {
-    if (timeline) {
-      timeline.setTime(time);
+    if (time || time === 0) {
+      timeline?.setTime(time);
     }
   }, [time, timeline]);
 
-  return <div ref={timelineElRef} />;
+  return <div style={{ width: "100%", minHeight: 300 }} ref={timelineElRef} />;
 }
 export default TimelineComponent;
+
+
+// Usage: 
+<TimelineComponent
+  time={0}
+  model={{
+    rows: [
+      {
+        keyframes: [
+          {
+            val: 40,
+          },
+          {
+            val: 3000,
+          },
+        ],
+      },
+    ],
+  }}
+></TimelineComponent>
+```
+
+### Svelte
+
+```TypeScript
+<script lang="ts">
+  import { Timeline } from "animation-timeline-js";
+  import type { TimelineModel } from "animation-timeline-js";
+  import { onMount } from "svelte";
+
+  export let time: number = 0;
+  export let model: TimelineModel;
+
+  let timelineEl!: HTMLDivElement;
+  let timeline: Timeline | null = null;
+
+  // Equivalent to componentDidMount and componentWillUnmount
+  onMount(() => {
+    let newTimeline: Timeline | null = null;
+    if (timelineEl) {
+      newTimeline = new Timeline({ id: timelineEl });
+    }
+    timeline = newTimeline;
+    // Cleanup
+    return () => {
+      if (newTimeline) {
+        newTimeline.dispose();
+      }
+    };
+  });
+  $: if (model) {
+    // Reactive statements for model and time
+    timeline?.setModel(model);
+  }
+  $: if (time || time === 0) {
+    timeline?.setTime(time);
+  }
+</script>
+
+<div bind:this={timelineEl} class="editor"></div>
+
+<style>
+  .editor {
+    width: 100%;
+    min-height: 300px;
+  }
+</style>
+
+
+
+// Usage: 
+<TimelineComponent
+  time={0}
+  model={{
+    rows: [
+      {
+        keyframes: [
+          {
+            val: 40,
+          },
+          {
+            val: 3000,
+          },
+        ],
+      },
+    ],
+  }}
+></TimelineComponent>
 ```
 
 ### Outline list
@@ -314,8 +400,8 @@ Recommended extensions:
 ### Dev Dependencies
 
 Component has no production dependencies when built.
-To pack and transpile TypeScript Babel + Webpack is used.
-For the testing mocha and chai, as the assertion library are used.
+TypeScript Babel + Webpack is used to pack and transpile the library.
+Mocha and chai are used as test & assertion library.
 
 ### Build Tests
 

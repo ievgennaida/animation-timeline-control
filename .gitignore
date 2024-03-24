@@ -36,3 +36,5 @@ lib/settings/timelineOptions.js
 lib/settings/styles/timelineKeyframeStyle.js
 lib/settings/styles/timelineRowStyle.js
 lib/settings/styles/timelineStyle.js
+test
+copy.sh

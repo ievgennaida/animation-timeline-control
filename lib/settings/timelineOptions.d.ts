@@ -5,7 +5,7 @@ export interface TimelineOptions extends TimelineRanged {
     /**
      * Id or HTMLElement of the timeline container.
      */
-    id?: string | HTMLElement;
+    id?: string | HTMLElement | null;
     /**
      * Check whether snapping is enabled.
      */

@@ -218,7 +218,7 @@ export class Timeline extends TimelineEventsEmitter {
       console.log('Cannot initialize canvas context.');
       return;
     }
-
+    this._container.innerHTML = '';
     this._container.style.position = 'relative';
     // Generate size container:
     this._canvas.style.cssText =
@@ -338,6 +338,9 @@ export class Timeline extends TimelineEventsEmitter {
     this._stopAutoPan();
     this._clearScrollFinishedTimer();
     this._unsubscribeComponentEvents();
+    if (this._container) {
+      this._container.innerHTML = '';
+    }
     this._container = null;
     this._canvas = null;
     this._scrollContainer = null;
@@ -1910,7 +1913,8 @@ export class Timeline extends TimelineEventsEmitter {
     if (width === 'auto') {
       width = height;
     }
-    if (height > 0) {
+    height = Number(height);
+    if (!Number.isNaN(height) && height && (height as number) > 0) {
       const x = Math.floor(this._toScreenPx(val));
       y = Math.floor(y);
       const rect = {

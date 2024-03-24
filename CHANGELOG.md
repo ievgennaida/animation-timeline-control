@@ -2,6 +2,12 @@
 
 ## Changes
 
+## [2.3.1] - 03.24.2024
+
+### Changed
+
+- Fixed dispose function. Added svelte example
+
 ## [2.3.0] - 11.06.2022 (Breakings changes)
 
 ### Added
