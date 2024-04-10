@@ -3,6 +3,7 @@
     "esbenp.prettier-vscode",
     "davidanson.vscode-markdownlint",
     "dbaeumer.vscode-eslint",
+    "github.vscode-github-actions",
     "streetsidesoftware.code-spell-checker"
   ],
   "unwantedRecommendations": []
