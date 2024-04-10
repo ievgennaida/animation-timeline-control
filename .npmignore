@@ -1,2 +1,5 @@
 demo
 .eslintrc.js
+.vscode
+.github
+copy.sh
