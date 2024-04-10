@@ -2,7 +2,13 @@
 
 ## Changes
 
-## [2.3.1] - 03.24.2024
+## [2.3.2] - 10.04.2024
+
+### Changed
+
+- Fixed casing of the lib files.
+
+## [2.3.1] - 24.03.2024
 
 ### Changed
 

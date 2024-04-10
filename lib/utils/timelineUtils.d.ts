@@ -41,4 +41,8 @@ export declare class TimelineUtils {
      * Merge options. New keys will be added.
      */
     static mergeOptions(previousOptions: TimelineOptions, newOptions: TimelineOptions): TimelineOptions;
+    /**
+     * Format numbers with len
+     */
+    static timePadZero(num: number, len?: number): string;
 }
