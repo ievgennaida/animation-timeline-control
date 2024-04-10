@@ -403,18 +403,11 @@ Component has no production dependencies when built.
 TypeScript Babel + Webpack is used to pack and transpile the library.
 Mocha and chai are used as test & assertion library.
 
-### Build Tests
-
-To build TypeScript unittests command should be executed:
-
-```bash
-  npm run build-tests
-```
-
 ### Run Tests
 
-Tests execution can be started by opening tests/unittests.html.
-Mocha test libs are hosted on the internet, so connection is required.
+```cmd
+npm run test
+```
 
 ## License
 

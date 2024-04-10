@@ -2150,7 +2150,7 @@ export class Timeline extends TimelineEventsEmitter {
   };
 
   redraw = (): void => {
-    if (window.requestAnimationFrame) {
+    if (window?.requestAnimationFrame) {
       window.requestAnimationFrame(this._redrawInternal);
     } else {
       this._redrawInternal();

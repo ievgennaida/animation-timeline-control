@@ -4,6 +4,7 @@
     "davidanson.vscode-markdownlint",
     "dbaeumer.vscode-eslint",
     "github.vscode-github-actions",
+    "orta.vscode-jest",
     "streetsidesoftware.code-spell-checker"
   ],
   "unwantedRecommendations": []

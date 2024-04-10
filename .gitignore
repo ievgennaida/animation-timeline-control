@@ -38,3 +38,4 @@ lib/settings/styles/timelineRowStyle.js
 lib/settings/styles/timelineStyle.js
 test
 copy.sh
+coverage/

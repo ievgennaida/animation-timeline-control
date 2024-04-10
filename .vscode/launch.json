@@ -12,11 +12,17 @@
       "webRoot": "${workspaceFolder}"
     },
     {
-      "type": "chrome",
+      "name": "Debug Current Test File",
+      "type": "node",
       "request": "launch",
-      "name": "Launch Test File",
-      "url": "file:///${workspaceFolder}/tests/unittests.html",
-      "webRoot": "${workspaceFolder}"
+      "program": "${workspaceFolder}/node_modules/jest/bin/jest",
+      "args": [
+        "--runTestsByPath",
+        "${relativeFileDirname}/${fileBasename}"
+      ],
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "port": 9229
     }
   ]
 }

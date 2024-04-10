@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-
 import { expect } from '@jest/globals';
 import { TimelineKeyframeStyle, TimelineOptions, TimelineRowStyle, TimelineUtils, defaultTimelineOptions } from '../src/animation-timeline';
 
@@ -14,6 +13,7 @@ describe('TimelineUtils.mergeOptions', () => {
     expect(merged.labelsColor).toBe(defOptions.labelsColor);
     expect(merged.leftMargin).toBe(defOptions.leftMargin);
     expect(merged.selectionColor).toBe(defOptions.selectionColor);
+
     console.log('initial options should not be affected');
     expect(options.selectionColor === undefined).toBe(true);
   });
@@ -30,6 +30,7 @@ describe('TimelineUtils.mergeOptions', () => {
     let options = { id: window.document.childNodes[0] } as TimelineOptions;
     console.log('HTML element should exists for the test to be executed');
     expect(options.id).toBeTruthy();
+
     let merged = TimelineUtils.mergeOptions(defOptions, options);
     expect(merged.id).toBe(options.id);
     const selectedElement = window.document.childNodes[1];

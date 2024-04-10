@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { expect } from '@jest/globals';
 import {
   TimelineStyleUtils,
   TimelineKeyframeShape,
@@ -10,168 +11,168 @@ import {
   TimelineOptions,
   defaultTimelineKeyframeStyle,
   TimelineUtils,
-} from '../lib/animation-timeline';
-import { TimelineGroup } from '../lib/models/timelineGroup';
-import { TimelineGroupStyle } from '../lib/settings/styles/timelineGroupStyle';
+} from '../src/animation-timeline';
+import { TimelineGroup } from '../src/models/timelineGroup';
+import { TimelineGroupStyle } from '../src/settings/styles/timelineGroupStyle';
 
 describe('TimelineStyleUtils', () => {
   describe('TimelineStyleUtils.getFirstSet', () => {
     it('Bool values. Default returned, empty list', () => {
       const defaultValue = false;
-      chai.expect(TimelineStyleUtils.getFirstSet<boolean>(defaultValue)).equal(false);
+      expect(TimelineStyleUtils.getFirstSet<boolean>(defaultValue)).toBe(false);
     });
     it('Bool values. Default returned, undefined values', () => {
       const defaultValue = false;
-      chai.expect(TimelineStyleUtils.getFirstSet<boolean>(defaultValue, undefined, null)).equal(false);
+      expect(TimelineStyleUtils.getFirstSet<boolean>(defaultValue, undefined, null)).toBe(false);
     });
     it('Bool values. True as default is returned', () => {
       const defaultValue = true;
-      chai.expect(TimelineStyleUtils.getFirstSet<boolean>(defaultValue, undefined, null)).equal(true);
+      expect(TimelineStyleUtils.getFirstSet<boolean>(defaultValue, undefined, null)).toBe(true);
     });
     it('Bool values. False is returned as first set, default ignored.', () => {
       const defaultValue = true;
-      chai.expect(TimelineStyleUtils.getFirstSet<boolean>(defaultValue, undefined, false)).equal(false);
+      expect(TimelineStyleUtils.getFirstSet<boolean>(defaultValue, undefined, false)).toBe(false);
     });
 
     it('Bool values. False is returned as first set, default ignored.', () => {
       const defaultValue = true;
-      chai.expect(TimelineStyleUtils.getFirstSet<boolean>(defaultValue, false, undefined)).equal(false);
+      expect(TimelineStyleUtils.getFirstSet<boolean>(defaultValue, false, undefined)).toBe(false);
     });
 
     it('Bool values. False is returned as first set, all values valid.', () => {
       const defaultValue = true;
-      chai.expect(TimelineStyleUtils.getFirstSet<boolean>(defaultValue, false, true)).equal(false);
+      expect(TimelineStyleUtils.getFirstSet<boolean>(defaultValue, false, true)).toBe(false);
     });
     it('Bool values. True is returned as first set, all values valid.', () => {
       const defaultValue = true;
-      chai.expect(TimelineStyleUtils.getFirstSet<boolean>(defaultValue, true, false)).equal(true);
+      expect(TimelineStyleUtils.getFirstSet<boolean>(defaultValue, true, false)).toBe(true);
     });
 
     it('Bool values. Default returned, empty list', () => {
       const defaultValue = false;
-      chai.expect(TimelineStyleUtils.getFirstSet<boolean>(defaultValue)).equal(false);
+      expect(TimelineStyleUtils.getFirstSet<boolean>(defaultValue)).toBe(false);
     });
     it('Bool values. Default returned, undefined values', () => {
       const defaultValue = false;
-      chai.expect(TimelineStyleUtils.getFirstSet<boolean>(defaultValue, undefined, null)).equal(false);
+      expect(TimelineStyleUtils.getFirstSet<boolean>(defaultValue, undefined, null)).toBe(false);
     });
     it('Bool values. True as default is returned', () => {
       const defaultValue = true;
-      chai.expect(TimelineStyleUtils.getFirstSet<boolean>(defaultValue, undefined, null)).equal(true);
+      expect(TimelineStyleUtils.getFirstSet<boolean>(defaultValue, undefined, null)).toBe(true);
     });
     it('Bool values. False is returned as first set, default ignored.', () => {
       const defaultValue = true;
-      chai.expect(TimelineStyleUtils.getFirstSet<boolean>(defaultValue, undefined, false)).equal(false);
+      expect(TimelineStyleUtils.getFirstSet<boolean>(defaultValue, undefined, false)).toBe(false);
     });
 
     it('Bool values. False is returned as first set, default ignored.', () => {
       const defaultValue = true;
-      chai.expect(TimelineStyleUtils.getFirstSet<boolean>(defaultValue, false, undefined)).equal(false);
+      expect(TimelineStyleUtils.getFirstSet<boolean>(defaultValue, false, undefined)).toBe(false);
     });
 
     it('Bool values. False is returned as first set, all values valid.', () => {
       const defaultValue = true;
-      chai.expect(TimelineStyleUtils.getFirstSet<boolean>(defaultValue, false, true)).equal(false);
+      expect(TimelineStyleUtils.getFirstSet<boolean>(defaultValue, false, true)).toBe(false);
     });
     it('Bool values. True is returned as first set, all values valid.', () => {
       const defaultValue = true;
-      chai.expect(TimelineStyleUtils.getFirstSet<boolean>(defaultValue, true, false)).equal(true);
+      expect(TimelineStyleUtils.getFirstSet<boolean>(defaultValue, true, false)).toBe(true);
     });
     it('Number values. 5 returned, empty list', () => {
       const defaultValue = 5;
-      chai.expect(TimelineStyleUtils.getFirstSet<number>(defaultValue)).equal(5);
+      expect(TimelineStyleUtils.getFirstSet<number>(defaultValue)).toBe(5);
     });
     it('Number values. Default returned, undefined values', () => {
       const defaultValue = 5;
-      chai.expect(TimelineStyleUtils.getFirstSet<number>(defaultValue, undefined, null)).equal(5);
+      expect(TimelineStyleUtils.getFirstSet<number>(defaultValue, undefined, null)).toBe(5);
     });
     it('Number values. 5 as default is returned', () => {
       const defaultValue = 5;
-      chai.expect(TimelineStyleUtils.getFirstSet<number>(defaultValue, undefined, null)).equal(5);
+      expect(TimelineStyleUtils.getFirstSet<number>(defaultValue, undefined, null)).toBe(5);
     });
     it('Number values. 0 is returned as valid option', () => {
       const defaultValue = 5;
-      chai.expect(TimelineStyleUtils.getFirstSet<number>(defaultValue, undefined, null, 0)).equal(0);
+      expect(TimelineStyleUtils.getFirstSet<number>(defaultValue, undefined, null, 0)).toBe(0);
     });
     it('Number values. 0 is returned as valid option test #2', () => {
       const defaultValue = 5;
-      chai.expect(TimelineStyleUtils.getFirstSet<number>(defaultValue, 0, undefined, null, 2)).equal(0);
+      expect(TimelineStyleUtils.getFirstSet<number>(defaultValue, 0, undefined, null, 2)).toBe(0);
     });
     it('Number values. False is returned as first set, default ignored.', () => {
       const defaultValue = 5;
-      chai.expect(TimelineStyleUtils.getFirstSet<number>(defaultValue, undefined, 1)).equal(1);
+      expect(TimelineStyleUtils.getFirstSet<number>(defaultValue, undefined, 1)).toBe(1);
     });
 
     it('Number values. False is returned as first set, default ignored.', () => {
       const defaultValue = 5;
-      chai.expect(TimelineStyleUtils.getFirstSet<number>(defaultValue, 1, undefined)).equal(1);
+      expect(TimelineStyleUtils.getFirstSet<number>(defaultValue, 1, undefined)).toBe(1);
     });
 
     it('Number values. False is returned as first set, all values valid.', () => {
       const defaultValue = 5;
-      chai.expect(TimelineStyleUtils.getFirstSet<number>(defaultValue, 2, 1)).equal(2);
+      expect(TimelineStyleUtils.getFirstSet<number>(defaultValue, 2, 1)).toBe(2);
     });
     it('Number values. First valid is returned.', () => {
       const defaultValue = 5;
-      chai.expect(TimelineStyleUtils.getFirstSet<number>(defaultValue, 0, 2)).equal(0);
+      expect(TimelineStyleUtils.getFirstSet<number>(defaultValue, 0, 2)).toBe(0);
     });
     it('Number values. First valid is returned not zero.', () => {
       const defaultValue = 5;
-      chai.expect(TimelineStyleUtils.getFirstSet<number>(defaultValue, 1, 2)).equal(1);
+      expect(TimelineStyleUtils.getFirstSet<number>(defaultValue, 1, 2)).toBe(1);
     });
     it('String values. Default value is returned', () => {
       const defaultValue = 'test';
-      chai.expect(TimelineStyleUtils.getFirstSet(defaultValue)).equal('test');
+      expect(TimelineStyleUtils.getFirstSet(defaultValue)).toBe('test');
     });
     it('String values. Default returned, undefined values', () => {
       const defaultValue = 'test';
-      chai.expect(TimelineStyleUtils.getFirstSet<string>(defaultValue, undefined, null)).equal('test');
+      expect(TimelineStyleUtils.getFirstSet<string>(defaultValue, undefined, null)).toBe('test');
     });
     it('String values. Default returned, undefined values. test #2', () => {
       const defaultValue = 'test';
-      chai.expect(TimelineStyleUtils.getFirstSet<string>(defaultValue, null, undefined)).equal(defaultValue);
+      expect(TimelineStyleUtils.getFirstSet<string>(defaultValue, null, undefined)).toBe(defaultValue);
     });
     it('String values. First set value is returned before invalid.', () => {
       const defaultValue = 'test';
-      chai.expect(TimelineStyleUtils.getFirstSet<string>(defaultValue, undefined, 'test2')).equal('test2');
+      expect(TimelineStyleUtils.getFirstSet<string>(defaultValue, undefined, 'test2')).toBe('test2');
     });
 
     it('String values. First set value is returned', () => {
       const defaultValue = 'test';
-      chai.expect(TimelineStyleUtils.getFirstSet<string>(defaultValue, 'test2', undefined)).equal('test2');
+      expect(TimelineStyleUtils.getFirstSet<string>(defaultValue, 'test2', undefined)).toBe('test2');
     });
 
     /** First Negative Value. */
     it('First negative Bool values. Default returned, empty list', () => {
       const defaultValue = false;
       const firstNegativeIsReturned = true;
-      chai.expect(TimelineStyleUtils.getValue<boolean>(defaultValue, firstNegativeIsReturned)).equal(false);
+      expect(TimelineStyleUtils.getValue<boolean>(defaultValue, firstNegativeIsReturned)).toBe(false);
     });
     it('First negative Bool values. Default returned, undefined values', () => {
       const defaultValue = false;
       const firstNegativeIsReturned = true;
-      chai.expect(TimelineStyleUtils.getValue<boolean>(defaultValue, firstNegativeIsReturned, undefined, null)).equal(false);
+      expect(TimelineStyleUtils.getValue<boolean>(defaultValue, firstNegativeIsReturned, undefined, null)).toBe(false);
     });
     it('First negative Bool values. Bool values. True as default is returned', () => {
       const defaultValue = true;
       const firstNegativeIsReturned = true;
-      chai.expect(TimelineStyleUtils.getValue<boolean>(defaultValue, firstNegativeIsReturned, undefined, null)).equal(true);
+      expect(TimelineStyleUtils.getValue<boolean>(defaultValue, firstNegativeIsReturned, undefined, null)).toBe(true);
     });
     it('First negative Bool values.Bool values. False is returned as first set, default ignored.', () => {
       const defaultValue = true;
       const firstNegativeIsReturned = true;
-      chai.expect(TimelineStyleUtils.getValue<boolean>(defaultValue, firstNegativeIsReturned, true, false)).equal(false);
+      expect(TimelineStyleUtils.getValue<boolean>(defaultValue, firstNegativeIsReturned, true, false)).toBe(false);
     });
     it('First negative Bool values.Bool values. False is returned as second set.', () => {
       const defaultValue = true;
       const firstNegativeIsReturned = true;
-      chai.expect(TimelineStyleUtils.getValue<boolean>(defaultValue, firstNegativeIsReturned, false, true)).equal(false);
+      expect(TimelineStyleUtils.getValue<boolean>(defaultValue, firstNegativeIsReturned, false, true)).toBe(false);
     });
     it('First negative Bool values. Default is ignored..', () => {
       const defaultValue = false;
       const firstNegativeIsReturned = true;
       const returnedValue = TimelineStyleUtils.getValue<boolean>(defaultValue, firstNegativeIsReturned, true, true);
-      chai.expect(returnedValue).equal(true);
+      expect(returnedValue).toBe(true);
     });
   });
   describe('Draggable', () => {
@@ -187,7 +188,7 @@ describe('TimelineStyleUtils', () => {
         style: { shape: TimelineKeyframeShape.Rect } as TimelineKeyframeStyle,
       } as TimelineKeyframe;
       const keyframeDraggable = TimelineStyleUtils.keyframeDraggable(keyframe, null, null, timelineOptions);
-      chai.expect(keyframeDraggable).equal(true);
+      expect(keyframeDraggable).toBe(true);
     });
     it('Keyframe is draggable', () => {
       const timelineOptions = {
@@ -197,7 +198,7 @@ describe('TimelineStyleUtils', () => {
       } as TimelineOptions;
 
       const keyframe = { draggable: true, style: { shape: TimelineKeyframeShape.Rect } } as TimelineKeyframe;
-      chai.expect(TimelineStyleUtils.keyframeDraggable(keyframe, null, null, timelineOptions)).equal(true);
+      expect(TimelineStyleUtils.keyframeDraggable(keyframe, null, null, timelineOptions)).toBe(true);
     });
 
     it('Keyframe is not draggable', () => {
@@ -208,7 +209,7 @@ describe('TimelineStyleUtils', () => {
       } as TimelineOptions;
 
       const keyframe = { draggable: false, style: { shape: TimelineKeyframeShape.Rect } } as TimelineKeyframe;
-      chai.expect(TimelineStyleUtils.keyframeDraggable(keyframe, null, null, timelineOptions)).equal(false);
+      expect(TimelineStyleUtils.keyframeDraggable(keyframe, null, null, timelineOptions)).toBe(false);
     });
 
     it('Keyframe is draggable cannot override row', () => {
@@ -220,7 +221,7 @@ describe('TimelineStyleUtils', () => {
       const rowModel = { keyframesDraggable: false, keyframesStyle: { keyframesStyle: { shape: TimelineKeyframeShape.Rect } } } as TimelineRow;
       const keyframe = { draggable: true, style: { shape: TimelineKeyframeShape.Rect } } as TimelineKeyframe;
       const value = TimelineStyleUtils.keyframeDraggable(keyframe, null, rowModel, timelineOptions);
-      chai.expect(value).equal(false);
+      expect(value).toBe(false);
     });
 
     it('Keyframes are not draggable by row settings', () => {
@@ -234,7 +235,7 @@ describe('TimelineStyleUtils', () => {
       const rowModel = { keyframesDraggable: false, style: { keyframesStyle: { shape: TimelineKeyframeShape.Rect } } } as TimelineRow;
       const keyframe = { draggable: true, style: { shape: TimelineKeyframeShape.Rect } } as TimelineKeyframe;
       const isDraggable = TimelineStyleUtils.keyframeDraggable(keyframe, null, rowModel, timelineOptions);
-      chai.expect(isDraggable).equal(false);
+      expect(isDraggable).toBe(false);
     });
     it('Keyframes are draggable by row', () => {
       const timelineOptions = {
@@ -247,7 +248,7 @@ describe('TimelineStyleUtils', () => {
       const rowModel = { keyframesDraggable: true, keyframesStyle: { keyframesStyle: { shape: TimelineKeyframeShape.Rect } } } as TimelineRow;
       const keyframe = { draggable: true, style: { shape: TimelineKeyframeShape.Rect } } as TimelineKeyframe;
       const returnedValue = TimelineStyleUtils.keyframeDraggable(keyframe, null, rowModel, timelineOptions);
-      chai.expect(returnedValue).equal(true);
+      expect(returnedValue).toBe(true);
     });
     it('Keyframes are not draggable while turned off on the top level.', () => {
       const timelineOptions = {
@@ -261,7 +262,7 @@ describe('TimelineStyleUtils', () => {
       const rowModel = { keyframesDraggable: false, keyframesStyle: { keyframesStyle: { shape: TimelineKeyframeShape.Rect } } } as TimelineRow;
       const keyframe = { draggable: true, style: { shape: TimelineKeyframeShape.Rect } } as TimelineKeyframe;
       const isDraggable = TimelineStyleUtils.keyframeDraggable(keyframe, null, rowModel, timelineOptions);
-      chai.expect(isDraggable).equal(false);
+      expect(isDraggable).toBe(false);
     });
     it('Groups are draggable by default', () => {
       const timelineOptions = {
@@ -273,7 +274,7 @@ describe('TimelineStyleUtils', () => {
         } as TimelineRowStyle,
       } as TimelineOptions;
       const rowModel = { keyframesDraggable: true, keyframesStyle: { keyframesStyle: { shape: TimelineKeyframeShape.Rect } } } as TimelineRow;
-      chai.expect(TimelineStyleUtils.groupDraggable(null, rowModel, timelineOptions)).equal(true);
+      expect(TimelineStyleUtils.groupDraggable(null, rowModel, timelineOptions)).toBe(true);
     });
 
     it('Group is draggable', () => {
@@ -286,7 +287,7 @@ describe('TimelineStyleUtils', () => {
         } as TimelineRowStyle,
       } as TimelineOptions;
       const rowModel = { keyframesDraggable: true, groupDraggable: true, keyframesStyle: { keyframesStyle: { shape: TimelineKeyframeShape.Rect } } } as TimelineRow;
-      chai.expect(TimelineStyleUtils.groupDraggable(null, rowModel, timelineOptions)).equal(true);
+      expect(TimelineStyleUtils.groupDraggable(null, rowModel, timelineOptions)).toBe(true);
     });
 
     it('Group is not draggable by row settings', () => {
@@ -306,7 +307,7 @@ describe('TimelineStyleUtils', () => {
         keyframesStyle: { shape: TimelineKeyframeShape.Rect },
       } as TimelineRow;
       const isDraggable = TimelineStyleUtils.groupDraggable(null, rowModel, timelineOptions);
-      chai.expect(isDraggable).equal(false);
+      expect(isDraggable).toBe(false);
     });
   });
   describe('Group style options', () => {
@@ -344,8 +345,8 @@ describe('TimelineStyleUtils', () => {
         style: { shape: TimelineKeyframeShape.Rect },
       } as TimelineKeyframe;
       const value = TimelineStyleUtils.groupFillColor(timelineOptions, keyframe.group, rowModel.style);
-      chai.expect(value).equal(defaultGroupStyle.fillColor);
-      chai.expect(TimelineStyleUtils.groupMarginTop(timelineOptions, keyframe.group, rowModel.style)).equal(defaultGroupStyle.marginTop);
+      expect(value).toBe(defaultGroupStyle.fillColor);
+      expect(TimelineStyleUtils.groupMarginTop(timelineOptions, keyframe.group, rowModel.style)).toBe(defaultGroupStyle.marginTop);
     });
 
     it('Groups options style is applied', () => {
@@ -369,8 +370,8 @@ describe('TimelineStyleUtils', () => {
         style: { shape: TimelineKeyframeShape.Rect },
       } as TimelineKeyframe;
       const value = TimelineStyleUtils.groupFillColor(timelineOptions, keyframe.group, rowModel.style);
-      chai.expect(value).equal(groupOptionsStyle.fillColor);
-      chai.expect(TimelineStyleUtils.groupMarginTop(timelineOptions, keyframe.group, rowModel.style)).equal(groupOptionsStyle.marginTop);
+      expect(value).toBe(groupOptionsStyle.fillColor);
+      expect(TimelineStyleUtils.groupMarginTop(timelineOptions, keyframe.group, rowModel.style)).toBe(groupOptionsStyle.marginTop);
     });
 
     it('Groups rows group options are applied', () => {
@@ -400,8 +401,8 @@ describe('TimelineStyleUtils', () => {
         style: { shape: TimelineKeyframeShape.Rect },
       } as TimelineKeyframe;
       const value = TimelineStyleUtils.groupFillColor(timelineOptions, keyframe.group, rowModel.style);
-      chai.expect(value).equal(groupsRowStyle.fillColor);
-      chai.expect(TimelineStyleUtils.groupMarginTop(timelineOptions, keyframe.group, rowModel.style)).equal(groupsRowStyle.marginTop);
+      expect(value).toBe(groupsRowStyle.fillColor);
+      expect(TimelineStyleUtils.groupMarginTop(timelineOptions, keyframe.group, rowModel.style)).toBe(groupsRowStyle.marginTop);
     });
 
     it('Groups keyframe group options are applied', () => {
@@ -424,8 +425,8 @@ describe('TimelineStyleUtils', () => {
         style: { shape: TimelineKeyframeShape.Rect },
       } as TimelineKeyframe;
       const value = TimelineStyleUtils.groupFillColor(timelineOptions, keyframe.group, rowModel.style);
-      chai.expect(value).equal(keyframesGroupsStyle.fillColor);
-      chai.expect(TimelineStyleUtils.groupMarginTop(timelineOptions, keyframe.group, rowModel.style)).equal(keyframesGroupsStyle.marginTop);
+      expect(value).toBe(keyframesGroupsStyle.fillColor);
+      expect(TimelineStyleUtils.groupMarginTop(timelineOptions, keyframe.group, rowModel.style)).toBe(keyframesGroupsStyle.marginTop);
     });
   });
   describe('Row styles', () => {
@@ -438,7 +439,7 @@ describe('TimelineStyleUtils', () => {
       } as TimelineOptions;
 
       const rowsStyle = { height: 50 } as TimelineRowStyle;
-      chai.expect(TimelineStyleUtils.getRowHeight(rowsStyle, timelineOptions)).equal(rowsStyle.height);
+      expect(TimelineStyleUtils.getRowHeight(rowsStyle, timelineOptions)).toBe(rowsStyle.height);
     });
     it('Height is taken from global settings', () => {
       const timelineOptions = {
@@ -449,7 +450,7 @@ describe('TimelineStyleUtils', () => {
       } as TimelineOptions;
 
       const rowsStyle = {} as TimelineRowStyle;
-      chai.expect(TimelineStyleUtils.getRowHeight(rowsStyle, timelineOptions)).equal(timelineOptions.rowsStyle?.height);
+      expect(TimelineStyleUtils.getRowHeight(rowsStyle, timelineOptions)).toBe(timelineOptions.rowsStyle?.height);
     });
     it('Margin bottom is taken from global settings', () => {
       const timelineOptions = {
@@ -461,7 +462,7 @@ describe('TimelineStyleUtils', () => {
       } as TimelineOptions;
 
       const rowsStyle = {} as TimelineRowStyle;
-      chai.expect(TimelineStyleUtils.getRowMarginBottom(rowsStyle, timelineOptions)).equal(timelineOptions.rowsStyle?.marginBottom);
+      expect(TimelineStyleUtils.getRowMarginBottom(rowsStyle, timelineOptions)).toBe(timelineOptions.rowsStyle?.marginBottom);
     });
     it('Margin bottom is taken from row settings', () => {
       const timelineOptions = {
@@ -473,7 +474,7 @@ describe('TimelineStyleUtils', () => {
       } as TimelineOptions;
 
       const rowsStyle = { marginBottom: 43 } as TimelineRowStyle;
-      chai.expect(TimelineStyleUtils.getRowMarginBottom(rowsStyle, timelineOptions)).equal(rowsStyle.marginBottom);
+      expect(TimelineStyleUtils.getRowMarginBottom(rowsStyle, timelineOptions)).toBe(rowsStyle.marginBottom);
     });
   });
 
@@ -486,21 +487,21 @@ describe('TimelineStyleUtils', () => {
       expectedStyle: TimelineKeyframeStyle,
     ) => {
       const fillColor = TimelineStyleUtils.keyframeFillColor(keyframe, group, rowStyle, options);
-      chai.expect(fillColor).equal(expectedStyle.fillColor);
+      expect(fillColor).toBe(expectedStyle.fillColor);
       const keyframeHeight = TimelineStyleUtils.keyframeHeight(keyframe, group, rowStyle, options);
-      chai.expect(keyframeHeight).equal(expectedStyle.height);
+      expect(keyframeHeight).toBe(expectedStyle.height);
       const selectedFillColor = TimelineStyleUtils.keyframeSelectedFillColor(keyframe, group, rowStyle, options);
-      chai.expect(selectedFillColor).equal(expectedStyle.selectedFillColor);
+      expect(selectedFillColor).toBe(expectedStyle.selectedFillColor);
       const keyframeSelectedStrokeColor = TimelineStyleUtils.keyframeSelectedStrokeColor(keyframe, group || null, rowStyle, options);
-      chai.expect(keyframeSelectedStrokeColor).equal(expectedStyle.selectedStrokeColor);
+      expect(keyframeSelectedStrokeColor).toBe(expectedStyle.selectedStrokeColor);
       const shape = TimelineStyleUtils.keyframeShape(keyframe, group, rowStyle, options);
-      chai.expect(shape).equal(expectedStyle.shape);
+      expect(shape).toBe(expectedStyle.shape);
       const keyframeStrokeColor = TimelineStyleUtils.keyframeStrokeColor(keyframe, group, rowStyle, options);
-      chai.expect(keyframeStrokeColor).equal(expectedStyle.strokeColor);
+      expect(keyframeStrokeColor).toBe(expectedStyle.strokeColor);
       const keyframeStrokeThickness = TimelineStyleUtils.keyframeStrokeThickness(keyframe, group, rowStyle, options);
-      chai.expect(keyframeStrokeThickness).equal(expectedStyle.strokeThickness);
+      expect(keyframeStrokeThickness).toBe(expectedStyle.strokeThickness);
       const keyframeWidth = TimelineStyleUtils.keyframeWidth(keyframe, group, rowStyle, options);
-      chai.expect(keyframeWidth).equal(expectedStyle.width);
+      expect(keyframeWidth).toBe(expectedStyle.width);
     };
     it('Default keyframe styles are applied.', () => {
       const timelineOptions = {
