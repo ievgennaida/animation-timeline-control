@@ -1,19 +1,18 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { expect } from '@jest/globals';
+import { describe, expect, it } from '@jest/globals';
 import {
-  TimelineSelectionMode,
-  TimelineKeyframe,
-  TimelineRow,
-  TimelineModel,
   Timeline,
-  TimelineElementType,
   TimelineElement,
-  TimelineOptions,
-  TimelineRowStyle,
   TimelineElementDragState,
-  TimelineKeyframeStyle,
-  TimelineUtils,
+  TimelineElementType,
+  TimelineKeyframe,
   TimelineKeyframeShape,
+  TimelineKeyframeStyle,
+  TimelineModel,
+  TimelineOptions,
+  TimelineRow,
+  TimelineRowStyle,
+  TimelineSelectionMode,
+  TimelineUtils,
 } from '../src/animation-timeline';
 
 describe('Timeline', () => {

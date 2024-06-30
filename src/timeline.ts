@@ -2344,7 +2344,6 @@ export class Timeline extends TimelineEventsEmitter {
     this.redraw();
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   _getMousePos = (canvas: HTMLCanvasElement, e: TouchEvent | MouseEvent | any): TimelineMouseData => {
     let radius = 1;
     let clientX = 0;

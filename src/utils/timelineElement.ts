@@ -1,8 +1,8 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { TimelineKeyframe } from '../models/timelineKeyframe';
 import { TimelineElementType } from '../enums/timelineElementType';
 import { TimelineRow } from '../models/timelineRow';
 import { TimelineGroup } from '../models/timelineGroup';
+
 /**
  * Timeline clickable element.
  */

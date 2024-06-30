@@ -24,6 +24,7 @@
     "scrollbars",
     "sourcemap",
     "timechanged",
+    "tseslint",
     "tslib",
     "unittests",
     "Unminified",

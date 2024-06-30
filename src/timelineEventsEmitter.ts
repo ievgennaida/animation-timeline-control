@@ -53,7 +53,6 @@ export class TimelineEventsEmitter {
    * @param topic Event name.
    * @param args Event arguments.
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   emit<T>(topic: string, args: T): void {
     this._subscriptions.forEach((event) => {
       if (event?.topic === topic && event?.callback) {

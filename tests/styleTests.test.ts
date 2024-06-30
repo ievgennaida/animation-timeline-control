@@ -1,16 +1,15 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { expect } from '@jest/globals';
+import { describe, expect, it } from '@jest/globals';
 import {
-  TimelineStyleUtils,
-  TimelineKeyframeShape,
-  TimelineRowStyle,
-  TimelineKeyframeStyle,
   TimelineKeyframe,
-  TimelineRow,
-  defaultGroupStyle,
+  TimelineKeyframeShape,
+  TimelineKeyframeStyle,
   TimelineOptions,
-  defaultTimelineKeyframeStyle,
+  TimelineRow,
+  TimelineRowStyle,
+  TimelineStyleUtils,
   TimelineUtils,
+  defaultGroupStyle,
+  defaultTimelineKeyframeStyle,
 } from '../src/animation-timeline';
 import { TimelineGroup } from '../src/models/timelineGroup';
 import { TimelineGroupStyle } from '../src/settings/styles/timelineGroupStyle';

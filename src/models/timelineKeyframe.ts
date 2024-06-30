@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { TimelineKeyframeStyle } from '../settings/styles/timelineKeyframeStyle';
 import { TimelineSelectable } from '../utils/timelineSelectable';
 import { TimelineRanged } from './timelineRanged';

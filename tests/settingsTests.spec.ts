@@ -1,5 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { expect } from '@jest/globals';
+import { describe, expect, it } from '@jest/globals';
 import { TimelineKeyframeStyle, TimelineOptions, TimelineRowStyle, TimelineUtils, defaultTimelineOptions } from '../src/animation-timeline';
 
 describe('TimelineUtils.mergeOptions', () => {

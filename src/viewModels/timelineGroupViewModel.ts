@@ -1,4 +1,3 @@
-/* eslint-disable  @typescript-eslint/no-explicit-any */
 import { TimelineGroup } from '../models/timelineGroup';
 import { TimelineKeyframeViewModel } from './timelineKeyframeViewModel';
 

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { TimelineOptions } from '../settings/timelineOptions';
 import { TimelineRowStyle } from '../settings/styles/timelineRowStyle';
 import { TimelineKeyframeShape } from '../enums/timelineKeyframeShape';
