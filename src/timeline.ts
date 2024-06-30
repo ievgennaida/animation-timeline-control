@@ -2019,8 +2019,8 @@ export class Timeline extends TimelineEventsEmitter {
 
           this._renderKeyframe(this._ctx, keyframeViewModel);
         } finally {
+          this._ctx.restore();
         }
-        this._ctx.restore();
       }
     });
   };
