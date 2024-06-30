@@ -29,6 +29,9 @@ export declare class TimelineStyleUtils {
     static groupHeight(options: TimelineOptions | null | undefined, group: TimelineGroup | string | null | undefined, rowStyle: TimelineRowStyle | null | undefined): number | string;
     static groupMarginTop(options: TimelineOptions | null | undefined, group: TimelineGroup | string | null | undefined, rowStyle: TimelineRowStyle | null | undefined): number | string;
     static groupFillColor(options: TimelineOptions | null | undefined, group: TimelineGroup | string | null | undefined, rowStyle: TimelineRowStyle | null | undefined): string;
+    static groupStrokeColor(options: TimelineOptions | null | undefined, group: TimelineGroup | string | null | undefined, rowStyle: TimelineRowStyle | null | undefined): string;
+    static groupStrokeThickness(options: TimelineOptions | null | undefined, group: TimelineGroup | string | null | undefined, rowStyle: TimelineRowStyle | null | undefined): number;
+    static groupsRadii(options: TimelineOptions | null | undefined, group: TimelineGroup | string | null | undefined, rowStyle: TimelineRowStyle | null | undefined): number | DOMPointInit | Iterable<number | DOMPointInit>;
     /**
      * Get current row height from styles
      */

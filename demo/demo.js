@@ -7,6 +7,7 @@
 var outlineContainer = document.getElementById('outline-container');
 
 function generateModel() {
+    /** @type {import('../lib/animation-timeline').TimelineGroupStyle} */
     const groupA = {
         style: {
             fillColor: '#6B9080',
@@ -16,9 +17,55 @@ function generateModel() {
             shape: 'rect',
         },
     };
+    /** @type {import('../lib/animation-timeline').TimelineGroupStyle} */
     const groupB = {
         style: {
             marginTop: 6,
+        },
+    };
+    /** @type {import('../lib/animation-timeline').TimelineGroupStyle} */
+    const groupC = {
+        style: {
+            strokeColor: "white",
+            strokeThickness: 1,
+        }, keyframesStyle: {
+            shape: 'none',
+        },
+    };
+    /** @type {import('../lib/animation-timeline').TimelineGroupStyle} */
+    const groupD = {
+        style: {
+            fillColor: "transparent",
+            strokeColor: "gray",
+            strokeThickness: 2,
+            radii: 3,
+            keyframesStyle: {
+                shape: "none"
+            }
+        },
+    };
+    /** @type {import('../lib/animation-timeline').TimelineGroupStyle} */
+    const groupWhite1 = {
+        style: {
+            fillColor: "white",
+            strokeColor: "white",
+            strokeThickness: 2,
+            radii: 3,
+            keyframesStyle: {
+                shape: "none"
+            }
+        },
+    };
+    /** @type {import('../lib/animation-timeline').TimelineGroupStyle} */
+    const groupWhite2 = {
+        style: {
+            fillColor: "white",
+            strokeColor: "white",
+            strokeThickness: 2,
+            radii: 3,
+            keyframesStyle: {
+                shape: "none"
+            }
         },
     };
     /** @type {import('../lib/animation-timeline').TimelineModel} */
@@ -193,27 +240,61 @@ function generateModel() {
                     },
                     {
                         min: 900,
-                        max: 3400,
-                        val: 1900,
+                        max: 1400,
+                        val: 900,
                         group: groupB,
                     },
                     {
-                        val: 4000,
+                        val: 2000,
                         group: groupB,
+                    },
+                    {
+                        val: 2100,
+                        group: groupC,
+                    },
+                    {
+                        val: 5000,
+                        group: groupC,
                     },
                 ],
             },
             {
+                title: 'Groups Overlap',
+                keyframesDraggable: false,
+                groupsDraggable: false,
                 keyframes: [
                     {
                         val: 100,
+                        group: groupD,
                     },
                     {
-                        val: 3410,
+                        val: 4000,
+                        group: groupD,
                     },
                     {
-                        val: 2000,
+                        min: 100,
+                        max: 4000,
+                        val: 500,
+                        group: groupWhite1,
                     },
+                    {
+                        min: 100,
+                        max: 4000,
+                        val: 1500,
+                        group: groupWhite1,
+                    },
+                    {
+                        min: 100,
+                        max: 4000,
+                        val: 2500,
+                        group: groupWhite2,
+                    },
+                    {
+                        min: 100,
+                        max: 4000,
+                        val: 3600,
+                        group: groupWhite2,
+                    }
                 ],
             },
             {
@@ -264,8 +345,6 @@ function generateModel() {
                     },
                 ],
             },
-            {},
-            {},
             {
                 title: 'Custom Height',
                 style: {
@@ -372,16 +451,14 @@ timeline.onContextMenu(function (obj) {
     logDraggingMessage(obj, 'addKeyframe');
 
     obj.elements.forEach(p => {
-        if (p.type === "row") {
-            if (!p.keyframes) {
-                p.keyframes = []
+        if (p.type === "row" && p.row) {
+            if (!p.row?.keyframes) {
+                p.row.keyframes = []
             }
-            p.keyframes?.push({ val: obj.point?.val || 0 });
+            p.row?.keyframes?.push({ val: obj.point?.val || 0 });
         }
     })
-    timeline.redraw();
-
-
+    timeline.redraw()
 });
 
 timeline.onMouseDown(function (obj) {

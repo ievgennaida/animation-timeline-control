@@ -13,11 +13,21 @@ export interface TimelineGroupStyle {
   /**
    * Group stroke color.
    */
-  strokeColor: string;
+  strokeColor?: string;
+  /**
+   * Group stroke thickness.
+   */
+  strokeThickness?: number | null;
+
+  /**
+   * Group border radius. See canvas roundRect official documentation.
+   */
+  radii?: number | DOMPointInit | Iterable<number | DOMPointInit>;
+
   /**
    * Group fill color.
    */
-  fillColor: string;
+  fillColor?: string;
   /**
    * Group mouse over cursor style.
    */
@@ -29,5 +39,5 @@ export interface TimelineGroupStyle {
   /**
    * Style for all the keyframes in the current group.
    */
-  keyframesStyle: TimelineKeyframeStyle;
+  keyframesStyle?: TimelineKeyframeStyle;
 }

@@ -303,7 +303,7 @@ export declare class Timeline extends TimelineEventsEmitter {
     /**
      * foreach visible keyframe.
      */
-    _forEachKeyframe(callback: (keyframe: TimelineKeyframeViewModel, index?: number, newRow?: boolean) => void): void;
+    _forEachKeyframe(callback: (keyframe: TimelineKeyframeViewModel, index?: number, newRow?: boolean) => void, onRowCallback?: (rowViewModel: TimelineRowViewModel) => void): void;
     /**
      * Private.
      * Create extended mouse position and calculate size of the selection rectangle.

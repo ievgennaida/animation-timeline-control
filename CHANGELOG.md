@@ -9,6 +9,8 @@
 - Added context menu event.
 - Extended demo to show different styling options.
 - Updated dev packages to the latest versions.
+- Added groups stroke and border radius support.
+- BUG FIX: group is rendered for one keyframe.
 
 ## [2.3.2] - 10.04.2024
 

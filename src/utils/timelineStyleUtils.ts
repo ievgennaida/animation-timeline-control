@@ -278,6 +278,52 @@ export class TimelineStyleUtils {
       options?.rowsStyle?.groupsStyle?.fillColor,
     );
   }
+  static groupStrokeColor(options: TimelineOptions | null | undefined, group: TimelineGroup | string | null | undefined, rowStyle: TimelineRowStyle | null | undefined): string {
+    return TimelineStyleUtils.getFirstSet(
+      // default value
+      defaultGroupStyle.strokeColor || '',
+      // exact style
+      TimelineStyleUtils.getGroupStyle(group)?.strokeColor,
+      // Row row style
+      rowStyle?.groupsStyle?.strokeColor,
+      // global styles
+      options?.rowsStyle?.groupsStyle?.strokeColor,
+    );
+  }
+
+  static groupStrokeThickness(options: TimelineOptions | null | undefined, group: TimelineGroup | string | null | undefined, rowStyle: TimelineRowStyle | null | undefined): number {
+    return (
+      TimelineStyleUtils.getFirstSet(
+        // default value
+        defaultGroupStyle.strokeThickness || '',
+        // exact style
+        TimelineStyleUtils.getGroupStyle(group)?.strokeThickness,
+        // Row row style
+        rowStyle?.groupsStyle?.strokeThickness,
+        // global styles
+        options?.rowsStyle?.groupsStyle?.strokeThickness,
+      ) || 0
+    );
+  }
+
+  static groupsRadii(
+    options: TimelineOptions | null | undefined,
+    group: TimelineGroup | string | null | undefined,
+    rowStyle: TimelineRowStyle | null | undefined,
+  ): number | DOMPointInit | Iterable<number | DOMPointInit> {
+    return (
+      TimelineStyleUtils.getFirstSet(
+        // default value
+        defaultGroupStyle.radii || '',
+        // exact style
+        TimelineStyleUtils.getGroupStyle(group)?.radii,
+        // Row row style
+        rowStyle?.groupsStyle?.radii,
+        // global styles
+        options?.rowsStyle?.groupsStyle?.radii,
+      ) || 0
+    );
+  }
 
   /**
    * Get current row height from styles

@@ -1165,8 +1165,8 @@ export class Timeline extends TimelineEventsEmitter {
   /**
    * foreach visible keyframe.
    */
-  _forEachKeyframe(callback: (keyframe: TimelineKeyframeViewModel, index?: number, newRow?: boolean) => void): void {
-    if (!callback) {
+  _forEachKeyframe(callback: (keyframe: TimelineKeyframeViewModel, index?: number, newRow?: boolean) => void, onRowCallback?: (rowViewModel: TimelineRowViewModel) => void): void {
+    if (!callback && !onRowCallback) {
       return;
     }
     if (!this._model) {
@@ -1182,15 +1182,17 @@ export class Timeline extends TimelineEventsEmitter {
       if (!rowViewModel) {
         return;
       }
-
+      onRowCallback && onRowCallback(rowViewModel);
       let nextRow = true;
-      rowViewModel.keyframesViewModels.forEach((keyframeViewModel, keyframeIndex) => {
-        if (keyframeViewModel) {
-          callback(keyframeViewModel, keyframeIndex, nextRow);
-        }
+      if (callback) {
+        rowViewModel.keyframesViewModels.forEach((keyframeViewModel, keyframeIndex) => {
+          if (keyframeViewModel) {
+            callback(keyframeViewModel, keyframeIndex, nextRow);
+          }
 
-        nextRow = false;
-      });
+          nextRow = false;
+        });
+      }
     });
   }
 
@@ -1808,21 +1810,42 @@ export class Timeline extends TimelineEventsEmitter {
       if (!this._ctx) {
         return;
       }
-      const keyframeLaneColor = TimelineStyleUtils.groupFillColor(this._options, groupsViewModels.groupModel, rowViewModel?.model?.style);
-      if (!keyframeLaneColor) {
+      if ((groupsViewModels?.keyframesViewModels?.length || 0) <= 1) {
         return;
       }
+      const groupFillColor = TimelineStyleUtils.groupFillColor(this._options, groupsViewModels.groupModel, rowViewModel?.model?.style);
+      const strokeColor = TimelineStyleUtils.groupStrokeColor(this._options, groupsViewModels.groupModel, rowViewModel?.model?.style);
+      let groupStrokeThickness = TimelineStyleUtils.groupStrokeThickness(this._options, groupsViewModels.groupModel, rowViewModel?.model?.style);
+      const groupsRadii = TimelineStyleUtils.groupsRadii(this._options, groupsViewModels.groupModel, rowViewModel?.model?.style);
       if (!groupsViewModels.size) {
         console.log('Size of the group cannot be calculated');
         return;
       }
 
-      // get the bounds on a canvas
-      const rectBounds = this._cutBounds(groupsViewModels.size);
-      if (rectBounds?.rect) {
-        this._ctx.fillStyle = keyframeLaneColor;
-        const rect = rectBounds.rect;
-        this._ctx.fillRect(rect.x, rect.y, rect.width, rect.height);
+      try {
+        this._ctx.save();
+
+        // get the bounds on a canvas
+        const rectBounds = this._cutBounds(groupsViewModels.size);
+        if (rectBounds?.rect) {
+          const rect = rectBounds.rect;
+          if (!strokeColor) {
+            groupStrokeThickness = 0;
+          }
+          // Manipulate it again
+          this._ctx.strokeStyle = groupStrokeThickness > 0 ? strokeColor : '';
+          this._ctx.fillStyle = groupFillColor;
+          this._ctx.lineWidth = groupStrokeThickness;
+          // Different radii for each corner, top-left clockwise to bottom-left
+          this._ctx.beginPath();
+          this._ctx.roundRect(rect.x + groupStrokeThickness, rect.y + groupStrokeThickness, rect.width - groupStrokeThickness, rect.height - groupStrokeThickness, groupsRadii);
+          this._ctx.fill();
+          if (groupStrokeThickness > 0) {
+            this._ctx.stroke();
+          }
+        }
+      } finally {
+        this._ctx.restore();
       }
     });
   };
@@ -2596,10 +2619,59 @@ export class Timeline extends TimelineEventsEmitter {
     }
     const snap = this._options.snapEnabled;
     if (pos.y >= headerHeight && this._options.keyframesDraggable) {
-      this._forEachKeyframe((keyframeViewModel, _, isNextRow): void => {
-        const rowViewModel = keyframeViewModel.rowViewModel;
-        // Check keyframes group overlap
-        if (isNextRow) {
+      this._forEachKeyframe(
+        (keyframeViewModel, _, isNextRow): void => {
+          const rowViewModel = keyframeViewModel.rowViewModel;
+          // Check keyframes group overlap
+          if (isNextRow) {
+            if (rowViewModel.groupsViewModels) {
+              rowViewModel.groupsViewModels.forEach((groupViewModel) => {
+                if (!groupViewModel?.size) {
+                  return;
+                }
+                const keyframesGroupOverlapped = TimelineUtils.isOverlap(pos.x, pos.y, groupViewModel.size);
+                if (keyframesGroupOverlapped) {
+                  const keyframesModels = groupViewModel?.keyframesViewModels.map((p) => p.model) || [];
+                  const groupElement = {
+                    // TODO:
+                    val: this._mousePosToVal(pos.x, snap),
+                    type: TimelineElementType.Group,
+                    group: groupViewModel.groupModel,
+                    row: rowViewModel.model,
+                    keyframes: keyframesModels,
+                  } as TimelineElement;
+
+                  const snapped = this.snapVal(groupViewModel.min);
+                  // get snapped mouse pos based on a min value.
+                  groupElement.val += groupViewModel.min - snapped;
+                  toReturn.push(groupElement);
+                }
+              });
+            }
+          }
+
+          const keyframePosRect = keyframeViewModel.size;
+          if (keyframePosRect) {
+            let isMouseOver = false;
+            if (keyframeViewModel.shape === TimelineKeyframeShape.Rect) {
+              const extendedMouseRect = TimelineUtils.shrinkSelf({ x: pos.x, y: pos.y, height: clickRadius, width: clickRadius } as DOMRect, clickRadius);
+              isMouseOver = TimelineUtils.isRectIntersects(extendedMouseRect, keyframePosRect, true);
+            } else {
+              const dist = TimelineUtils.getDistance(keyframePosRect.x, keyframePosRect.y, pos.x, pos.y);
+              isMouseOver = dist <= keyframePosRect.height + clickRadius;
+            }
+            if (isMouseOver) {
+              toReturn.push({
+                keyframe: keyframeViewModel.model,
+                keyframes: [keyframeViewModel.model],
+                val: keyframeViewModel.model.val,
+                row: keyframeViewModel.rowViewModel.model,
+                type: TimelineElementType.Keyframe,
+              } as TimelineElement);
+            }
+          }
+        },
+        (rowViewModel) => {
           const rowOverlapped = TimelineUtils.isOverlap(pos.x, pos.y, rowViewModel.size);
           if (rowOverlapped) {
             const row = {
@@ -2610,53 +2682,8 @@ export class Timeline extends TimelineEventsEmitter {
             } as TimelineElement;
             toReturn.push(row);
           }
-          if (rowViewModel.groupsViewModels) {
-            rowViewModel.groupsViewModels.forEach((groupViewModel) => {
-              if (!groupViewModel?.size) {
-                return;
-              }
-              const keyframesGroupOverlapped = TimelineUtils.isOverlap(pos.x, pos.y, groupViewModel.size);
-              if (keyframesGroupOverlapped) {
-                const keyframesModels = groupViewModel?.keyframesViewModels.map((p) => p.model) || [];
-                const groupElement = {
-                  // TODO:
-                  val: this._mousePosToVal(pos.x, snap),
-                  type: TimelineElementType.Group,
-                  group: groupViewModel.groupModel,
-                  row: rowViewModel.model,
-                  keyframes: keyframesModels,
-                } as TimelineElement;
-
-                const snapped = this.snapVal(groupViewModel.min);
-                // get snapped mouse pos based on a min value.
-                groupElement.val += groupViewModel.min - snapped;
-                toReturn.push(groupElement);
-              }
-            });
-          }
-        }
-
-        const keyframePosRect = keyframeViewModel.size;
-        if (keyframePosRect) {
-          let isMouseOver = false;
-          if (keyframeViewModel.shape === TimelineKeyframeShape.Rect) {
-            const extendedMouseRect = TimelineUtils.shrinkSelf({ x: pos.x, y: pos.y, height: clickRadius, width: clickRadius } as DOMRect, clickRadius);
-            isMouseOver = TimelineUtils.isRectIntersects(extendedMouseRect, keyframePosRect, true);
-          } else {
-            const dist = TimelineUtils.getDistance(keyframePosRect.x, keyframePosRect.y, pos.x, pos.y);
-            isMouseOver = dist <= keyframePosRect.height + clickRadius;
-          }
-          if (isMouseOver) {
-            toReturn.push({
-              keyframe: keyframeViewModel.model,
-              keyframes: [keyframeViewModel.model],
-              val: keyframeViewModel.model.val,
-              row: keyframeViewModel.rowViewModel.model,
-              type: TimelineElementType.Keyframe,
-            } as TimelineElement);
-          }
-        }
-      });
+        },
+      );
     }
 
     if (!onlyTypes || onlyTypes.length === 0) {

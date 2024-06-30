@@ -9,6 +9,7 @@ export * from './settings/timelineOptions';
 export * from './settings/styles/timelineKeyframeStyle';
 export * from './settings/styles/timelineRowStyle';
 export * from './settings/styles/timelineStyle';
+export * from './settings/styles/timelineGroupStyle';
 export * from './utils/timelineStyleUtils';
 export * from './utils/timelineUtils';
 export * from './utils/timelineElement';
