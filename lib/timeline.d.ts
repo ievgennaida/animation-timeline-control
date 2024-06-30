@@ -407,6 +407,7 @@ export declare class Timeline extends TimelineEventsEmitter {
     _getKeyframesGroupSize: (groupViewModel: TimelineGroupViewModel, rowViewModel: TimelineRowViewModel) => DOMRect;
     _getKeyframePosition: (keyframe: TimelineKeyframe, groupViewModel: TimelineGroupViewModel, rowViewModel: TimelineRowViewModel, keyframeShape: TimelineKeyframeShape) => DOMRect | null;
     _renderKeyframes: () => void;
+    _renderKeyframe: (ctx: CanvasRenderingContext2D, keyframeViewModel: TimelineKeyframeViewModel) => void;
     _renderSelectionRect: () => void;
     _renderBackground: () => void;
     _renderTimeline: () => void;

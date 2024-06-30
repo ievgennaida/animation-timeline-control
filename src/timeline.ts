@@ -1990,9 +1990,8 @@ export class Timeline extends TimelineEventsEmitter {
       if (!this._ctx) {
         return;
       }
-      const row = keyframeViewModel.rowViewModel.model;
       const size = keyframeViewModel.size;
-      const keyframe = keyframeViewModel.model;
+
       if (size) {
         const x = this._getSharp(size.x);
         const y = size.y;
@@ -2008,75 +2007,87 @@ export class Timeline extends TimelineEventsEmitter {
 
         this._ctx.save();
 
-        // Performance FIX: use clip only  when we are in the collision! Clip is slow!
-        // Other keyframes should be hidden by bounds check.
-        // Note: clip with just render part of the keyframe
-        if (bounds && bounds.overlapY) {
-          this._ctx.beginPath();
-          this._ctx.rect(0, TimelineStyleUtils.headerHeight(this._options), this._canvasClientWidth(), this._canvasClientWidth());
-          this._ctx.clip();
-        }
-
-        const shape = keyframeViewModel.shape;
-        if (shape === TimelineKeyframeShape.None) {
-          return;
-        }
-        const rowStyle = row.style || null;
-        const groupModel = keyframeViewModel?.groupViewModel?.groupModel || null;
-        const keyframeColor = keyframe.selected
-          ? TimelineStyleUtils.keyframeSelectedFillColor(keyframe, groupModel, rowStyle, this._options)
-          : TimelineStyleUtils.keyframeFillColor(keyframe, groupModel, rowStyle, this._options);
-        const border = TimelineStyleUtils.keyframeStrokeThickness(keyframe, groupModel, rowStyle, this._options);
-        let strokeColor = '';
-        if (border > 0) {
-          if (keyframe.selected) {
-            strokeColor = TimelineStyleUtils.keyframeSelectedStrokeColor(keyframe, groupModel, rowStyle, this._options);
-          } else {
-            strokeColor = TimelineStyleUtils.keyframeStrokeColor(keyframe, groupModel, rowStyle, this._options);
-          }
-        }
-
-        if (shape == TimelineKeyframeShape.Rhomb) {
-          this._ctx.beginPath();
-          this._ctx.translate(x, y);
-          this._ctx.rotate((45 * Math.PI) / 180);
-          if (border > 0 && strokeColor) {
-            this._ctx.fillStyle = strokeColor;
-            this._ctx.rect(-size.width / 2, -size.height / 2, size.width, size.height);
-            this._ctx.fill();
+        try {
+          // Performance FIX: use clip only  when we are in the collision! Clip is slow!
+          // Other keyframes should be hidden by bounds check.
+          // Note: clip with just render part of the keyframe
+          if (bounds && bounds.overlapY) {
+            this._ctx.beginPath();
+            this._ctx.rect(0, TimelineStyleUtils.headerHeight(this._options), this._canvasClientWidth(), this._canvasClientWidth());
+            this._ctx.clip();
           }
 
-          this._ctx.fillStyle = keyframeColor;
-          // draw main keyframe data with offset.
-          this._ctx.translate(border, border);
-          this._ctx.rect(-size.width / 2, -size.height / 2, size.width - border * 2, size.height - border * 2);
-          this._ctx.fill();
-        } else if (shape == TimelineKeyframeShape.Circle) {
-          this._ctx.beginPath();
-          if (border > 0 && strokeColor) {
-            this._ctx.fillStyle = strokeColor;
-            this._ctx.arc(x, y, size.height, 0, 2 * Math.PI);
-          }
-          this._ctx.fillStyle = keyframeColor;
-          this._ctx.arc(x, y, size.height - border, 0, 2 * Math.PI);
-          this._ctx.fill();
-        } else if (shape == TimelineKeyframeShape.Rect) {
-          this._ctx.beginPath();
-
-          if (border > 0 && strokeColor) {
-            this._ctx.fillStyle = strokeColor;
-            this._ctx.rect(x, y, size.width, size.height);
-            this._ctx.fill();
-          }
-
-          this._ctx.fillStyle = keyframeColor;
-          this._ctx.rect(x + border, y + border, size.width - border, size.height - border);
-          this._ctx.fill();
+          this._renderKeyframe(this._ctx, keyframeViewModel);
+        } finally {
         }
-
         this._ctx.restore();
       }
     });
+  };
+
+  _renderKeyframe = (ctx: CanvasRenderingContext2D, keyframeViewModel: TimelineKeyframeViewModel): void => {
+    const shape = keyframeViewModel.shape;
+    if (shape === TimelineKeyframeShape.None) {
+      return;
+    }
+    const size = keyframeViewModel.size;
+    const x = this._getSharp(size.x);
+    const y = size.y;
+
+    const keyframe = keyframeViewModel.model;
+    const row = keyframeViewModel.rowViewModel.model;
+    const rowStyle = row.style || null;
+    const groupModel = keyframeViewModel?.groupViewModel?.groupModel || null;
+    const keyframeColor = keyframe.selected
+      ? TimelineStyleUtils.keyframeSelectedFillColor(keyframe, groupModel, rowStyle, this._options)
+      : TimelineStyleUtils.keyframeFillColor(keyframe, groupModel, rowStyle, this._options);
+    const border = TimelineStyleUtils.keyframeStrokeThickness(keyframe, groupModel, rowStyle, this._options);
+    let strokeColor = '';
+    if (border > 0) {
+      if (keyframe.selected) {
+        strokeColor = TimelineStyleUtils.keyframeSelectedStrokeColor(keyframe, groupModel, rowStyle, this._options);
+      } else {
+        strokeColor = TimelineStyleUtils.keyframeStrokeColor(keyframe, groupModel, rowStyle, this._options);
+      }
+    }
+
+    if (shape == TimelineKeyframeShape.Rhomb) {
+      ctx.beginPath();
+      ctx.translate(x, y);
+      ctx.rotate((45 * Math.PI) / 180);
+      if (border > 0 && strokeColor) {
+        ctx.fillStyle = strokeColor;
+        ctx.rect(-size.width / 2, -size.height / 2, size.width, size.height);
+        ctx.fill();
+      }
+
+      ctx.fillStyle = keyframeColor;
+      // draw main keyframe data with offset.
+      ctx.translate(border, border);
+      ctx.rect(-size.width / 2, -size.height / 2, size.width - border * 2, size.height - border * 2);
+      ctx.fill();
+    } else if (shape == TimelineKeyframeShape.Circle) {
+      ctx.beginPath();
+      if (border > 0 && strokeColor) {
+        ctx.fillStyle = strokeColor;
+        ctx.arc(x, y, size.height, 0, 2 * Math.PI);
+      }
+      ctx.fillStyle = keyframeColor;
+      ctx.arc(x, y, size.height - border, 0, 2 * Math.PI);
+      ctx.fill();
+    } else if (shape == TimelineKeyframeShape.Rect) {
+      ctx.beginPath();
+
+      if (border > 0 && strokeColor) {
+        ctx.fillStyle = strokeColor;
+        ctx.rect(x, y, size.width, size.height);
+        ctx.fill();
+      }
+
+      ctx.fillStyle = keyframeColor;
+      ctx.rect(x + border, y + border, size.width - border, size.height - border);
+      ctx.fill();
+    }
   };
 
   _renderSelectionRect = (): void => {

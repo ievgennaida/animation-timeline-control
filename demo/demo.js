@@ -6,6 +6,10 @@
 // @ts-check
 var outlineContainer = document.getElementById('outline-container');
 
+var keyframeWithCustomImage = {
+    val: 500
+}
+
 function generateModel() {
     /** @type {import('../lib/animation-timeline').TimelineGroupStyle} */
     const groupA = {
@@ -118,7 +122,7 @@ function generateModel() {
                 ],
             },
             {
-                title: 'Groups (Limited)',
+                title: 'Groups (MIN, MAX Limited)',
                 keyframes: [
                     {
                         val: 40,
@@ -149,7 +153,7 @@ function generateModel() {
                 ],
             },
             {
-                title: 'Show 3 lanes as one outline',
+                title: '3 Lanes For One Node',
                 keyframesDraggable: false,
                 style: {
                     fillColor: "black",
@@ -175,7 +179,7 @@ function generateModel() {
                 ],
             },
             {
-                title: 'Show 3 lanes as one outline',
+                title: '3 Lanes For One Node',
                 keyframesDraggable: false,
                 style: {
                     fillColor: "black",
@@ -201,7 +205,7 @@ function generateModel() {
                 ],
             },
             {
-                title: 'Show 3 lanes as one outline',
+                title: '3 Lanes For One Node',
                 keyframesDraggable: false,
                 style: {
                     fillColor: "black",
@@ -319,7 +323,12 @@ function generateModel() {
                     },
                 ],
             },
-            {},
+            {
+                title: "Custom Keyframe (Image)",
+                keyframes: [
+                    keyframeWithCustomImage
+                ]
+            },
             {
                 title: 'Max Value (Not Draggable)',
                 max: 4000,
@@ -374,6 +383,7 @@ function generateModel() {
 }
 const timelineModel = generateModel();
 
+
 // Log message to the screen
 var logMessage = function (message, logPanel = 1) {
     if (message) {
@@ -392,6 +402,25 @@ var logDraggingMessage = function (object, eventName) {
 /** @type {import('../lib/animation-timeline').Timeline} */
 // @ts-ignore
 var timeline = new timelineModule.Timeline();
+
+const defaultKeyframesRenderer = timeline._renderKeyframe.bind(timeline);
+
+// Custom Image
+const image = new Image();
+image.src = 'https://material-icons.github.io/material-icons-png/png/white/public/baseline-2x.png'; // replace with your image path
+image.onload = () => {
+    timeline.redraw();
+};
+// Set custom keyframes renderer
+timeline._renderKeyframe = (ctx, keyframeViewModel) => {
+    if (keyframeViewModel.model === keyframeWithCustomImage) {
+        ctx.drawImage(image, keyframeViewModel.size.x - 5, keyframeViewModel.size.y - 5, keyframeViewModel.size.width + 5, keyframeViewModel.size.height + 5);
+    } else {
+        // Use default renderer
+        defaultKeyframesRenderer(ctx, keyframeViewModel);
+    }
+}
+
 
 timeline.initialize({ id: 'timeline', headerHeight: 45 }, timelineModel);
 
