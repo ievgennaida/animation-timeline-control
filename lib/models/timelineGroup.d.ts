@@ -11,7 +11,7 @@ export interface TimelineGroup {
     /**
      * Child keyframes style.
      */
-    keyframesStyle: TimelineKeyframeStyle;
+    keyframesStyle?: TimelineKeyframeStyle;
     /**
      * Whether group is draggable.
      * Considered to be false when really set as false.

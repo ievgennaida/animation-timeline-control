@@ -246,11 +246,12 @@ Example on how to add a keyframe to existing model:
 | dragStarted     | emitted on drag started. args type: TimelineDragEvent                                       |
 | drag            | emitted when dragging. args type: TimelineDragEvent                                         |
 | dragFinished    | emitted when drag finished. args type: TimelineDragEvent                                    |
-| KeyframeChanged | emitted when drag finished. args type: TimelineKeyframeChangedEvent                         |
+| keyframeChanged | emitted when drag finished. args type: TimelineKeyframeChangedEvent                         |
+| onContextMenu   | emitted on context menu displayed. args type: TimelineKeyframeChangedEvent                  |
 
 Events can be prevented by calling args.preventDefault()
 
-Example of the type strict event subscription:
+Events subscription is performed in the JavaScript (not a DOM events):
 
 ```TypeScript
 this.timeline.onDragStarted((args: TimelineDragEvent) => {

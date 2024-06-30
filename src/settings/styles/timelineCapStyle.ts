@@ -15,11 +15,11 @@ export interface TimelineCapStyle {
   /**
    * Cap stroke color.
    */
-  strokeColor: string;
+  strokeColor?: string;
   /**
    * Cap fill color.
    */
-  fillColor: string;
+  fillColor?: string;
   /**
    * Cap type
    */

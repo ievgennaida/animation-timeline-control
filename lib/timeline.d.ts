@@ -214,6 +214,7 @@ export declare class Timeline extends TimelineEventsEmitter {
      */
     getZoom: () => number;
     _getClickDetectionRadius: (point: TimelineMouseData) => number;
+    _handleContextMenu: (args: MouseEvent | TouchEvent) => void;
     /**
      * @param args
      */
@@ -532,6 +533,10 @@ export declare class Timeline extends TimelineEventsEmitter {
      * Subscribe on scroll finished event.
      */
     onScrollFinished: (callback: (eventArgs: TimelineScrollEvent) => void) => void;
+    /**
+     * Subscribe on canvas context menu event.
+     */
+    onContextMenu: (callback: (eventArgs: TimelineClickEvent) => void) => void;
     /**
      * Private.
      * Emit internally scroll eve

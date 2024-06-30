@@ -2,6 +2,14 @@
 
 ## Changes
 
+## [2.3.3] - 10.04.2024
+
+### Changed
+
+- Added context menu event.
+- Extended demo to show different styling options.
+- Updated dev packages to the latest versions.
+
 ## [2.3.2] - 10.04.2024
 
 ### Changed

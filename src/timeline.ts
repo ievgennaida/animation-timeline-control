@@ -293,6 +293,7 @@ export class Timeline extends TimelineEventsEmitter {
     if (this._canvas) {
       this._canvas.addEventListener('touchstart', this._handleMouseDownEvent, false);
       this._canvas.addEventListener('mousedown', this._handleMouseDownEvent, false);
+      this._canvas.addEventListener('contextmenu', this._handleContextMenu, false);
     }
     window.addEventListener('mousemove', this._handleMouseMoveEvent, false);
     window.addEventListener('touchmove', this._handleMouseMoveEvent, false);
@@ -320,6 +321,7 @@ export class Timeline extends TimelineEventsEmitter {
     if (this._canvas) {
       this._canvas.removeEventListener('touchstart', this._handleMouseDownEvent);
       this._canvas.removeEventListener('mousedown', this._handleMouseDownEvent);
+      this._canvas.removeEventListener('contextmenu', this._handleContextMenu);
     } else {
       console.warn(`Cannot unsubscribe canvas while it's already empty`);
     }
@@ -525,6 +527,32 @@ export class Timeline extends TimelineEventsEmitter {
     const defaultValue = this._consts.clickDetectionMinRadius || 1;
     return Math.max(defaultValue, point?.radius || defaultValue);
   };
+
+  _handleContextMenu = (args: MouseEvent | TouchEvent): void => {
+    // Prevent drag of the canvas if canvas is selected as text:
+    TimelineUtils.clearBrowserSelection();
+    if (!this._canvas || !this._scrollContainer) {
+      this._cleanUpSelection();
+      return;
+    }
+    const mousePosTimeline = this._trackMousePos(this._canvas, args);
+
+    const clickRadius = this._getClickDetectionRadius(mousePosTimeline);
+    const elements = this.elementFromPoint(mousePosTimeline.pos, clickRadius, []);
+
+    const target = this._findDraggableElement(elements, mousePosTimeline.val);
+    // Create click event
+    const event = new TimelineClickEvent();
+    event.point = mousePosTimeline;
+    event.args = args;
+    // all elements under the click:
+    event.elements = elements;
+    // target element.
+    event.target = target;
+
+    super.emit(TimelineEvents.ContextMenu, event);
+  };
+
   /**
    * @param args
    */
@@ -1959,6 +1987,7 @@ export class Timeline extends TimelineEventsEmitter {
 
         // Performance FIX: use clip only  when we are in the collision! Clip is slow!
         // Other keyframes should be hidden by bounds check.
+        // Note: clip with just render part of the keyframe
         if (bounds && bounds.overlapY) {
           this._ctx.beginPath();
           this._ctx.rect(0, TimelineStyleUtils.headerHeight(this._options), this._canvasClientWidth(), this._canvasClientWidth());
@@ -2110,8 +2139,8 @@ export class Timeline extends TimelineEventsEmitter {
       const capSize = capStyle.width || 0;
       const capHeight = capStyle.height || 0;
       if (capSize && capHeight) {
-        this._ctx.strokeStyle = capStyle.strokeColor;
-        this._ctx.fillStyle = capStyle.fillColor;
+        this._ctx.strokeStyle = capStyle.strokeColor || '';
+        this._ctx.fillStyle = capStyle.fillColor || 'white';
         if (capStyle.capType === TimelineCapShape.Triangle) {
           this._ctx.beginPath();
           this._ctx.moveTo(timeLinePos - capSize / 2, y);
@@ -2698,6 +2727,13 @@ export class Timeline extends TimelineEventsEmitter {
   public onScrollFinished = (callback: (eventArgs: TimelineScrollEvent) => void): void => {
     this.on(TimelineEvents.ScrollFinished, callback);
   };
+  /**
+   * Subscribe on canvas context menu event.
+   */
+  public onContextMenu = (callback: (eventArgs: TimelineClickEvent) => void): void => {
+    this.on(TimelineEvents.ContextMenu, callback);
+  };
+
   /**
    * Private.
    * Emit internally scroll eve
