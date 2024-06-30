@@ -10,7 +10,7 @@ Features:
 - Snap, Zoom, Pan mode, multiple keyframes selection.
 - Keyboard support.
 - Drag multiple keyframes, drag keyframe ranges.
-- Area virtualization - only small displayed area is rendered.
+- Area virtualization - only visible canvas area is rendered.
 - Native browser scrollbars are used.
 - Horizontal scale with the automatically adjusted ticks.
 
@@ -209,10 +209,18 @@ export default TimelineComponent;
 
 ### Outline list
 
-Outline list\tree can implemented as a separate HTML component and synchronized with the timeline.
+Outline list\tree can implemented as a separate HTML component and scrolling needs to be synchronized with the timeline.
 See the [live demo](https://ievgennaida.github.io/animation-timeline-control/)
 
 ![gif preview](demo/outline-list.gif)
+
+#### Tree View implementation
+
+Next steps has to be followed to synchronize custom tree view html with the timeline component:
+
+- Tree node that should have the same height as row model for the animation timeline.
+- When some of the tree node entries are collapsed than corresponding animation timeline rows should become hidden.
+- scrolling position has to be synchronized, this can be found here: [live demo](https://ievgennaida.github.io/animation-timeline-control/)
 
 ## Model
 
@@ -389,7 +397,7 @@ To debug project you should run command once files are changed:
 npm run build
 ```
 
-Then navigate to the debug window and click 'Launch Debug File'.
+Then navigate to the VsCode debug window and click 'Launch Debug File'.
 Put breakpoint in any typescript file and trigger function from the browser.
 
 Recommended extensions:
