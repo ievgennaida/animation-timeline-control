@@ -1,7 +1,7 @@
 import { TimelineRanged } from '../models/timelineRanged';
 import { TimelineOptions } from '../settings/timelineOptions';
 
-const denominators = [1, 2, 5, 10];
+const defaultDenominators = [1, 2, 5, 10];
 export class TimelineUtils {
   static drawLine(ctx: CanvasRenderingContext2D, x1: number, y1: number, x2: number, y2: number): void {
     ctx.moveTo(x1, y1);
@@ -42,7 +42,10 @@ export class TimelineUtils {
   /**
    * Find beautiful step for the header line gauge.
    */
-  static findGoodStep(originalStep: number, divisionCheck = 0): number {
+  static findGoodStep(originalStep: number, divisionCheck = 0, denominators: number[] = defaultDenominators): number {
+    if (!denominators) {
+      denominators = defaultDenominators;
+    }
     if (originalStep <= 0 || isNaN(originalStep) || !Number.isFinite(originalStep)) {
       return originalStep;
     }

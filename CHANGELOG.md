@@ -2,6 +2,13 @@
 
 ## Changes
 
+## [2.3.5] - 21.07.2024
+
+### Changed
+
+- Allow to change gauge denominators.
+- Dev packages updates.
+
 ## [2.3.4] - 10.04.2024
 
 ### Changed

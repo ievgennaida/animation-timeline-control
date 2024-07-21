@@ -1490,14 +1490,11 @@ export class Timeline extends TimelineEventsEmitter {
    * @param ms milliseconds to convert.
    * @param isSeconds whether seconds are passed.
    */
-  _formatUnitsText = (ms: number, isSeconds = false): string => {
+  _formatUnitsText = (ms: number): string => {
     const sign = TimelineUtils.sign(ms) < 0 ? '-' : '';
     ms = Math.abs(ms);
     // 1- Convert to seconds:
     let seconds = ms / 1000;
-    if (isSeconds) {
-      seconds = ms;
-    }
 
     const year = Math.floor(seconds / (365 * 86400));
     seconds = seconds % (365 * 86400);
@@ -1568,8 +1565,8 @@ export class Timeline extends TimelineEventsEmitter {
     }
 
     // Find the nearest 'beautiful' step for a gauge.
-    // 'beautiful' step should be dividable by 1/2/5/10!
-    const step = TimelineUtils.findGoodStep(valDistance / (screenWidth / this._options.stepPx));
+    // 'beautiful' step. Ex: should be dividable by 1/2/5/10!
+    const step = TimelineUtils.findGoodStep(valDistance / (screenWidth / this._options.stepPx), 0, this._options?.denominators);
 
     // Find beautiful start point:
     const fromVal = Math.floor(from / step) * step;
@@ -1582,7 +1579,7 @@ export class Timeline extends TimelineEventsEmitter {
     }
     let smallStep = 0;
     if (this._options.stepSmallPx) {
-      smallStep = TimelineUtils.findGoodStep(valDistance / (screenWidth / this._options.stepSmallPx));
+      smallStep = TimelineUtils.findGoodStep(valDistance / (screenWidth / this._options.stepSmallPx), 0, this._options?.denominators);
     }
 
     let lastTextStart = 0;

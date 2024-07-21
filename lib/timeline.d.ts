@@ -369,7 +369,7 @@ export declare class Timeline extends TimelineEventsEmitter {
      * @param ms milliseconds to convert.
      * @param isSeconds whether seconds are passed.
      */
-    _formatUnitsText: (ms: number, isSeconds?: boolean) => string;
+    _formatUnitsText: (ms: number) => string;
     /**
      * Left padding of the timeline.
      */

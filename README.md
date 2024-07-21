@@ -207,6 +207,19 @@ export default TimelineComponent;
 ></TimelineComponent>
 ```
 
+## FAQ
+
+- Can I have a tree view or list on the left/right?
+Answer: The outline/tree view has to be implemented separately. This gives additional control over the styling.
+- Can I have separately connected groups of keyframes per row?
+Answer: Yes, multiple groups can be created per row. See <demo/demo.js> for details.
+- Can I override the format of the gauge?
+Answer: Yes, the text can be changed. Just override the method _formatUnitsText.
+- Can I have an individual style per row/keyframe/group?
+Answer: Yes, every instance can be styled separately if needed.
+- Can I style individual keyframes?
+Answer: Yes, you have to override _renderKeyframe. See <demo/demo.js> for details.
+
 ### Outline list
 
 Outline list\tree can implemented as a separate HTML component and scrolling needs to be synchronized with the timeline.
@@ -371,7 +384,7 @@ Separate global styles for the timeline indicator are used:
 
 See Changelog [here](./CHANGELOG.md)
 
-## Development
+## Development of the component
 
 ### Build
 

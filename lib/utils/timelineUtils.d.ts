@@ -14,7 +14,7 @@ export declare class TimelineUtils {
     /**
      * Find beautiful step for the header line gauge.
      */
-    static findGoodStep(originalStep: number, divisionCheck?: number): number;
+    static findGoodStep(originalStep: number, divisionCheck?: number, denominators?: number[]): number;
     /**
      * Keep value in min, max bounds.
      */

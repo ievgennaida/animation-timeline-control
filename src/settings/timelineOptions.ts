@@ -107,4 +107,10 @@ export interface TimelineOptions extends TimelineRanged {
    * Timeline can be dragged or position can be changed by user interaction. Default: true
    */
   timelineDraggable?: boolean;
+
+  /**
+   * Array of the denominators used to determine 'beautiful' numbers to be rendered for the gauge.
+   * Default: [1, 2, 5, 10];
+   */
+  denominators?: number[];
 }
